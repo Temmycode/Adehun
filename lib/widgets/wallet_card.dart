@@ -1,6 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../constants/mock_data.dart';
 
@@ -27,79 +27,219 @@ class _WalletCardState extends State<WalletCard> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(widget.compact ? 20 : 24),
       decoration: BoxDecoration(
-        gradient: AppColors.walletGradient,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF3B4BF9).withValues(alpha: 0.25),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -4,
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Wallet Balance',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => setState(() => _balanceVisible = !_balanceVisible),
-                child: Icon(
-                  _balanceVisible ? Iconsax.eye_copy : Iconsax.eye_slash_copy,
-                  color: Colors.white.withValues(alpha: 0.8),
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              _balanceVisible
-                  ? '${MockData.walletCurrency}${_formatAmount(MockData.walletBalance)}'
-                  : '${MockData.walletCurrency}****',
-              style: AppTextStyles.amountLarge.copyWith(
-                color: Colors.white,
-                fontSize: widget.compact ? 28 : 32,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Stack(
+          children: [
+            // Mesh gradient background image
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/mesh-gradient.png',
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-          if (widget.showActions) ...[
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 10,
-              runSpacing: 8,
-              children: [
-                _ActionButton(
-                  icon: Iconsax.add,
-                  label: 'Fund',
-                  onTap: widget.onFundWallet,
+
+            // Dark overlay for text readability
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.35),
+                      Colors.black.withValues(alpha: 0.15),
+                      Colors.black.withValues(alpha: 0.30),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
                 ),
-                _ActionButton(
-                  icon: Iconsax.arrow_up_2,
-                  label: 'Send',
-                  onTap: () {},
+              ),
+            ),
+
+            // Frosted decorative circle top-right
+            Positioned(
+              top: -30,
+              right: -30,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    width: 1.5,
+                  ),
                 ),
-                _ActionButton(
-                  icon: Iconsax.clock_copy,
-                  label: 'History',
-                  onTap: () {},
+              ),
+            ),
+
+            // Smaller decorative circle
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    width: 1,
+                  ),
                 ),
-              ],
+              ),
+            ),
+
+            // Bottom-left decorative element
+            Positioned(
+              bottom: -20,
+              left: -20,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+
+            // Card content
+            Padding(
+              padding: EdgeInsets.all(widget.compact ? 20 : 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Wallet label with frosted chip
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Iconsax.wallet_3,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Wallet Balance',
+                                  style: AppTextStyles.labelSmall.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Visibility toggle
+                      GestureDetector(
+                        onTap: () =>
+                            setState(() => _balanceVisible = !_balanceVisible),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                ),
+                              ),
+                              child: Icon(
+                                _balanceVisible
+                                    ? Iconsax.eye_copy
+                                    : Iconsax.eye_slash_copy,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: widget.compact ? 16 : 20),
+                  // Balance amount
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _balanceVisible
+                          ? '${MockData.walletCurrency}${_formatAmount(MockData.walletBalance)}'
+                          : '${MockData.walletCurrency}\u2022\u2022\u2022\u2022\u2022\u2022',
+                      style: AppTextStyles.amountLarge.copyWith(
+                        color: Colors.white,
+                        fontSize: widget.compact ? 30 : 34,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  if (widget.showActions) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        _ActionChip(
+                          icon: Iconsax.add,
+                          label: 'Fund',
+                          onTap: widget.onFundWallet,
+                        ),
+                        const SizedBox(width: 10),
+                        _ActionChip(
+                          icon: Iconsax.arrow_up_2,
+                          label: 'Send',
+                          onTap: () {},
+                        ),
+                        const SizedBox(width: 10),
+                        _ActionChip(
+                          icon: Iconsax.clock_copy,
+                          label: 'History',
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -119,12 +259,12 @@ class _WalletCardState extends State<WalletCard> {
   }
 }
 
-class _ActionButton extends StatelessWidget {
+class _ActionChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
 
-  const _ActionButton({
+  const _ActionChip({
     required this.icon,
     required this.label,
     this.onTap,
@@ -134,22 +274,34 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTextStyles.labelMedium.copyWith(color: Colors.white),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

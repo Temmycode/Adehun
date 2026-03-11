@@ -116,30 +116,16 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            // Stats row
+            // Analytics overview
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: Row(
-                  children: [
-                    _StatCard(
-                      label: 'Active',
-                      count: '${activeAgreements.length}',
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      label: 'Completed',
-                      count: '${MockData.agreements.where((a) => a['status'] == 'COMPLETED').length}',
-                      color: AppColors.success,
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      label: 'Total',
-                      count: '${MockData.agreements.length}',
-                      color: AppColors.accent,
-                    ),
-                  ],
+                child: _AnalyticsCard(
+                  active: activeAgreements.length,
+                  completed: MockData.agreements
+                      .where((a) => a['status'] == 'COMPLETED')
+                      .length,
+                  total: MockData.agreements.length,
                 ),
               ),
             ),
@@ -311,42 +297,137 @@ class _QuickAction extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _AnalyticsCard extends StatelessWidget {
+  final int active;
+  final int completed;
+  final int total;
+
+  const _AnalyticsCard({
+    required this.active,
+    required this.completed,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final maxVal = total > 0 ? total : 1;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Iconsax.chart_1_copy, size: 16, color: AppColors.textTertiary),
+              const SizedBox(width: 6),
+              Text(
+                'Agreement Overview',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _BarRow(
+            label: 'Active',
+            count: active,
+            fraction: active / maxVal,
+            color: AppColors.primary,
+          ),
+          const SizedBox(height: 12),
+          _BarRow(
+            label: 'Completed',
+            count: completed,
+            fraction: completed / maxVal,
+            color: AppColors.success,
+          ),
+          const SizedBox(height: 12),
+          _BarRow(
+            label: 'Total',
+            count: total,
+            fraction: 1.0,
+            color: AppColors.accent,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BarRow extends StatelessWidget {
   final String label;
-  final String count;
+  final int count;
+  final double fraction;
   final Color color;
 
-  const _StatCard({
+  const _BarRow({
     required this.label,
     required this.count,
+    required this.fraction,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.15)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              count,
-              style: AppTextStyles.h2.copyWith(color: color),
+    return Row(
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 11,
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: AppTextStyles.labelSmall.copyWith(color: color),
-            ),
-          ],
+          ),
         ),
-      ),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    height: 8,
+                    width: constraints.maxWidth * fraction.clamp(0.0, 1.0),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 20,
+          child: Text(
+            '$count',
+            textAlign: TextAlign.right,
+            style: AppTextStyles.numberSmall.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

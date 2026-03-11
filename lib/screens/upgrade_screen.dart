@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -14,67 +16,68 @@ class UpgradeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(CupertinoIcons.xmark),
           onPressed: () => context.pop(),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            // Illustration
-            Container(
-              height: 200,
-              width: 200,
-              decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(28),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  // Illustration — clean, no container
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: SvgPicture.asset(
+                      'assets/illustrations/illustration 5.svg',
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Text('Unlock Premium', style: AppTextStyles.displayMedium),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Get unlimited agreements and more\npowerful features',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Features list
+                  _FeatureItem(
+                    icon: Iconsax.unlimited_copy,
+                    title: 'Unlimited Agreements',
+                    subtitle: 'Create as many agreements as you need',
+                  ),
+                  _FeatureItem(
+                    icon: Iconsax.flash_1_copy,
+                    title: 'Priority Support',
+                    subtitle: 'Get help faster when you need it',
+                  ),
+                  _FeatureItem(
+                    icon: Iconsax.shield_tick_copy,
+                    title: 'Enhanced Protection',
+                    subtitle: 'Advanced dispute resolution tools',
+                  ),
+                  _FeatureItem(
+                    icon: Iconsax.chart_copy,
+                    title: 'Detailed Analytics',
+                    subtitle: 'Track your transaction history in depth',
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.all(28),
-              child: SvgPicture.asset(
-                'assets/illustrations/illustration 5.svg',
-                fit: BoxFit.contain,
-              ),
             ),
-            const SizedBox(height: 28),
-            Text(
-              'Unlock Premium',
-              style: AppTextStyles.displayMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Get unlimited agreements and more\npowerful features',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            // Features list
-            _FeatureItem(
-              icon: Icons.all_inclusive_rounded,
-              title: 'Unlimited Agreements',
-              subtitle: 'Create as many agreements as you need',
-            ),
-            _FeatureItem(
-              icon: Icons.speed_rounded,
-              title: 'Priority Support',
-              subtitle: 'Get help faster when you need it',
-            ),
-            _FeatureItem(
-              icon: Icons.shield_outlined,
-              title: 'Enhanced Protection',
-              subtitle: 'Advanced dispute resolution tools',
-            ),
-            _FeatureItem(
-              icon: Icons.analytics_outlined,
-              title: 'Detailed Analytics',
-              subtitle: 'Track your transaction history in depth',
-            ),
-            const Spacer(),
-            // Pricing
-            Container(
+          ),
+          // Pricing pinned at bottom
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+            child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -119,8 +122,10 @@ class UpgradeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            TextButton(
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: TextButton(
               onPressed: () => context.pop(),
               child: Text(
                 'Maybe later',
@@ -129,9 +134,9 @@ class UpgradeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
@@ -173,11 +178,7 @@ class _FeatureItem extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(
-            Icons.check_circle_rounded,
-            color: AppColors.success,
-            size: 22,
-          ),
+          Icon(Iconsax.tick_circle, color: AppColors.success, size: 22),
         ],
       ),
     );

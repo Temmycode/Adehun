@@ -136,51 +136,83 @@ class _SuccessScreenState extends State<SuccessScreen>
                       child: child,
                     );
                   },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Illustration background
-                      Container(
-                        height: 220,
-                        width: 220,
-                        decoration: BoxDecoration(
-                          color: config.accentColor.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(32),
-                        ),
-                        padding: const EdgeInsets.all(32),
-                        child: SvgPicture.asset(
-                          config.illustration,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      // Checkmark overlay
-                      Positioned(
-                        bottom: 0,
-                        right: 20,
-                        child: Container(
-                          width: 52,
-                          height: 52,
+                  child: SizedBox(
+                    height: 260,
+                    width: 260,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer ripple ring
+                        Container(
+                          width: 260,
+                          height: 260,
                           decoration: BoxDecoration(
-                            color: config.accentColor,
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: config.accentColor.withValues(
-                                  alpha: 0.3,
-                                ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Iconsax.tick_circle,
-                            color: Colors.white,
-                            size: 28,
+                            border: Border.all(
+                              color: config.accentColor.withValues(alpha: 0.06),
+                              width: 1.5,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        // Middle ripple ring
+                        Container(
+                          width: 220,
+                          height: 220,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: config.accentColor.withValues(alpha: 0.10),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        // Inner soft glow
+                        Container(
+                          width: 180,
+                          height: 180,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: config.accentColor.withValues(alpha: 0.05),
+                          ),
+                        ),
+                        // Illustration
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child: SvgPicture.asset(
+                            config.illustration,
+                            width: 160,
+                            height: 160,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        // Checkmark badge
+                        Positioned(
+                          bottom: 16,
+                          right: 30,
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: config.accentColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: config.accentColor
+                                      .withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Iconsax.tick_circle,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),

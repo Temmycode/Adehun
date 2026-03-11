@@ -1,6 +1,6 @@
 name: adehun_mvp
 description: "Adehun — Modern Escrow Mobile App"
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
@@ -26,3 +26,5 @@ flutter:
 
   assets:
     - assets/illustrations/
+    - assets/icons/
+    - assets/images/

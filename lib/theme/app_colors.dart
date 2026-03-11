@@ -31,7 +31,7 @@ class AppColors {
   static const Color statusDraft = Color(0xFF9B9FB5);
   static const Color statusPending = Color(0xFFFFA726);
   static const Color statusActive = Color(0xFF3B4BF9);
-  static const Color statusInProgress = Color(0xFF29B6F6);
+  static const Color statusInProgress = Color(0xFF5B8DEF);
   static const Color statusConditionsMet = Color(0xFF66BB6A);
   static const Color statusCompleted = Color(0xFF43A047);
   static const Color statusDisputed = Color(0xFFEF5350);
@@ -42,7 +42,7 @@ class AppColors {
   static const Color statusDraftBg = Color(0xFFF0F0F4);
   static const Color statusPendingBg = Color(0xFFFFF3E0);
   static const Color statusActiveBg = Color(0xFFEEF0FF);
-  static const Color statusInProgressBg = Color(0xFFE1F5FE);
+  static const Color statusInProgressBg = Color(0xFFE8EEFF);
   static const Color statusConditionsMetBg = Color(0xFFE8F5E9);
   static const Color statusCompletedBg = Color(0xFFE8F5E9);
   static const Color statusDisputedBg = Color(0xFFFFEBEE);
@@ -56,8 +56,8 @@ class AppColors {
   static const Color errorLight = Color(0xFFFFEBEE);
   static const Color warning = Color(0xFFFFA726);
   static const Color warningLight = Color(0xFFFFF3E0);
-  static const Color info = Color(0xFF29B6F6);
-  static const Color infoLight = Color(0xFFE1F5FE);
+  static const Color info = Color(0xFF5B8DEF);
+  static const Color infoLight = Color(0xFFE8EEFF);
 
   // Gradient for wallet card
   static const LinearGradient walletGradient = LinearGradient(

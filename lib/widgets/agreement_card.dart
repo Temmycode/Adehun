@@ -34,6 +34,7 @@ class AgreementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Row 1: Title + status
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -41,7 +42,7 @@ class AgreementCard extends StatelessWidget {
                   child: Text(
                     agreement['title'] as String,
                     style: AppTextStyles.labelLarge,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -49,67 +50,35 @@ class AgreementCard extends StatelessWidget {
                 StatusBadge(status: status, compact: true),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              '\u20A6${_formatAmount(amount)}',
-              style: AppTextStyles.h3.copyWith(
-                color: AppColors.primary,
-              ),
+            const SizedBox(height: 14),
+            // Row 2: Amount + parties inline
+            Row(
+              children: [
+                // Amount
+                Text(
+                  '\u20A6${_formatAmount(amount)}',
+                  style: AppTextStyles.amountMedium.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 18,
+                  ),
+                ),
+                const Spacer(),
+                // Parties - compact inline avatars
+                _InlineParties(
+                  depositorInitials: depositor['initials'] as String,
+                  beneficiaryInitials:
+                      (beneficiary['initials'] as String).isNotEmpty
+                          ? beneficiary['initials'] as String
+                          : '?',
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  _PartyAvatar(
-                    initials: depositor['initials'] as String,
-                    label: 'Depositor',
-                    name: depositor['name'] as String,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Icon(
-                      Iconsax.arrow_right_2,
-                      size: 16,
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                  _PartyAvatar(
-                    initials: (beneficiary['initials'] as String).isNotEmpty
-                        ? beneficiary['initials'] as String
-                        : '?',
-                    label: 'Beneficiary',
-                    name: (beneficiary['name'] as String).isNotEmpty
-                        ? beneficiary['name'] as String
-                        : 'Not assigned',
-                  ),
-                ],
-              ),
-            ),
+            // Row 3: Conditions progress (only if conditions exist)
             if (conditions.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Iconsax.task_square_copy,
-                    size: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${_metConditions(conditions)}/${conditions.length} conditions met',
-                    style: AppTextStyles.bodySmall,
-                  ),
-                  const Spacer(),
-                  _ConditionProgress(
-                    met: _metConditions(conditions),
-                    total: conditions.length,
-                  ),
-                ],
+              const SizedBox(height: 14),
+              _ConditionBar(
+                met: _metConditions(conditions),
+                total: conditions.length,
               ),
             ],
           ],
@@ -137,84 +106,99 @@ class AgreementCard extends StatelessWidget {
   }
 }
 
-class _PartyAvatar extends StatelessWidget {
-  final String initials;
-  final String label;
-  final String name;
+class _InlineParties extends StatelessWidget {
+  final String depositorInitials;
+  final String beneficiaryInitials;
 
-  const _PartyAvatar({
-    required this.initials,
-    required this.label,
-    required this.name,
+  const _InlineParties({
+    required this.depositorInitials,
+    required this.beneficiaryInitials,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: AppColors.primarySurface,
-            child: Text(
-              initials,
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _MiniAvatar(initials: depositorInitials),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Icon(
+            Iconsax.arrow_right_3_copy,
+            size: 12,
+            color: AppColors.textTertiary,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: AppTextStyles.labelSmall,
-                ),
-                Text(
-                  name,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
+        _MiniAvatar(initials: beneficiaryInitials),
+      ],
+    );
+  }
+}
+
+class _MiniAvatar extends StatelessWidget {
+  final String initials;
+
+  const _MiniAvatar({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      radius: 14,
+      backgroundColor: AppColors.primarySurface,
+      child: Text(
+        initials,
+        style: AppTextStyles.labelSmall.copyWith(
+          color: AppColors.primary,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
 }
 
-class _ConditionProgress extends StatelessWidget {
+class _ConditionBar extends StatelessWidget {
   final int met;
   final int total;
 
-  const _ConditionProgress({
+  const _ConditionBar({
     required this.met,
     required this.total,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 60,
-      height: 6,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(3),
-        child: LinearProgressIndicator(
-          value: total > 0 ? met / total : 0,
-          backgroundColor: AppColors.surfaceVariant,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            met == total ? AppColors.statusCompleted : AppColors.primary,
+    return Row(
+      children: [
+        Icon(
+          Iconsax.task_square_copy,
+          size: 14,
+          color: AppColors.textTertiary,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          '$met/$total conditions',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: AppColors.textTertiary,
+            fontSize: 11,
           ),
         ),
-      ),
+        const Spacer(),
+        SizedBox(
+          width: 48,
+          height: 4,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: total > 0 ? met / total : 0,
+              backgroundColor: AppColors.surfaceVariant,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                met == total ? AppColors.statusCompleted : AppColors.primary,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

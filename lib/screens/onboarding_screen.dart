@@ -95,41 +95,54 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final illustrationSize =
-                            (constraints.maxWidth * 0.7).clamp(180.0, 280.0);
+                        final illustrationSize = (constraints.maxWidth * 0.7)
+                            .clamp(180.0, 280.0);
                         return Column(
-                      children: [
-                        const Spacer(flex: 1),
-                        // Illustration
-                        Container(
-                          height: illustrationSize,
-                          width: illustrationSize,
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          padding: const EdgeInsets.all(32),
-                          child: SvgPicture.asset(
-                            page.illustration,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const Spacer(flex: 1),
-                        // Title with accent
-                        _buildTitle(page.title, page.accentWord),
-                        const SizedBox(height: 16),
-                        // Subtitle
-                        Text(
-                          page.subtitle,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                            height: 1.6,
-                          ),
-                        ),
-                        const Spacer(flex: 2),
-                      ],
-                    );
+                          children: [
+                            const Spacer(flex: 1),
+                            // Illustration — free-floating with soft shadow
+                            Container(
+                              height: illustrationSize,
+                              width: index != 1
+                                  ? double.maxFinite
+                                  : illustrationSize,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.08,
+                                    ),
+                                    blurRadius: 40,
+                                    offset: const Offset(0, 12),
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: SvgPicture.asset(
+                                  page.illustration,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const Spacer(flex: 1),
+                            // Title with accent
+                            _buildTitle(page.title, page.accentWord),
+                            const SizedBox(height: 16),
+                            // Subtitle
+                            Text(
+                              page.subtitle,
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                                height: 1.6,
+                              ),
+                            ),
+                            const Spacer(flex: 2),
+                          ],
+                        );
                       },
                     ),
                   );

@@ -95,17 +95,12 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: GestureDetector(
-                          onTap: () =>
-                              setState(() => _selectedFilter = filter),
+                          onTap: () => setState(() => _selectedFilter = filter),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
+                            alignment: .center,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.surface,
+                              color: AppColors.surface,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
@@ -116,9 +111,7 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                             child: Text(
                               filter,
                               style: AppTextStyles.labelMedium.copyWith(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -132,27 +125,22 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
 
             // Agreements list
             if (agreements.isEmpty)
-              SliverFillRemaining(
-                child: _EmptyState(),
-              )
+              SliverFillRemaining(child: _EmptyState())
             else
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final agreement = agreements[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: AgreementCard(
-                          agreement: agreement,
-                          onTap: () => context
-                              .push('/agreement/${agreement['id']}'),
-                        ),
-                      );
-                    },
-                    childCount: agreements.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final agreement = agreements[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: AgreementCard(
+                        agreement: agreement,
+                        onTap: () =>
+                            context.push('/agreement/${agreement['id']}'),
+                      ),
+                    );
+                  }, childCount: agreements.length),
                 ),
               ),
 
@@ -187,10 +175,7 @@ class _EmptyState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Text(
-              'No Agreements Yet',
-              style: AppTextStyles.h3,
-            ),
+            Text('No Agreements Yet', style: AppTextStyles.h3),
             const SizedBox(height: 8),
             Text(
               'Create your first escrow agreement\nto get started',
