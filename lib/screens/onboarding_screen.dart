@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -59,8 +62,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -74,7 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Text(
                     'Skip',
                     style: AppTextStyles.labelLarge.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ),
@@ -136,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               page.subtitle,
                               textAlign: TextAlign.center,
                               style: AppTextStyles.bodyMedium.copyWith(
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                                 height: 1.6,
                               ),
                             ),
@@ -174,27 +178,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  // Next button
+                  // Next button with circular progress
                   GestureDetector(
                     onTap: _nextPage,
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                    child: SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: CustomPaint(
+                        painter: _CircularProgressPainter(
+                          progress: (_currentPage + 1) / _pages.length,
+                          trackColor: AppColors.primary.withValues(alpha: 0.15),
+                          progressColor: AppColors.primary,
+                          strokeWidth: 3,
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 52,
+                            height: 52,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary,
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.arrow_right,
+                              color: Colors.white,
+                              size: 22,
+                            ),
                           ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Iconsax.arrow_right_2,
-                        color: Colors.white,
-                        size: 24,
+                        ),
                       ),
                     ),
                   ),
@@ -208,11 +219,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildTitle(String title, String accentWord) {
+    final colors = context.colors;
     final parts = title.split(accentWord);
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: AppTextStyles.displayMedium,
+        style: AppTextStyles.displayMedium.copyWith(
+          color: colors.textPrimary,
+        ),
         children: [
           if (parts.isNotEmpty) TextSpan(text: parts[0]),
           TextSpan(
@@ -240,4 +254,55 @@ class _OnboardingPage {
     required this.subtitle,
     required this.accentWord,
   });
+}
+
+class _CircularProgressPainter extends CustomPainter {
+  final double progress;
+  final Color trackColor;
+  final Color progressColor;
+  final double strokeWidth;
+
+  _CircularProgressPainter({
+    required this.progress,
+    required this.trackColor,
+    required this.progressColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    // Track
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    // Progress arc
+    final progressPaint = Paint()
+      ..color = progressColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    const startAngle = -math.pi / 2;
+    final sweepAngle = 2 * math.pi * progress;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CircularProgressPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

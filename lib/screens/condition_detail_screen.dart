@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../constants/mock_data.dart';
 import '../widgets/status_badge.dart';
@@ -26,6 +27,7 @@ class ConditionDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final condition = _findCondition();
     if (condition == null) {
       return Scaffold(
@@ -45,9 +47,9 @@ class ConditionDetailScreen extends StatelessWidget {
         condition['requiredFrom'] as Map<String, dynamic>?;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('Condition Details', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -70,7 +72,7 @@ class ConditionDetailScreen extends StatelessWidget {
             Text(
               condition['description'] as String,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
 
@@ -81,7 +83,7 @@ class ConditionDetailScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
+                  color: colors.primarySurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: AppColors.primary.withValues(alpha: 0.15),
@@ -109,7 +111,7 @@ class ConditionDetailScreen extends StatelessWidget {
                           Text(
                             'Required from',
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 1),
@@ -257,6 +259,7 @@ class _AssetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final name = asset['name'] as String;
     final type = asset['type'] as String;
     final status = asset['status'] as String;
@@ -264,9 +267,9 @@ class _AssetCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Row(
         children: [
@@ -276,8 +279,8 @@ class _AssetCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: type == 'image'
-                  ? AppColors.primarySurface
-                  : AppColors.surfaceVariant,
+                  ? colors.primarySurface
+                  : colors.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -286,7 +289,7 @@ class _AssetCard extends StatelessWidget {
                   : Iconsax.document_copy,
               color: type == 'image'
                   ? AppColors.primary
-                  : AppColors.textSecondary,
+                  : colors.textSecondary,
               size: 24,
             ),
           ),
@@ -318,6 +321,7 @@ class _EmptyAssets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 40),
@@ -327,12 +331,12 @@ class _EmptyAssets extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: colors.surfaceVariant,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
+            child: Icon(
               Iconsax.cloud_add_copy,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               size: 32,
             ),
           ),

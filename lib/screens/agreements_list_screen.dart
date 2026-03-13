@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_color_scheme.dart';
 import '../constants/mock_data.dart';
 import '../widgets/agreement_card.dart';
 
@@ -44,10 +45,11 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final agreements = _filteredAgreements;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -83,10 +85,11 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
             // Filter chips
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 0, 8),
+                padding: const EdgeInsets.only(top: 16, bottom: 8),
                 child: SizedBox(
                   height: 38,
                   child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     scrollDirection: Axis.horizontal,
                     itemCount: _filters.length,
                     itemBuilder: (context, index) {
@@ -100,18 +103,18 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                             alignment: .center,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: colors.surface,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
                                     ? AppColors.primary
-                                    : AppColors.cardBorder,
+                                    : colors.cardBorder,
                               ),
                             ),
                             child: Text(
                               filter,
                               style: AppTextStyles.labelMedium.copyWith(
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ),
@@ -155,6 +158,7 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -165,7 +169,7 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: colors.primarySurface,
                 borderRadius: BorderRadius.circular(28),
               ),
               child: const Icon(
@@ -181,7 +185,7 @@ class _EmptyState extends StatelessWidget {
               'Create your first escrow agreement\nto get started',
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 24),

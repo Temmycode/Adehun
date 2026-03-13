@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_color_scheme.dart';
 import '../constants/mock_data.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/transaction_tile.dart';
@@ -11,8 +11,9 @@ class WalletScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -20,7 +21,7 @@ class WalletScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Text('Wallet', style: AppTextStyles.h1),
+                child: Text('Wallet', style: AppTextStyles.h1.copyWith(color: colors.textPrimary)),
               ),
             ),
 
@@ -38,7 +39,7 @@ class WalletScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 4),
-                child: Text('Transaction History', style: AppTextStyles.h3),
+                child: Text('Transaction History', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
               ),
             ),
 

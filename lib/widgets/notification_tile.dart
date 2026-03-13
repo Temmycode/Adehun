@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class NotificationTile extends StatelessWidget {
@@ -15,6 +16,7 @@ class NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final type = notification['type'] as String;
     final title = notification['title'] as String;
     final message = notification['message'] as String;
@@ -26,9 +28,9 @@ class NotificationTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: read ? AppColors.surface : AppColors.primarySurface.withValues(alpha: 0.5),
+          color: read ? colors.surface : colors.primarySurface.withValues(alpha: 0.5),
           border: Border(
-            bottom: BorderSide(color: AppColors.cardBorder),
+            bottom: BorderSide(color: colors.cardBorder),
           ),
         ),
         child: Row(
@@ -38,7 +40,7 @@ class NotificationTile extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: _getIconBgColor(type),
+                color: _getIconBgColor(type, colors),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -77,7 +79,7 @@ class NotificationTile extends StatelessWidget {
                   Text(
                     message,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -130,26 +132,26 @@ class NotificationTile extends StatelessWidget {
       case 'REMINDER':
         return AppColors.accent;
       default:
-        return AppColors.textSecondary;
+        return AppColors.statusDraft;
     }
   }
 
-  Color _getIconBgColor(String type) {
+  Color _getIconBgColor(String type, AppColorScheme colors) {
     switch (type) {
       case 'INVITATION':
-        return AppColors.primarySurface;
+        return colors.primarySurface;
       case 'CONDITION_UPDATE':
-        return AppColors.infoLight;
+        return colors.infoLight;
       case 'APPROVAL':
-        return AppColors.successLight;
+        return colors.successLight;
       case 'PAYMENT':
-        return AppColors.successLight;
+        return colors.successLight;
       case 'DISPUTE':
-        return AppColors.errorLight;
+        return colors.errorLight;
       case 'REMINDER':
-        return AppColors.warningLight;
+        return colors.warningLight;
       default:
-        return AppColors.surfaceVariant;
+        return colors.surfaceVariant;
     }
   }
 }

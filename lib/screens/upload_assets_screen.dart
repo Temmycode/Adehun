@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class UploadAssetsScreen extends StatefulWidget {
@@ -37,10 +38,11 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('Upload Assets', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -56,7 +58,7 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
             Text(
               'Upload proof of work for this condition. You can upload images, documents, or any relevant files.',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -68,7 +70,7 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 40),
                 decoration: BoxDecoration(
-                  color: AppColors.primarySurface.withValues(alpha: 0.5),
+                  color: colors.primarySurface.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: AppColors.primary.withValues(alpha: 0.3),
@@ -138,9 +140,9 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.cardBorder),
+                      border: Border.all(color: colors.cardBorder),
                     ),
                     child: Row(
                       children: [
@@ -149,8 +151,8 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                           height: 40,
                           decoration: BoxDecoration(
                             color: file.type == 'image'
-                                ? AppColors.primarySurface
-                                : AppColors.surfaceVariant,
+                                ? colors.primarySurface
+                                : colors.surfaceVariant,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -159,7 +161,7 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                                 : Iconsax.document_copy,
                             color: file.type == 'image'
                                 ? AppColors.primary
-                                : AppColors.textSecondary,
+                                : colors.textSecondary,
                             size: 20,
                           ),
                         ),
@@ -176,9 +178,9 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             CupertinoIcons.xmark,
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                             size: 20,
                           ),
                           onPressed: () {

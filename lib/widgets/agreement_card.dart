@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import 'status_badge.dart';
 
@@ -16,6 +17,7 @@ class AgreementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final amount = agreement['amount'] as double;
     final status = agreement['status'] as String;
     final depositor = agreement['depositor'] as Map<String, dynamic>;
@@ -27,9 +29,9 @@ class AgreementCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.cardBorder),
+          border: Border.all(color: colors.cardBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +43,7 @@ class AgreementCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     agreement['title'] as String,
-                    style: AppTextStyles.labelLarge,
+                    style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -117,6 +119,7 @@ class _InlineParties extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -126,7 +129,7 @@ class _InlineParties extends StatelessWidget {
           child: Icon(
             Iconsax.arrow_right_3_copy,
             size: 12,
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
         ),
         _MiniAvatar(initials: beneficiaryInitials),
@@ -142,9 +145,10 @@ class _MiniAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return CircleAvatar(
       radius: 14,
-      backgroundColor: AppColors.primarySurface,
+      backgroundColor: colors.primarySurface,
       child: Text(
         initials,
         style: AppTextStyles.labelSmall.copyWith(
@@ -168,18 +172,19 @@ class _ConditionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Row(
       children: [
         Icon(
           Iconsax.task_square_copy,
           size: 14,
-          color: AppColors.textTertiary,
+          color: colors.textTertiary,
         ),
         const SizedBox(width: 6),
         Text(
           '$met/$total conditions',
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 11,
           ),
         ),
@@ -191,7 +196,7 @@ class _ConditionBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: total > 0 ? met / total : 0,
-              backgroundColor: AppColors.surfaceVariant,
+              backgroundColor: colors.surfaceVariant,
               valueColor: AlwaysStoppedAnimation<Color>(
                 met == total ? AppColors.statusCompleted : AppColors.primary,
               ),

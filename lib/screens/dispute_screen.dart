@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class DisputeScreen extends StatefulWidget {
@@ -27,10 +28,11 @@ class _DisputeScreenState extends State<DisputeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('Raise Dispute', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -48,7 +50,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.warningLight,
+                color: colors.warningLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -139,24 +141,24 @@ class _DisputeScreenState extends State<DisputeScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
+                  color: colors.surfaceVariant,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppColors.cardBorder,
+                    color: colors.cardBorder,
                   ),
                 ),
                 child: Column(
                   children: [
                     Icon(
                       Iconsax.paperclip_copy,
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                       size: 28,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Tap to attach files',
                       style: AppTextStyles.labelMedium.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -174,9 +176,9 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.cardBorder),
+                      border: Border.all(color: colors.cardBorder),
                     ),
                     child: Row(
                       children: [
@@ -198,9 +200,9 @@ class _DisputeScreenState extends State<DisputeScreen> {
                               _mockFiles.removeAt(entry.key);
                             });
                           },
-                          child: const Icon(
+                          child: Icon(
                             CupertinoIcons.xmark,
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                             size: 18,
                           ),
                         ),
@@ -245,22 +247,23 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isSelected = value == selected;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? AppColors.primary : colors.surface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.cardBorder,
+            color: isSelected ? AppColors.primary : colors.cardBorder,
           ),
         ),
         child: Text(
           label,
           style: AppTextStyles.labelMedium.copyWith(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? Colors.white : colors.textSecondary,
           ),
         ),
       ),

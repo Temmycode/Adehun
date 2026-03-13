@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../constants/mock_data.dart';
 
@@ -13,6 +14,7 @@ class AgreementInvitationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final agreement = MockData.agreements.firstWhere(
       (a) => a['id'] == agreementId,
       orElse: () => MockData.agreements[2],
@@ -23,9 +25,9 @@ class AgreementInvitationScreen extends StatelessWidget {
     final conditions = agreement['conditions'] as List;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('Agreement Invitation', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -43,7 +45,7 @@ class AgreementInvitationScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: colors.primarySurface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -65,7 +67,7 @@ class AgreementInvitationScreen extends StatelessWidget {
                   Text(
                     'to an escrow agreement',
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -80,9 +82,9 @@ class AgreementInvitationScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.cardBorder),
+                border: Border.all(color: colors.cardBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,12 +118,12 @@ class AgreementInvitationScreen extends StatelessWidget {
                           width: 24,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceVariant,
+                            color: colors.surfaceVariant,
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Iconsax.tick_square_copy,
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                             size: 16,
                           ),
                         ),

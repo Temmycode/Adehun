@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_color_scheme.dart';
 import '../constants/mock_data.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/agreement_card.dart';
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     // Get active agreements only
     final activeAgreements = MockData.agreements
         .where((a) =>
@@ -21,7 +23,7 @@ class HomeScreen extends StatelessWidget {
         .toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -33,7 +35,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: AppColors.primarySurface,
+                      backgroundColor: colors.primarySurface,
                       child: Text(
                         MockData.userInitials,
                         style: AppTextStyles.labelLarge.copyWith(
@@ -48,11 +50,15 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Welcome back',
-                            style: AppTextStyles.bodySmall,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
                           ),
                           Text(
                             MockData.userName.split(' ').first,
-                            style: AppTextStyles.h3,
+                            style: AppTextStyles.h3.copyWith(
+                              color: colors.textPrimary,
+                            ),
                           ),
                         ],
                       ),
@@ -137,7 +143,7 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Active Agreements', style: AppTextStyles.h3),
+                    Text('Active Agreements', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
                     GestureDetector(
                       onTap: () => context.go('/agreements'),
                       child: Text(
@@ -197,20 +203,21 @@ class _IconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.cardBorder),
+          border: Border.all(color: colors.cardBorder),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Icon(icon, color: AppColors.textPrimary, size: 22),
+            Icon(icon, color: colors.textPrimary, size: 22),
             if (badgeCount > 0)
               Positioned(
                 top: 8,
@@ -256,14 +263,15 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.cardBorder),
+          border: Border.all(color: colors.cardBorder),
         ),
         child: Column(
           children: [
@@ -282,7 +290,7 @@ class _QuickAction extends StatelessWidget {
               child: Text(
                 label,
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
@@ -310,26 +318,27 @@ class _AnalyticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final maxVal = total > 0 ? total : 1;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Iconsax.chart_1_copy, size: 16, color: AppColors.textTertiary),
+              Icon(Iconsax.chart_1_copy, size: 16, color: colors.textTertiary),
               const SizedBox(width: 6),
               Text(
                 'Agreement Overview',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -376,6 +385,7 @@ class _BarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Row(
       children: [
         SizedBox(
@@ -383,7 +393,7 @@ class _BarRow extends StatelessWidget {
           child: Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               fontSize: 11,
             ),
           ),

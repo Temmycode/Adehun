@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -60,8 +61,9 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -148,14 +150,17 @@ class _AuthScreenState extends State<AuthScreen>
               Text(
                 'Welcome to\nAdehun',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.displayMedium.copyWith(height: 1.2),
+                style: AppTextStyles.displayMedium.copyWith(
+                  height: 1.2,
+                  color: colors.textPrimary,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 'Your trusted escrow partner for\nsafe and secure transactions',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -166,13 +171,13 @@ class _AuthScreenState extends State<AuthScreen>
                 child: ElevatedButton(
                   onPressed: () => context.go('/profile-completion'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.surface,
-                    foregroundColor: AppColors.textPrimary,
+                    backgroundColor: colors.surface,
+                    foregroundColor: colors.textPrimary,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
-                      side: const BorderSide(color: AppColors.cardBorder),
+                      side: BorderSide(color: colors.cardBorder),
                     ),
                   ),
                   child: Row(
@@ -187,7 +192,7 @@ class _AuthScreenState extends State<AuthScreen>
                       Text(
                         'Continue with Google',
                         style: AppTextStyles.buttonLarge.copyWith(
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ],
@@ -199,7 +204,7 @@ class _AuthScreenState extends State<AuthScreen>
                 'By continuing, you agree to our Terms of\nService and Privacy Policy',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                   fontSize: 11,
                 ),
               ),
@@ -230,45 +235,23 @@ class _GlossySphere extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        // Subtle gradient — slightly lighter toward top, darker at edges
+        // Nearly flat gradient — very subtle depth
         gradient: RadialGradient(
           center: highlightOffset,
-          radius: 0.9,
+          radius: 0.95,
           colors: [
-            Color.lerp(baseColor, Colors.white, 0.2)!,
+            Color.lerp(baseColor, Colors.white, 0.06)!,
             baseColor,
-            Color.lerp(baseColor, Colors.black, 0.15)!,
+            Color.lerp(baseColor, Colors.black, 0.04)!,
           ],
-          stops: const [0.0, 0.55, 1.0],
+          stops: const [0.0, 0.5, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: baseColor.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: baseColor.withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
             spreadRadius: -2,
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Soft specular highlight — gentle shine
-          Positioned(
-            left: size * 0.22,
-            top: size * 0.15,
-            child: Container(
-              width: size * 0.25,
-              height: size * 0.25,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    Colors.white.withValues(alpha: 0.35),
-                    Colors.white.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),

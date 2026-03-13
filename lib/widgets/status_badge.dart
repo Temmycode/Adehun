@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class StatusBadge extends StatelessWidget {
@@ -15,7 +16,8 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _getStatusConfig(status);
+    final colors = context.colors;
+    final config = _getStatusConfig(status, colors);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 8 : 12,
@@ -46,55 +48,55 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
-  _StatusConfig _getStatusConfig(String status) {
+  _StatusConfig _getStatusConfig(String status, AppColorScheme colors) {
     switch (status.toUpperCase()) {
       case 'DRAFT':
         return _StatusConfig('Draft', AppColors.statusDraft,
-            AppColors.statusDraftBg, Iconsax.edit_2_copy);
+            colors.statusDraftBg, Iconsax.edit_2_copy);
       case 'PENDING_ACCEPTANCE':
         return _StatusConfig('Pending', AppColors.statusPending,
-            AppColors.statusPendingBg, Iconsax.timer_1_copy);
+            colors.statusPendingBg, Iconsax.timer_1_copy);
       case 'ACTIVE':
         return _StatusConfig('Active', AppColors.statusActive,
-            AppColors.statusActiveBg, Iconsax.flash_1);
+            colors.statusActiveBg, Iconsax.flash_1);
       case 'CONDITIONS_IN_PROGRESS':
         return _StatusConfig('In Progress', AppColors.statusInProgress,
-            AppColors.statusInProgressBg, Iconsax.refresh_circle_copy);
+            colors.statusInProgressBg, Iconsax.refresh_circle_copy);
       case 'CONDITIONS_MET':
         return _StatusConfig('Conditions Met', AppColors.statusConditionsMet,
-            AppColors.statusConditionsMetBg, Iconsax.tick_square_copy);
+            colors.statusConditionsMetBg, Iconsax.tick_square_copy);
       case 'COMPLETED':
         return _StatusConfig('Completed', AppColors.statusCompleted,
-            AppColors.statusCompletedBg, Iconsax.tick_circle);
+            colors.statusCompletedBg, Iconsax.tick_circle);
       case 'DISPUTED':
         return _StatusConfig('Disputed', AppColors.statusDisputed,
-            AppColors.statusDisputedBg, Iconsax.warning_2_copy);
+            colors.statusDisputedBg, Iconsax.warning_2_copy);
       case 'CANCELLED':
         return _StatusConfig('Cancelled', AppColors.statusCancelled,
-            AppColors.statusCancelledBg, Iconsax.close_circle_copy);
+            colors.statusCancelledBg, Iconsax.close_circle_copy);
       case 'REFUNDED':
         return _StatusConfig('Refunded', AppColors.statusRefunded,
-            AppColors.statusRefundedBg, Iconsax.rotate_left_copy);
+            colors.statusRefundedBg, Iconsax.rotate_left_copy);
       // Condition statuses
       case 'MET':
         return _StatusConfig('Met', AppColors.statusCompleted,
-            AppColors.statusCompletedBg, Iconsax.tick_circle);
+            colors.statusCompletedBg, Iconsax.tick_circle);
       case 'IN_PROGRESS':
         return _StatusConfig('In Progress', AppColors.statusInProgress,
-            AppColors.statusInProgressBg, Iconsax.refresh_circle_copy);
+            colors.statusInProgressBg, Iconsax.refresh_circle_copy);
       case 'PENDING':
         return _StatusConfig('Pending', AppColors.statusPending,
-            AppColors.statusPendingBg, Iconsax.timer_1_copy);
+            colors.statusPendingBg, Iconsax.timer_1_copy);
       // Asset statuses
       case 'APPROVED':
         return _StatusConfig('Approved', AppColors.statusCompleted,
-            AppColors.statusCompletedBg, Iconsax.tick_circle);
+            colors.statusCompletedBg, Iconsax.tick_circle);
       case 'REJECTED':
         return _StatusConfig('Rejected', AppColors.statusDisputed,
-            AppColors.statusDisputedBg, Iconsax.warning_2_copy);
+            colors.statusDisputedBg, Iconsax.warning_2_copy);
       default:
         return _StatusConfig(status, AppColors.statusDraft,
-            AppColors.statusDraftBg, Iconsax.edit_2_copy);
+            colors.statusDraftBg, Iconsax.edit_2_copy);
     }
   }
 }

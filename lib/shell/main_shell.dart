@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -22,6 +23,7 @@ class MainShell extends StatelessWidget {
     final index = _currentIndex(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final colors = context.colors;
 
     // Scale nav bar dimensions based on screen width
     final fabSize = (screenWidth * 0.145).clamp(48.0, 58.0);
@@ -44,17 +46,17 @@ class MainShell extends StatelessWidget {
             Container(
               height: 64,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colors.navBarBackground,
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
+                    color: colors.navBarShadow,
                     blurRadius: 24,
                     offset: const Offset(0, 4),
                     spreadRadius: 0,
                   ),
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: colors.navBarShadow.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 1),
                     spreadRadius: 0,
@@ -156,6 +158,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -167,7 +171,7 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(
               isActive ? activeIcon : icon,
-              color: isActive ? AppColors.primary : AppColors.textTertiary,
+              color: isActive ? AppColors.primary : colors.textTertiary,
               size: 24,
             ),
             const SizedBox(height: 4),

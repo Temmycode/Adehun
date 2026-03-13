@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../constants/mock_data.dart';
 import '../widgets/status_badge.dart';
@@ -35,6 +36,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final agreement = _agreement;
 
     // Initialize local conditions from mock data once
@@ -52,10 +54,10 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
     final beneficiary = agreement['beneficiary'] as Map<String, dynamic>;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text('Agreement Details', style: AppTextStyles.h3),
+        backgroundColor: colors.background,
+        title: Text('Agreement Details', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
           onPressed: () => context.pop(),
@@ -77,12 +79,12 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             // Status & Title
             StatusBadge(status: status),
             const SizedBox(height: 12),
-            Text(agreement['title'] as String, style: AppTextStyles.h1),
+            Text(agreement['title'] as String, style: AppTextStyles.h1.copyWith(color: colors.textPrimary)),
             const SizedBox(height: 8),
             Text(
               agreement['description'] as String,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
 
@@ -117,14 +119,14 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
 
             const SizedBox(height: 24),
             // Parties
-            Text('Parties', style: AppTextStyles.h3),
+            Text('Parties', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.cardBorder),
+                border: Border.all(color: colors.cardBorder),
               ),
               child: Column(
                 children: [
@@ -138,16 +140,16 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Row(
                       children: [
-                        Expanded(child: Divider(color: AppColors.cardBorder)),
+                        Expanded(child: Divider(color: colors.cardBorder)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Icon(
                             Iconsax.arrow_swap_copy,
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                             size: 20,
                           ),
                         ),
-                        Expanded(child: Divider(color: AppColors.cardBorder)),
+                        Expanded(child: Divider(color: colors.cardBorder)),
                       ],
                     ),
                   ),
@@ -170,7 +172,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Conditions', style: AppTextStyles.h3),
+                Text('Conditions', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
                 if (_localConditions.isNotEmpty)
                   Text(
                     '${_localConditions.where((c) => c['status'] == 'MET').length}/${_localConditions.length} met',
@@ -196,7 +198,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                               .length /
                           _localConditions.length,
                   minHeight: 6,
-                  backgroundColor: AppColors.surfaceVariant,
+                  backgroundColor: colors.surfaceVariant,
                   valueColor:
                       const AlwaysStoppedAnimation<Color>(AppColors.success),
                 ),
@@ -267,6 +269,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
   }
 
   Widget _buildEmptyConditions() {
+    final colors = context.colors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 28),
@@ -276,21 +279,21 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: colors.surfaceVariant,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(
+            child: Icon(
               Iconsax.task_square_copy,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               size: 24,
             ),
           ),
           const SizedBox(height: 12),
-          Text('No conditions defined', style: AppTextStyles.labelLarge),
+          Text('No conditions defined', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
           const SizedBox(height: 4),
           Text(
             'Conditions will appear here once added',
-            style: AppTextStyles.bodySmall,
+            style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
           ),
         ],
       ),
@@ -301,6 +304,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
     Map<String, dynamic> depositor,
     Map<String, dynamic> beneficiary,
   ) {
+    final colors = context.colors;
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     String? selectedParticipantId;
@@ -315,9 +319,9 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
         return StatefulBuilder(
           builder: (builderContext, setSheetState) {
             return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(builderContext).viewInsets.bottom,
@@ -335,23 +339,23 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                           width: 40,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: AppColors.cardBorder,
+                            color: colors.cardBorder,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
                       const SizedBox(height: 20),
 
-                      Text('Add Condition', style: AppTextStyles.h2),
+                      Text('Add Condition', style: AppTextStyles.h2.copyWith(color: colors.textPrimary)),
                       const SizedBox(height: 4),
                       Text(
                         'Define what needs to be done and who is responsible',
-                        style: AppTextStyles.bodySmall,
+                        style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
                       ),
                       const SizedBox(height: 24),
 
                       // Title
-                      Text('Title', style: AppTextStyles.labelLarge),
+                      Text('Title', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
                       const SizedBox(height: 8),
                       TextField(
                         controller: titleCtrl,
@@ -363,7 +367,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                       const SizedBox(height: 20),
 
                       // Description
-                      Text('Description', style: AppTextStyles.labelLarge),
+                      Text('Description', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
                       const SizedBox(height: 8),
                       TextField(
                         controller: descCtrl,
@@ -376,11 +380,11 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                       const SizedBox(height: 20),
 
                       // Required from
-                      Text('Required From', style: AppTextStyles.labelLarge),
+                      Text('Required From', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
                       const SizedBox(height: 4),
                       Text(
                         'Who must fulfill this condition?',
-                        style: AppTextStyles.bodySmall,
+                        style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
                       ),
                       const SizedBox(height: 12),
 
@@ -407,13 +411,13 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? AppColors.primarySurface
-                                        : AppColors.background,
+                                        ? colors.primarySurface
+                                        : colors.background,
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
                                       color: isSelected
                                           ? AppColors.primary
-                                          : AppColors.cardBorder,
+                                          : colors.cardBorder,
                                       width: isSelected ? 1.5 : 1,
                                     ),
                                   ),
@@ -423,14 +427,14 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                         radius: 20,
                                         backgroundColor: isSelected
                                             ? AppColors.primary
-                                            : AppColors.surfaceVariant,
+                                            : colors.surfaceVariant,
                                         child: Text(
                                           participant['initials'] as String,
                                           style: AppTextStyles.labelMedium
                                               .copyWith(
                                             color: isSelected
                                                 ? Colors.white
-                                                : AppColors.textSecondary,
+                                                : colors.textSecondary,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -445,7 +449,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                             .copyWith(
                                           color: isSelected
                                               ? AppColors.primary
-                                              : AppColors.textPrimary,
+                                              : colors.textPrimary,
                                           fontWeight: isSelected
                                               ? FontWeight.w700
                                               : FontWeight.w600,
@@ -464,7 +468,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                           color: isSelected
                                               ? AppColors.primary
                                                   .withValues(alpha: 0.1)
-                                              : AppColors.surfaceVariant,
+                                              : colors.surfaceVariant,
                                           borderRadius:
                                               BorderRadius.circular(6),
                                         ),
@@ -475,7 +479,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                               AppTextStyles.labelSmall.copyWith(
                                             color: isSelected
                                                 ? AppColors.primary
-                                                : AppColors.textTertiary,
+                                                : colors.textTertiary,
                                             fontSize: 9,
                                           ),
                                         ),
@@ -536,6 +540,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, String status) {
+    final colors = context.colors;
     switch (status) {
       case 'DRAFT':
         return SizedBox(
@@ -554,7 +559,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.infoLight,
+                  color: colors.infoLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -591,7 +596,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.warningLight,
+                color: colors.warningLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -668,7 +673,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.successLight,
+            color: colors.successLight,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -691,7 +696,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.errorLight,
+            color: colors.errorLight,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -714,19 +719,19 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
+            color: colors.surfaceVariant,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Iconsax.close_circle,
-                  color: AppColors.textTertiary, size: 22),
+                  color: colors.textTertiary, size: 22),
               const SizedBox(width: 10),
               Text(
                 'This agreement has been cancelled',
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
             ],
@@ -737,7 +742,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.statusRefundedBg,
+            color: colors.statusRefundedBg,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -761,6 +766,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
   }
 
   void _showAgreeConfirmation(BuildContext context) {
+    final colors = context.colors;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -778,7 +784,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
         content: Text(
           'By agreeing, both parties confirm that all conditions are set and the escrow will become active. Funds will need to be deposited to proceed.',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         actions: [
@@ -787,7 +793,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             child: Text(
               'Cancel',
               style: AppTextStyles.labelLarge.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ),
@@ -814,6 +820,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
   }
 
   void _showOptionsSheet(BuildContext context, String status) {
+    final colors = context.colors;
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -825,7 +832,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.cardBorder,
+                color: colors.cardBorder,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -898,11 +905,12 @@ class _PartyRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Row(
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundColor: AppColors.primarySurface,
+          backgroundColor: colors.primarySurface,
           child: Text(
             initials,
             style: AppTextStyles.labelMedium.copyWith(
@@ -928,7 +936,7 @@ class _PartyRow extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
+                        color: colors.primarySurface,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -958,6 +966,7 @@ class _ConditionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final status = condition['status'] as String;
     final assets = condition['assets'] as List? ?? [];
     final requiredFrom =
@@ -968,9 +977,9 @@ class _ConditionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.cardBorder),
+          border: Border.all(color: colors.cardBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1012,7 +1021,7 @@ class _ConditionCard extends StatelessWidget {
                 Icon(
                   CupertinoIcons.chevron_forward,
                   size: 14,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ],
             ),
@@ -1023,7 +1032,7 @@ class _ConditionCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
+                  color: colors.primarySurface,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1047,7 +1056,7 @@ class _ConditionCard extends StatelessWidget {
                       child: Text(
                         'Required from ${requiredFrom['name'] == MockData.userName ? 'You' : requiredFrom['name'] as String}',
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           fontSize: 10,
                         ),
                         maxLines: 1,
@@ -1106,12 +1115,13 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return ListTile(
-      leading: Icon(icon, color: color ?? AppColors.textPrimary),
+      leading: Icon(icon, color: color ?? colors.textPrimary),
       title: Text(
         title,
         style: AppTextStyles.bodyLarge.copyWith(
-          color: color ?? AppColors.textPrimary,
+          color: color ?? colors.textPrimary,
         ),
       ),
       onTap: onTap,

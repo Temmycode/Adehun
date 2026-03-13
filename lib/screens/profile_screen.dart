@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
+import '../main.dart' show themeProvider;
 import '../constants/mock_data.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -11,8 +13,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -22,7 +26,12 @@ class ProfileScreen extends StatelessWidget {
               // Header
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Profile', style: AppTextStyles.h1),
+                child: Text(
+                  'Profile',
+                  style: AppTextStyles.h1.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
               ),
               const SizedBox(height: 28),
               // Profile card
@@ -30,15 +39,15 @@ class ProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.cardBorder),
+                  border: Border.all(color: colors.cardBorder),
                 ),
                 child: Column(
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: AppColors.primarySurface,
+                      backgroundColor: colors.primarySurface,
                       child: Text(
                         MockData.userInitials,
                         style: AppTextStyles.h1.copyWith(
@@ -48,12 +57,17 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text(MockData.userName, style: AppTextStyles.h2),
+                    Text(
+                      MockData.userName,
+                      style: AppTextStyles.h2.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       MockData.userEmail,
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -64,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.warningLight,
+                        color: colors.warningLight,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -172,6 +186,7 @@ class ProfileScreen extends StatelessWidget {
               _SettingsSection(
                 title: 'Preferences',
                 items: [
+                  _ThemeSettingsItem(),
                   _SettingsItem(
                     icon: Iconsax.global_copy,
                     title: 'Language',
@@ -195,9 +210,9 @@ class ProfileScreen extends StatelessWidget {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.cardBorder),
+                  border: Border.all(color: colors.cardBorder),
                 ),
                 child: _SettingsItem(
                   icon: Iconsax.logout_copy,
@@ -212,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
               Text(
                 'Adehun v1.0.0',
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
               const SizedBox(height: 100),
@@ -226,24 +241,31 @@ class ProfileScreen extends StatelessWidget {
 
 class _SettingsSection extends StatelessWidget {
   final String title;
-  final List<_SettingsItem> items;
+  final List<Widget> items;
 
   const _SettingsSection({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(title, style: AppTextStyles.labelMedium),
+          child: Text(
+            title,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.cardBorder),
+            border: Border.all(color: colors.cardBorder),
           ),
           child: Column(
             children: [
@@ -254,7 +276,7 @@ class _SettingsSection extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Divider(
                       height: 1,
-                      color: AppColors.cardBorder,
+                      color: colors.cardBorder,
                     ),
                   ),
               ],
@@ -262,6 +284,190 @@ class _SettingsSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ThemeSettingsItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return ListenableBuilder(
+      listenable: themeProvider,
+      builder: (context, _) {
+        final mode = themeProvider.themeMode;
+        final label = switch (mode) {
+          ThemeMode.light => 'Light',
+          ThemeMode.dark => 'Dark',
+          ThemeMode.system => 'System',
+        };
+
+        return GestureDetector(
+          onTap: () => _showThemePicker(context),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(
+                  context.isDarkMode ? Iconsax.moon_copy : Iconsax.sun_1_copy,
+                  color: colors.textSecondary,
+                  size: 22,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    'Appearance',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                ),
+                Text(
+                  label,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  CupertinoIcons.chevron_forward,
+                  size: 14,
+                  color: colors.textTertiary,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showThemePicker(BuildContext context) {
+    final colors = context.colors;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colors.cardBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Appearance',
+                  style: AppTextStyles.h3.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _ThemeOption(
+                  icon: Iconsax.sun_1_copy,
+                  title: 'Light',
+                  isSelected: themeProvider.themeMode == ThemeMode.light,
+                  onTap: () {
+                    themeProvider.setThemeMode(ThemeMode.light);
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 8),
+                _ThemeOption(
+                  icon: Iconsax.moon_copy,
+                  title: 'Dark',
+                  isSelected: themeProvider.themeMode == ThemeMode.dark,
+                  onTap: () {
+                    themeProvider.setThemeMode(ThemeMode.dark);
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 8),
+                _ThemeOption(
+                  icon: Iconsax.monitor_copy,
+                  title: 'System',
+                  isSelected: themeProvider.themeMode == ThemeMode.system,
+                  onTap: () {
+                    themeProvider.setThemeMode(ThemeMode.system);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.icon,
+    required this.title,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.primarySurface : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : colors.cardBorder,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.primary : colors.textSecondary,
+              size: 22,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: isSelected ? AppColors.primary : colors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Iconsax.tick_circle,
+                color: AppColors.primary,
+                size: 22,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -287,6 +493,8 @@ class _SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -296,7 +504,7 @@ class _SettingsItem extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: iconColor ?? AppColors.textSecondary,
+              color: iconColor ?? colors.textSecondary,
               size: 22,
             ),
             const SizedBox(width: 14),
@@ -304,21 +512,23 @@ class _SettingsItem extends StatelessWidget {
               child: Text(
                 title,
                 style: AppTextStyles.bodyLarge.copyWith(
-                  color: titleColor ?? AppColors.textPrimary,
+                  color: titleColor ?? colors.textPrimary,
                 ),
               ),
             ),
             if (trailing != null)
               Text(
                 trailing!,
-                style: AppTextStyles.bodySmall,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
             if (showArrow) ...[
               const SizedBox(width: 8),
               Icon(
                 CupertinoIcons.chevron_forward,
                 size: 14,
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
               ),
             ],
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class TransactionTile extends StatelessWidget {
@@ -10,6 +11,7 @@ class TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final type = transaction['type'] as String;
     final amount = transaction['amount'] as double;
     final description = transaction['description'] as String;
@@ -24,12 +26,12 @@ class TransactionTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: _getIconBgColor(type),
+              color: _getIconBgColor(type, colors),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               _getIcon(type),
-              color: _getIconColor(type),
+              color: _getIconColor(type, colors),
               size: 20,
             ),
           ),
@@ -40,14 +42,14 @@ class TransactionTile extends StatelessWidget {
               children: [
                 Text(
                   description,
-                  style: AppTextStyles.labelLarge,
+                  style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   date,
-                  style: AppTextStyles.bodySmall,
+                  style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
                 ),
               ],
             ),
@@ -56,7 +58,7 @@ class TransactionTile extends StatelessWidget {
           Text(
             '${isPositive ? '+' : ''}\u20A6${_formatAmount(amount.abs())}',
             style: AppTextStyles.labelLarge.copyWith(
-              color: isPositive ? AppColors.success : AppColors.textPrimary,
+              color: isPositive ? AppColors.success : colors.textPrimary,
             ),
           ),
         ],
@@ -77,7 +79,7 @@ class TransactionTile extends StatelessWidget {
     }
   }
 
-  Color _getIconColor(String type) {
+  Color _getIconColor(String type, AppColorScheme colors) {
     switch (type) {
       case 'DEPOSIT':
         return AppColors.success;
@@ -86,20 +88,20 @@ class TransactionTile extends StatelessWidget {
       case 'RECEIVED':
         return AppColors.success;
       default:
-        return AppColors.textSecondary;
+        return colors.textSecondary;
     }
   }
 
-  Color _getIconBgColor(String type) {
+  Color _getIconBgColor(String type, AppColorScheme colors) {
     switch (type) {
       case 'DEPOSIT':
-        return AppColors.successLight;
+        return colors.successLight;
       case 'ESCROW_LOCK':
-        return AppColors.primarySurface;
+        return colors.primarySurface;
       case 'RECEIVED':
-        return AppColors.successLight;
+        return colors.successLight;
       default:
-        return AppColors.surfaceVariant;
+        return colors.surfaceVariant;
     }
   }
 

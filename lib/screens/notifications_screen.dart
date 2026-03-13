@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../constants/mock_data.dart';
 import '../widgets/notification_tile.dart';
@@ -12,13 +13,14 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final unreadCount =
         MockData.notifications.where((n) => !(n['read'] as bool)).length;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('Notifications', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -61,6 +63,7 @@ class NotificationsScreen extends StatelessWidget {
 class _EmptyNotifications extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -71,7 +74,7 @@ class _EmptyNotifications extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: colors.primarySurface,
                 borderRadius: BorderRadius.circular(28),
               ),
               child: const Icon(
@@ -87,7 +90,7 @@ class _EmptyNotifications extends StatelessWidget {
               'You\'re all caught up!\nWe\'ll notify you about important updates.',
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],

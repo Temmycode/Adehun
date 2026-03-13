@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/currency_input_formatter.dart';
 
@@ -60,10 +61,11 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('New Agreement', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -88,7 +90,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                         decoration: BoxDecoration(
                           color: isActive
                               ? AppColors.primary
-                              : AppColors.surfaceVariant,
+                              : colors.surfaceVariant,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -100,7 +102,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                   style: AppTextStyles.labelMedium.copyWith(
                                     color: isActive
                                         ? Colors.white
-                                        : AppColors.textTertiary,
+                                        : colors.textTertiary,
                                   ),
                                 ),
                         ),
@@ -112,7 +114,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                             color: index < _currentStep
                                 ? AppColors.primary
-                                : AppColors.surfaceVariant,
+                                : colors.surfaceVariant,
                           ),
                         ),
                     ],
@@ -131,7 +133,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                   style: AppTextStyles.labelSmall.copyWith(
                     color: _currentStep >= 0
                         ? AppColors.primary
-                        : AppColors.textTertiary,
+                        : colors.textTertiary,
                   ),
                 ),
                 Text(
@@ -139,7 +141,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                   style: AppTextStyles.labelSmall.copyWith(
                     color: _currentStep >= 1
                         ? AppColors.primary
-                        : AppColors.textTertiary,
+                        : colors.textTertiary,
                   ),
                 ),
                 Text(
@@ -147,7 +149,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                   style: AppTextStyles.labelSmall.copyWith(
                     color: _currentStep >= 2
                         ? AppColors.primary
-                        : AppColors.textTertiary,
+                        : colors.textTertiary,
                   ),
                 ),
               ],
@@ -214,6 +216,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
   }
 
   Widget _buildDetailsStep() {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -256,7 +259,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
           decoration: InputDecoration(
             hintText: '0.00',
             hintStyle: AppTextStyles.amountMedium.copyWith(
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
             ),
             prefixText: '\u20A6  ',
             prefixStyle: AppTextStyles.amountMedium.copyWith(
@@ -270,6 +273,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
   }
 
   Widget _buildPartiesStep() {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -313,11 +317,11 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
         const SizedBox(height: 16),
         TextField(
           controller: _inviteController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Email address or phone number',
             prefixIcon: Icon(
               Iconsax.user_add_copy,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
             ),
           ),
         ),
@@ -326,6 +330,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
   }
 
   Widget _buildConditionsStep() {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -340,7 +345,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.infoLight,
+            color: colors.infoLight,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -436,10 +441,11 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (builderContext, setSheetState) {
+            final colors = builderContext.colors;
             return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(builderContext).viewInsets.bottom,
@@ -457,7 +463,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                           width: 40,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: AppColors.cardBorder,
+                            color: colors.cardBorder,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -533,13 +539,13 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? AppColors.primarySurface
-                                        : AppColors.background,
+                                        ? colors.primarySurface
+                                        : colors.background,
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
                                       color: isSelected
                                           ? AppColors.primary
-                                          : AppColors.cardBorder,
+                                          : colors.cardBorder,
                                       width: isSelected ? 1.5 : 1,
                                     ),
                                   ),
@@ -549,14 +555,14 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                         radius: 20,
                                         backgroundColor: isSelected
                                             ? AppColors.primary
-                                            : AppColors.surfaceVariant,
+                                            : colors.surfaceVariant,
                                         child: Text(
                                           participant['initials'] as String,
                                           style: AppTextStyles.labelMedium
                                               .copyWith(
                                             color: isSelected
                                                 ? Colors.white
-                                                : AppColors.textSecondary,
+                                                : colors.textSecondary,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -571,7 +577,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                             .copyWith(
                                           color: isSelected
                                               ? AppColors.primary
-                                              : AppColors.textPrimary,
+                                              : colors.textPrimary,
                                           fontWeight: isSelected
                                               ? FontWeight.w700
                                               : FontWeight.w600,
@@ -590,7 +596,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                           color: isSelected
                                               ? AppColors.primary
                                                   .withValues(alpha: 0.1)
-                                              : AppColors.surfaceVariant,
+                                              : colors.surfaceVariant,
                                           borderRadius:
                                               BorderRadius.circular(6),
                                         ),
@@ -601,7 +607,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                               AppTextStyles.labelSmall.copyWith(
                                             color: isSelected
                                                 ? AppColors.primary
-                                                : AppColors.textTertiary,
+                                                : colors.textTertiary,
                                             fontSize: 9,
                                           ),
                                         ),
@@ -682,6 +688,7 @@ class _EmptyConditions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 32),
@@ -691,12 +698,12 @@ class _EmptyConditions extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: colors.surfaceVariant,
               borderRadius: BorderRadius.circular(18),
             ),
-            child: const Icon(
+            child: Icon(
               Iconsax.task_square_copy,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               size: 28,
             ),
           ),
@@ -735,6 +742,7 @@ class _ConditionCreationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final requiredFrom = condition['requiredFrom'] as Map<String, dynamic>;
 
     return GestureDetector(
@@ -742,9 +750,9 @@ class _ConditionCreationCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.cardBorder),
+          border: Border.all(color: colors.cardBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -757,7 +765,7 @@ class _ConditionCreationCard extends StatelessWidget {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: colors.primarySurface,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
@@ -795,11 +803,11 @@ class _ConditionCreationCard extends StatelessWidget {
                 // Actions
                 GestureDetector(
                   onTap: onDelete,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       CupertinoIcons.xmark,
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                       size: 18,
                     ),
                   ),
@@ -811,7 +819,7 @@ class _ConditionCreationCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: colors.primarySurface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -836,7 +844,7 @@ class _ConditionCreationCard extends StatelessWidget {
                           ? 'Required from You (${_capitalize(requiredFrom['role'] as String)})'
                           : 'Required from ${requiredFrom['name']} (${_capitalize(requiredFrom['role'] as String)})',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -874,15 +882,16 @@ class _RoleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primarySurface : AppColors.surface,
+          color: isSelected ? colors.primarySurface : colors.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.cardBorder,
+            color: isSelected ? AppColors.primary : colors.cardBorder,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -890,14 +899,14 @@ class _RoleCard extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              color: isSelected ? AppColors.primary : colors.textSecondary,
               size: 28,
             ),
             const SizedBox(height: 8),
             Text(
               title,
               style: AppTextStyles.labelLarge.copyWith(
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                color: isSelected ? AppColors.primary : colors.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -905,7 +914,7 @@ class _RoleCard extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],

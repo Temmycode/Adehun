@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/currency_input_formatter.dart';
 
@@ -27,10 +28,11 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text('Fund Wallet', style: AppTextStyles.h3),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
@@ -53,7 +55,7 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(16),
                       border:
                           Border.all(color: AppColors.primary, width: 1.5),
@@ -79,7 +81,7 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                             decoration: InputDecoration(
                               hintText: '0.00',
                               hintStyle: AppTextStyles.amountLarge.copyWith(
-                                color: AppColors.textTertiary,
+                                color: colors.textTertiary,
                               ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
@@ -109,7 +111,7 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
+                            color: colors.primarySurface,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -203,15 +205,16 @@ class _PaymentMethodTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primarySurface : AppColors.surface,
+          color: isSelected ? colors.primarySurface : colors.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.cardBorder,
+            color: isSelected ? AppColors.primary : colors.cardBorder,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -223,12 +226,12 @@ class _PaymentMethodTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.primary.withValues(alpha: 0.1)
-                    : AppColors.surfaceVariant,
+                    : colors.surfaceVariant,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? AppColors.primary : colors.textSecondary,
                 size: 22,
               ),
             ),
@@ -248,7 +251,7 @@ class _PaymentMethodTile extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                  color: isSelected ? AppColors.primary : colors.textTertiary,
                   width: isSelected ? 6 : 2,
                 ),
               ),
