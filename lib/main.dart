@@ -1,19 +1,32 @@
+import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
-import 'theme/theme_provider.dart';
 import 'router/app_router.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-final themeProvider = ThemeProvider();
-
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDependencies();
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
+    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+  );
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => sl<AuthController>()),
+        ChangeNotifierProvider.value(value: sl<ThemeProvider>()),
+      ],
+      child: const AdehunApp(),
     ),
   );
-  runApp(const AdehunApp());
 }
 
 class AdehunApp extends StatelessWidget {
@@ -21,18 +34,14 @@ class AdehunApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: themeProvider,
-      builder: (context, _) {
-        return MaterialApp.router(
-          title: 'Adehun',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeProvider.themeMode,
-          routerConfig: appRouter,
-        );
-      },
+    final themeProvider = context.watch<ThemeProvider>();
+    return MaterialApp.router(
+      title: 'Adehun',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.themeMode,
+      routerConfig: appRouter,
     );
   }
 }

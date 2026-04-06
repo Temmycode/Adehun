@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:adehun_mvp/data/local/preferences_service.dart';
+import 'package:adehun_mvp/resources/service_locator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -50,8 +52,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      context.go('/auth');
+      _completeOnboarding();
     }
+  }
+
+  void _completeOnboarding() {
+    sl<PreferencesService>().setFirstLaunch(false);
+    context.go('/auth');
   }
 
   @override
@@ -74,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextButton(
-                  onPressed: () => context.go('/auth'),
+                  onPressed: _completeOnboarding,
                   child: Text(
                     'Skip',
                     style: AppTextStyles.labelLarge.copyWith(

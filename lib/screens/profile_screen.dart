@@ -1,11 +1,13 @@
+import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/theme/theme_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
-import '../main.dart' show themeProvider;
 import '../constants/mock_data.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -14,6 +16,10 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+
+    String generateInitials(String username) {
+      return username.split(' ').map((name) => name[0]).join('');
+    }
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -28,79 +34,81 @@ class ProfileScreen extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Profile',
-                  style: AppTextStyles.h1.copyWith(
-                    color: colors.textPrimary,
-                  ),
+                  style: AppTextStyles.h1.copyWith(color: colors.textPrimary),
                 ),
               ),
               const SizedBox(height: 28),
               // Profile card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colors.cardBorder),
-                ),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: colors.primarySurface,
-                      child: Text(
-                        MockData.userInitials,
-                        style: AppTextStyles.h1.copyWith(
-                          color: AppColors.primary,
-                          fontSize: 28,
-                        ),
-                      ),
+              Consumer<AuthController>(
+                builder: (context, auth, _) {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colors.cardBorder),
                     ),
-                    const SizedBox(height: 14),
-                    Text(
-                      MockData.userName,
-                      style: AppTextStyles.h2.copyWith(
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      MockData.userEmail,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Tier badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.warningLight,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Iconsax.star_1,
-                            color: AppColors.accent,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Free Tier',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.accentDark,
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: colors.primarySurface,
+                          child: Text(
+                            generateInitials(auth.user?.name ?? 'User'),
+                            style: AppTextStyles.h1.copyWith(
+                              color: AppColors.primary,
+                              fontSize: 28,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          auth.user?.name ?? 'User',
+                          style: AppTextStyles.h2.copyWith(
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          auth.user?.email ?? 'example@example.com',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Tier badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.warningLight,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Iconsax.star_1,
+                                color: AppColors.accent,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Free Tier',
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: AppColors.accentDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               // Upgrade banner
@@ -220,7 +228,7 @@ class ProfileScreen extends StatelessWidget {
                   iconColor: AppColors.error,
                   titleColor: AppColors.error,
                   showArrow: false,
-                  onTap: () => context.go('/auth'),
+                  onTap: () => _showSignOutSheet(context),
                 ),
               ),
               const SizedBox(height: 16),
@@ -237,6 +245,101 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showSignOutSheet(BuildContext context) {
+  final colors = context.colors;
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: colors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (sheetContext) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.cardBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Icon(Iconsax.logout_copy, color: AppColors.error, size: 40),
+              const SizedBox(height: 16),
+              Text(
+                'Sign Out',
+                style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Are you sure you want to sign out?',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: colors.cardBorder),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: AppTextStyles.buttonLarge.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(sheetContext);
+                        await context.read<AuthController>().signOut();
+                        if (context.mounted) {
+                          context.go('/auth');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Sign Out',
+                        style: AppTextStyles.buttonLarge.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class _SettingsSection extends StatelessWidget {
@@ -274,10 +377,7 @@ class _SettingsSection extends StatelessWidget {
                 if (i < items.length - 1)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Divider(
-                      height: 1,
-                      color: colors.cardBorder,
-                    ),
+                    child: Divider(height: 1, color: colors.cardBorder),
                   ),
               ],
             ],
@@ -293,9 +393,8 @@ class _ThemeSettingsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return ListenableBuilder(
-      listenable: themeProvider,
-      builder: (context, _) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
         final mode = themeProvider.themeMode;
         final label = switch (mode) {
           ThemeMode.light => 'Light',
@@ -346,6 +445,7 @@ class _ThemeSettingsItem extends StatelessWidget {
 
   void _showThemePicker(BuildContext context) {
     final colors = context.colors;
+    final themeProvider = context.read<ThemeProvider>();
 
     showModalBottomSheet(
       context: context,
@@ -371,9 +471,7 @@ class _ThemeSettingsItem extends StatelessWidget {
                 const SizedBox(height: 20),
                 Text(
                   'Appearance',
-                  style: AppTextStyles.h3.copyWith(
-                    color: colors.textPrimary,
-                  ),
+                  style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
                 ),
                 const SizedBox(height: 20),
                 _ThemeOption(
@@ -460,11 +558,7 @@ class _ThemeOption extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(
-                Iconsax.tick_circle,
-                color: AppColors.primary,
-                size: 22,
-              ),
+              Icon(Iconsax.tick_circle, color: AppColors.primary, size: 22),
           ],
         ),
       ),
@@ -502,11 +596,7 @@ class _SettingsItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: iconColor ?? colors.textSecondary,
-              size: 22,
-            ),
+            Icon(icon, color: iconColor ?? colors.textSecondary, size: 22),
             const SizedBox(width: 14),
             Expanded(
               child: Text(

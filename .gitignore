@@ -46,5 +46,6 @@ app.*.map.json
 
 
 Claude.md
+.env
 
 /designs/

@@ -1,19 +1,18 @@
+import 'package:adehun_mvp/data/local/preferences_service.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  static const _key = 'theme_mode';
+  final PreferencesService _prefs;
 
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;
 
-  ThemeProvider() {
+  ThemeProvider(PreferencesService prefs) : _prefs = prefs {
     _loadPreference();
   }
 
-  Future<void> _loadPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString(_key);
+  void _loadPreference() {
+    final stored = _prefs.themeMode;
     if (stored != null) {
       _themeMode = ThemeMode.values.firstWhere(
         (m) => m.name == stored,
@@ -27,7 +26,6 @@ class ThemeProvider extends ChangeNotifier {
     if (_themeMode == mode) return;
     _themeMode = mode;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, mode.name);
+    await _prefs.setThemeMode(mode.name);
   }
 }

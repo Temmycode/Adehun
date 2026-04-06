@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "332730445451",
+    "project_id": "adehun-services",
+    "storage_bucket": "adehun-services.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332730445451:android:1556c0f69960d8b9036e8e",
+        "android_client_info": {
+          "package_name": "com.tolutech.adehun.adehun_mvp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgdEA8TbOwRdG_Zp8biahy1HTwG7zdY-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -37,6 +37,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
           child: ElevatedButton(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
+                // TODO: Submit profile to server
                 context.go('/home');
               }
             },

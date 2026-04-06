@@ -1,6 +1,8 @@
+import 'package:adehun_mvp/providers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
@@ -16,11 +18,17 @@ class HomeScreen extends StatelessWidget {
     final colors = context.colors;
     // Get active agreements only
     final activeAgreements = MockData.agreements
-        .where((a) =>
-            a['status'] == 'ACTIVE' ||
-            a['status'] == 'CONDITIONS_IN_PROGRESS' ||
-            a['status'] == 'PENDING_ACCEPTANCE')
+        .where(
+          (a) =>
+              a['status'] == 'ACTIVE' ||
+              a['status'] == 'CONDITIONS_IN_PROGRESS' ||
+              a['status'] == 'PENDING_ACCEPTANCE',
+        )
         .toList();
+
+    String generateInitials(String username) {
+      return username.split(' ').map((name) => name[0]).join('');
+    }
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -28,49 +36,53 @@ class HomeScreen extends StatelessWidget {
         child: CustomScrollView(
           slivers: [
             // App bar
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: colors.primarySurface,
-                      child: Text(
-                        MockData.userInitials,
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: AppColors.primary,
+            Consumer<AuthController>(
+              builder: (context, auth, _) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: colors.primarySurface,
+                          child: Text(
+                            generateInitials(auth.user?.name ?? "User"),
+                            style: AppTextStyles.labelLarge.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Welcome back',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: colors.textSecondary,
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome back',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: colors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                auth.user?.name ?? "User",
+                                style: AppTextStyles.h3.copyWith(
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            MockData.userName.split(' ').first,
-                            style: AppTextStyles.h3.copyWith(
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        _IconButton(
+                          icon: Iconsax.notification_copy,
+                          badgeCount: 2,
+                          onTap: () => context.push('/notifications'),
+                        ),
+                      ],
                     ),
-                    _IconButton(
-                      icon: Iconsax.notification_copy,
-                      badgeCount: 2,
-                      onTap: () => context.push('/notifications'),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
 
             // Wallet card
@@ -143,7 +155,12 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Active Agreements', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
+                    Text(
+                      'Active Agreements',
+                      style: AppTextStyles.h3.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () => context.go('/agreements'),
                       child: Text(
@@ -162,27 +179,22 @@ class HomeScreen extends StatelessWidget {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final agreement = activeAgreements[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: AgreementCard(
-                        agreement: agreement,
-                        onTap: () =>
-                            context.push('/agreement/${agreement['id']}'),
-                      ),
-                    );
-                  },
-                  childCount: activeAgreements.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final agreement = activeAgreements[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: AgreementCard(
+                      agreement: agreement,
+                      onTap: () =>
+                          context.push('/agreement/${agreement['id']}'),
+                    ),
+                  );
+                }, childCount: activeAgreements.length),
               ),
             ),
 
             // Bottom spacing to clear floating nav bar
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),

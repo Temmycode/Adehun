@@ -1,3 +1,5 @@
+import 'package:adehun_mvp/data/local/preferences_service.dart';
+import 'package:adehun_mvp/resources/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
@@ -35,8 +37,14 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
+      if (!mounted) return;
+      final prefs = sl<PreferencesService>();
+      if (prefs.isFirstLaunch) {
         context.go('/onboarding');
+      } else if (prefs.isLoggedIn) {
+        context.go('/home');
+      } else {
+        context.go('/auth');
       }
     });
   }
