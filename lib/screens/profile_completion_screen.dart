@@ -1,6 +1,8 @@
+import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/usecases/params/register_user_params.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
@@ -25,6 +27,19 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     super.dispose();
   }
 
+  void _updateProfile(AuthController authController) async {
+    final user = authController.user;
+    if (_formKey.currentState!.validate() && user != null) {
+      await authController.registerUser(
+        RegisterUserParams(
+          userId: user.id!,
+          phoneNumber: _phoneController.text.trim(),
+          fullName: _nameController.text.trim(),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -34,14 +49,20 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 24),
           width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                // TODO: Submit profile to server
-                context.go('/home');
-              }
-            },
-            child: const Text('Continue'),
+          child: Consumer<AuthController>(
+            builder: (context, auth, _) => ElevatedButton(
+              onPressed: () => auth.isLoading ? null : _updateProfile(auth),
+              child: auth.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Continue'),
+            ),
           ),
         ),
       ),
@@ -129,7 +150,12 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                   ),
                   const SizedBox(height: 32),
                   // Display name
-                  Text('Display Name', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
+                  Text(
+                    'Display Name',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _nameController,
@@ -149,7 +175,12 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                   ),
                   const SizedBox(height: 20),
                   // Phone number
-                  Text('Phone Number', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
+                  Text(
+                    'Phone Number',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
@@ -161,7 +192,9 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                         color: colors.textTertiary,
                       ),
                       prefixText: '+234  ',
-                      prefixStyle: AppTextStyles.bodyMedium.copyWith(color: colors.textPrimary),
+                      prefixStyle: AppTextStyles.bodyMedium.copyWith(
+                        color: colors.textPrimary,
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

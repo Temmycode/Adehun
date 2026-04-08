@@ -3,3 +3,23 @@ class LoginFailedError implements Exception {}
 class InvitationRegistrationError implements Exception {}
 
 class RegistrationError implements Exception {}
+
+class GetAgreementsError implements Exception {}
+
+class CreateAgreementError implements Exception {}
+
+class AcceptAgreementError implements Exception {}
+
+class GetAgreementError implements Exception {}
+
+class AddConditionError implements Exception {}
+
+class GetConditionsError implements Exception {}
+
+class GetConditionDetailsError implements Exception {}
+
+class ApproveConditionError implements Exception {}
+
+class RejectConditionError implements Exception {}
+
+class GetAgreementStatsError implements Exception {}

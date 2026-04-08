@@ -1,3 +1,4 @@
+import 'package:adehun_mvp/domain/models/agreement_stats_response.dart';
 import 'package:adehun_mvp/providers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -138,13 +139,7 @@ class HomeScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: _AnalyticsCard(
-                  active: activeAgreements.length,
-                  completed: MockData.agreements
-                      .where((a) => a['status'] == 'COMPLETED')
-                      .length,
-                  total: MockData.agreements.length,
-                ),
+                child: _AnalyticsCard(),
               ),
             ),
 
@@ -318,20 +313,13 @@ class _QuickAction extends StatelessWidget {
 }
 
 class _AnalyticsCard extends StatelessWidget {
-  final int active;
-  final int completed;
-  final int total;
-
-  const _AnalyticsCard({
-    required this.active,
-    required this.completed,
-    required this.total,
-  });
-
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final maxVal = total > 0 ? total : 1;
+    final agreementStats = context.read<AgreementStatsResponse>();
+    final maxVal = agreementStats.totalAgreements > 0
+        ? agreementStats.totalAgreements
+        : 1;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -358,21 +346,21 @@ class _AnalyticsCard extends StatelessWidget {
           const SizedBox(height: 16),
           _BarRow(
             label: 'Active',
-            count: active,
-            fraction: active / maxVal,
+            count: agreementStats.activeAgreements,
+            fraction: agreementStats.activeAgreements / maxVal,
             color: AppColors.primary,
           ),
           const SizedBox(height: 12),
           _BarRow(
             label: 'Completed',
-            count: completed,
-            fraction: completed / maxVal,
+            count: agreementStats.completedAgreements,
+            fraction: agreementStats.completedAgreements / maxVal,
             color: AppColors.success,
           ),
           const SizedBox(height: 12),
           _BarRow(
             label: 'Total',
-            count: total,
+            count: agreementStats.totalAgreements,
             fraction: 1.0,
             color: AppColors.accent,
           ),

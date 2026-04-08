@@ -1,6 +1,8 @@
+import 'package:adehun_mvp/domain/models/agreement_stats_response.dart';
 import 'package:adehun_mvp/providers/auth_controller.dart';
 import 'package:adehun_mvp/resources/service_locator.dart';
 import 'package:adehun_mvp/theme/theme_provider.dart';
+import 'package:adehun_mvp/usecases/get_user_agreement_stats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,6 +23,12 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        FutureProvider<AgreementStatsResponse>(
+          create: (_) => sl<GetUserAgreementStatsUseCase>().call().then(
+            (value) => value.data ?? AgreementStatsResponse.empty(),
+          ),
+          initialData: AgreementStatsResponse.empty(),
+        ),
         ChangeNotifierProvider(create: (_) => sl<AuthController>()),
         ChangeNotifierProvider.value(value: sl<ThemeProvider>()),
       ],

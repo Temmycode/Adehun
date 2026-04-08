@@ -3,6 +3,7 @@ import 'package:adehun_mvp/data/local/preferences_service.dart';
 import 'package:adehun_mvp/data/local/token_storage.dart';
 import 'package:adehun_mvp/domain/models/user_data.dart';
 import 'package:adehun_mvp/resources/data_state.dart';
+import 'package:adehun_mvp/router/app_router.dart';
 import 'package:adehun_mvp/usecases/google_sign_in.dart';
 import 'package:adehun_mvp/usecases/params/register_from_invite_params.dart';
 import 'package:adehun_mvp/usecases/params/register_user_params.dart';
@@ -25,7 +26,9 @@ class AuthController extends ChangeNotifier {
     required this.googleSignInUseCase,
     required this.tokenStorage,
     required this.preferencesService,
-  });
+  }) {
+    getUser();
+  }
 
   bool _isLoading = false;
   bool _isSignedUp = true;
@@ -46,9 +49,14 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  set user(UserData? value) {
+  Future<void> setUser(UserData? value) async {
     _user = value;
+    await preferencesService.setUser(value);
     notifyListeners();
+  }
+
+  void getUser() {
+    _user = preferencesService.user;
   }
 
   Future<void> googleSignIn() async {
@@ -83,8 +91,9 @@ class AuthController extends ChangeNotifier {
       );
 
       await preferencesService.setLoggedIn(true);
+      await preferencesService.setUser(data.user);
       isSignedUp = data.isSignedUp ?? false;
-      user = data.user;
+      await setUser(data.user);
     } catch (e) {
       print("An error occurred while signing in with Google: $e");
     } finally {
@@ -108,6 +117,9 @@ class AuthController extends ChangeNotifier {
       }
 
       // Handle Success
+      await setUser(dataState.data);
+
+      appRouter.go('/home');
     } catch (e) {
       // Handle error
     } finally {
