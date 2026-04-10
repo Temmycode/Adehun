@@ -49,3 +49,5 @@ Claude.md
 .env
 
 /designs/
+
+config.json
