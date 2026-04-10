@@ -1,5 +1,7 @@
-import 'package:adehun_mvp/domain/models/agreement_stats_response.dart';
+import 'package:adehun_mvp/providers/agreement_controller.dart';
 import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/providers/condition_controller.dart';
+import 'package:adehun_mvp/providers/stats_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -11,8 +13,29 @@ import '../constants/mock_data.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/agreement_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    final agreementController = context.read<AgreementController>();
+    final conditionsController = context.read<ConditionController>();
+
+    Future.wait([
+      agreementController.getAllAgreements(),
+      conditionsController.getUsersConditions(),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -316,56 +339,65 @@ class _AnalyticsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final agreementStats = context.read<AgreementStatsResponse>();
-    final maxVal = agreementStats.totalAgreements > 0
-        ? agreementStats.totalAgreements
-        : 1;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Consumer<StatsController>(
+      builder: (context, statsProvider, _) {
+        final maxVal = statsProvider.agreementStats.totalAgreements > 0
+            ? statsProvider.agreementStats.totalAgreements
+            : 1;
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colors.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Iconsax.chart_1_copy, size: 16, color: colors.textTertiary),
-              const SizedBox(width: 6),
-              Text(
-                'Agreement Overview',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: colors.textSecondary,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    Iconsax.chart_1_copy,
+                    size: 16,
+                    color: colors.textTertiary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Agreement Overview',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _BarRow(
+                label: 'Active',
+                count: statsProvider.agreementStats.activeAgreements,
+                fraction:
+                    statsProvider.agreementStats.activeAgreements / maxVal,
+                color: AppColors.primary,
+              ),
+              const SizedBox(height: 12),
+              _BarRow(
+                label: 'Completed',
+                count: statsProvider.agreementStats.completedAgreements,
+                fraction:
+                    statsProvider.agreementStats.completedAgreements / maxVal,
+                color: AppColors.success,
+              ),
+              const SizedBox(height: 12),
+              _BarRow(
+                label: 'Total',
+                count: statsProvider.agreementStats.totalAgreements,
+                fraction: 1.0,
+                color: AppColors.accent,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _BarRow(
-            label: 'Active',
-            count: agreementStats.activeAgreements,
-            fraction: agreementStats.activeAgreements / maxVal,
-            color: AppColors.primary,
-          ),
-          const SizedBox(height: 12),
-          _BarRow(
-            label: 'Completed',
-            count: agreementStats.completedAgreements,
-            fraction: agreementStats.completedAgreements / maxVal,
-            color: AppColors.success,
-          ),
-          const SizedBox(height: 12),
-          _BarRow(
-            label: 'Total',
-            count: agreementStats.totalAgreements,
-            fraction: 1.0,
-            color: AppColors.accent,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

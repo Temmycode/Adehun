@@ -1,3 +1,4 @@
+import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
@@ -6,20 +7,17 @@ import '../theme/app_text_styles.dart';
 import 'status_badge.dart';
 
 class AgreementCard extends StatelessWidget {
-  final Map<String, dynamic> agreement;
+  // final Map<String, dynamic> agreement;
+  final AgreementResponse agreement;
   final VoidCallback? onTap;
 
-  const AgreementCard({
-    super.key,
-    required this.agreement,
-    this.onTap,
-  });
+  const AgreementCard({super.key, required this.agreement, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final amount = agreement['amount'] as double;
-    final status = agreement['status'] as String;
+    final amount = agreement.amount;
+    final status = agreement.status;
     final depositor = agreement['depositor'] as Map<String, dynamic>;
     final beneficiary = agreement['beneficiary'] as Map<String, dynamic>;
     final conditions = agreement['conditions'] as List;
@@ -43,7 +41,9 @@ class AgreementCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     agreement['title'] as String,
-                    style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -70,8 +70,8 @@ class AgreementCard extends StatelessWidget {
                   depositorInitials: depositor['initials'] as String,
                   beneficiaryInitials:
                       (beneficiary['initials'] as String).isNotEmpty
-                          ? beneficiary['initials'] as String
-                          : '?',
+                      ? beneficiary['initials'] as String
+                      : '?',
                 ),
               ],
             ),
@@ -165,21 +165,14 @@ class _ConditionBar extends StatelessWidget {
   final int met;
   final int total;
 
-  const _ConditionBar({
-    required this.met,
-    required this.total,
-  });
+  const _ConditionBar({required this.met, required this.total});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Row(
       children: [
-        Icon(
-          Iconsax.task_square_copy,
-          size: 14,
-          color: colors.textTertiary,
-        ),
+        Icon(Iconsax.task_square_copy, size: 14, color: colors.textTertiary),
         const SizedBox(width: 6),
         Text(
           '$met/$total conditions',

@@ -1,54 +1,43 @@
-import 'package:adehun_mvp/domain/models/agreement_stats_response.dart';
-import 'package:adehun_mvp/providers/auth_controller.dart';
 import 'package:adehun_mvp/resources/service_locator.dart';
-import 'package:adehun_mvp/theme/theme_provider.dart';
-import 'package:adehun_mvp/usecases/get_user_agreement_stats.dart';
+import 'package:adehun_mvp/theme/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'router/app_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeDependencies();
+  final prefs = await SharedPreferences.getInstance();
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
   runApp(
-    MultiProvider(
-      providers: [
-        FutureProvider<AgreementStatsResponse>(
-          create: (_) => sl<GetUserAgreementStatsUseCase>().call().then(
-            (value) => value.data ?? AgreementStatsResponse.empty(),
-          ),
-          initialData: AgreementStatsResponse.empty(),
-        ),
-        ChangeNotifierProvider(create: (_) => sl<AuthController>()),
-        ChangeNotifierProvider.value(value: sl<ThemeProvider>()),
-      ],
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const AdehunApp(),
     ),
   );
 }
 
-class AdehunApp extends StatelessWidget {
+class AdehunApp extends ConsumerWidget {
   const AdehunApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
+  Widget build(BuildContext context, ref) {
+    final theme = ref.watch(themeControllerProvider);
     return MaterialApp.router(
       title: 'Adehun',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeProvider.themeMode,
+      themeMode: theme,
       routerConfig: appRouter,
     );
   }
