@@ -18,7 +18,7 @@ class AuthController extends _$AuthController {
   AuthState build() {
     final preferenceService = ref.read(preferencesServiceProvider);
     final user = preferenceService.user;
-    if (user != null) return AuthState(userData: user, isSignedUp: true);
+    if (user != null) return AuthState(userData: user);
     return AuthState.unknown();
   }
 
@@ -31,7 +31,7 @@ class AuthController extends _$AuthController {
     try {
       state = state.copyWith(isLoading: true);
 
-      final dataState = await ref.read(googleSignInUseCaseProvider)();
+      final dataState = await ref.read(authRepositoryProvider).googleSignIn();
 
       if (dataState is DataFailed) {
         if (dataState.exception is LoginFailedError) {
@@ -52,18 +52,23 @@ class AuthController extends _$AuthController {
         return;
       }
 
-      await ref.read(tokenStorageProvider).saveTokens(
-        accessToken: data.accessToken!,
-        refreshToken: data.refreshToken!,
-      );
+      await ref
+          .read(tokenStorageProvider)
+          .saveTokens(
+            accessToken: data.accessToken!,
+            refreshToken: data.refreshToken!,
+          );
 
       final preferencesService = ref.read(preferencesServiceProvider);
       await preferencesService.setLoggedIn(true);
       await preferencesService.setUser(data.user);
-      state = state.copyWith(
-        isSignedUp: data.isSignedUp ?? false,
-        userData: data.user,
-      );
+      state = state.copyWith(userData: data.user);
+
+      if (!(data.isSignedUp ?? false)) {
+        appRouter.go('/profile-completion');
+      } else {
+        appRouter.go('/home');
+      }
     } catch (e) {
       print("An error occurred while signing in with Google: $e");
     } finally {
@@ -75,9 +80,13 @@ class AuthController extends _$AuthController {
     try {
       state = state.copyWith(isLoading: true);
 
-      final dataState = await ref.read(registerUserUseCaseProvider)(
-        params: params,
-      );
+      final dataState = await ref
+          .read(authRepositoryProvider)
+          .registerUser(
+            userId: params.userId,
+            phoneNumber: params.phoneNumber,
+            fullName: params.fullName,
+          );
 
       if (dataState is DataFailed) {
         // Handle failure
@@ -103,9 +112,9 @@ class AuthController extends _$AuthController {
     try {
       state = state.copyWith(isLoading: true);
 
-      final dataState = await ref.read(registerFromInviteUseCaseProvider)(
-        params: params,
-      );
+      final dataState = await ref
+          .read(authRepositoryProvider)
+          .registerFromInvite(params.idToken, params.invitationToken);
 
       if (dataState is DataFailed) {
         // Handle failure

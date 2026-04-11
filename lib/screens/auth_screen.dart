@@ -1,21 +1,21 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
+class _AuthScreenState extends ConsumerState<AuthScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;
@@ -64,7 +64,7 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isLoading = context.watch<AuthController>().isLoading;
+    final isLoading = ref.watch(authControllerProvider).isLoading;
     return Stack(
       children: [
         Scaffold(
@@ -214,28 +214,23 @@ class _AuthScreenState extends State<AuthScreen>
   }
 }
 
-class _GoogleSignInButton extends StatelessWidget {
-  void _handleGoogleSignIn(BuildContext context) async {
-    final authProvider = context.read<AuthController>();
+class _GoogleSignInButton extends ConsumerWidget {
+  void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
+    final authProvider = ref.watch(authControllerProvider);
+    final authController = ref.read(authControllerProvider.notifier);
     if (authProvider.isLoading) return;
 
-    await authProvider.googleSignIn();
-
-    if (!authProvider.isSignedUp) {
-      context.go('/profile-completion');
-    } else {
-      context.go('/home');
-    }
+    await authController.googleSignIn();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => _handleGoogleSignIn(context),
+        onPressed: () => _handleGoogleSignIn(context, ref),
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.surface,
           foregroundColor: colors.textPrimary,

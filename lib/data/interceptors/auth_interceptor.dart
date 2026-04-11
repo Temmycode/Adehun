@@ -1,8 +1,13 @@
+import 'dart:developer';
+
+import 'package:adehun_mvp/constants/urls.dart';
 import 'package:adehun_mvp/data/local/token_storage.dart';
 import 'package:dio/dio.dart';
 
-class AuthInterceptor extends Interceptor {
+class AuthInterceptor extends QueuedInterceptor {
   final TokenStorage _tokenStorage;
+  final Dio _refreshDio = Dio();
+  final void Function()? onSessionExpired;
 
   static const _authPaths = [
     '/auth/login',
@@ -11,14 +16,18 @@ class AuthInterceptor extends Interceptor {
     '/auth/refresh',
   ];
 
-  AuthInterceptor(TokenStorage tokenStorage) : _tokenStorage = tokenStorage;
+  AuthInterceptor(
+    TokenStorage tokenStorage, {
+    this.onSessionExpired,
+  }) : _tokenStorage = tokenStorage;
 
   @override
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final isAuthEndpoint = _authPaths.any((path) => options.path.contains(path));
+    final isAuthEndpoint =
+        _authPaths.any((path) => options.path.contains(path));
 
     if (!isAuthEndpoint) {
       final accessToken = await _tokenStorage.getAccessToken();
@@ -28,5 +37,64 @@ class AuthInterceptor extends Interceptor {
     }
 
     handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode != 401) {
+      return handler.next(err);
+    }
+
+    final isAuthEndpoint =
+        _authPaths.any((path) => err.requestOptions.path.contains(path));
+    if (isAuthEndpoint) {
+      return handler.next(err);
+    }
+
+    final refreshToken = await _tokenStorage.getRefreshToken();
+    if (refreshToken == null) {
+      log('[AuthInterceptor] No refresh token found, skipping refresh');
+      onSessionExpired?.call();
+      return handler.next(err);
+    }
+
+    try {
+      log('[AuthInterceptor] Attempting token refresh...');
+      final response = await _refreshDio.post(
+        '$baseUrl$refreshUrl',
+        data: {'refresh_token': refreshToken},
+      );
+
+      log('[AuthInterceptor] Refresh response: ${response.statusCode}');
+
+      final newAccessToken = response.data['access_token'] as String?;
+      final newRefreshToken = response.data['refresh_token'] as String?;
+
+      if (newAccessToken == null || newRefreshToken == null) {
+        log('[AuthInterceptor] Refresh returned null tokens');
+        await _tokenStorage.clearTokens();
+        onSessionExpired?.call();
+        return handler.next(err);
+      }
+
+      await _tokenStorage.saveTokens(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      );
+
+      log('[AuthInterceptor] Tokens refreshed, retrying request');
+
+      // Retry the original request with the new token
+      final options = err.requestOptions;
+      options.headers['Authorization'] = 'Bearer $newAccessToken';
+
+      final retryResponse = await _refreshDio.fetch(options);
+      return handler.resolve(retryResponse);
+    } on DioException catch (e) {
+      log('[AuthInterceptor] Refresh failed: ${e.response?.statusCode} - ${e.response?.data}');
+      await _tokenStorage.clearTokens();
+      onSessionExpired?.call();
+      return handler.next(err);
+    }
   }
 }

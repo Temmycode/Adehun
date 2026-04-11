@@ -13,6 +13,12 @@ AgreementResponse _$AgreementResponseFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String?,
       amount: json['amount'] as String?,
       status: json['status'] as String?,
+      depositor: AgreementResponse._participantFromJson(
+        json['depositor'] as Map<String, dynamic>?,
+      ),
+      beneficiary: AgreementResponse._participantFromJson(
+        json['beneficiary'] as Map<String, dynamic>?,
+      ),
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -25,5 +31,7 @@ Map<String, dynamic> _$AgreementResponseToJson(AgreementResponse instance) =>
       'description': instance.description,
       'amount': instance.amount,
       'status': instance.status,
+      'depositor': AgreementResponse._participantToJson(instance.depositor),
+      'beneficiary': AgreementResponse._participantToJson(instance.beneficiary),
       'created_at': instance.createdAt?.toIso8601String(),
     };

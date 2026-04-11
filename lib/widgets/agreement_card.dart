@@ -1,4 +1,5 @@
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
+import 'package:adehun_mvp/domain/models/condition_response.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
@@ -7,20 +8,25 @@ import '../theme/app_text_styles.dart';
 import 'status_badge.dart';
 
 class AgreementCard extends StatelessWidget {
-  // final Map<String, dynamic> agreement;
   final AgreementResponse agreement;
+  final List<ConditionResponse> conditions;
   final VoidCallback? onTap;
 
-  const AgreementCard({super.key, required this.agreement, this.onTap});
+  const AgreementCard({
+    super.key,
+    required this.agreement,
+    required this.conditions,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final amount = agreement.amount;
-    final status = agreement.status;
-    final depositor = agreement['depositor'] as Map<String, dynamic>;
-    final beneficiary = agreement['beneficiary'] as Map<String, dynamic>;
-    final conditions = agreement['conditions'] as List;
+    final amount = double.parse(agreement.amount ?? '0');
+    final status = agreement.status ?? 'pending';
+    final depositor = agreement.depositor;
+    final beneficiary = agreement.beneficiary;
+    // final conditions = agreement['conditions'] as List;
 
     return GestureDetector(
       onTap: onTap,
@@ -40,7 +46,7 @@ class AgreementCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    agreement['title'] as String,
+                    agreement.title ?? '',
                     style: AppTextStyles.labelLarge.copyWith(
                       color: colors.textPrimary,
                     ),
@@ -67,10 +73,9 @@ class AgreementCard extends StatelessWidget {
                 const Spacer(),
                 // Parties - compact inline avatars
                 _InlineParties(
-                  depositorInitials: depositor['initials'] as String,
-                  beneficiaryInitials:
-                      (beneficiary['initials'] as String).isNotEmpty
-                      ? beneficiary['initials'] as String
+                  depositorInitials: depositor?.initials ?? "",
+                  beneficiaryInitials: beneficiary != null
+                      ? beneficiary.initials
                       : '?',
                 ),
               ],
@@ -89,8 +94,8 @@ class AgreementCard extends StatelessWidget {
     );
   }
 
-  int _metConditions(List conditions) {
-    return conditions.where((c) => c['status'] == 'MET').length;
+  int _metConditions(List<ConditionResponse> conditions) {
+    return conditions.where((c) => c.status == 'MET').length;
   }
 
   String _formatAmount(double amount) {

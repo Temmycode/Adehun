@@ -1,21 +1,22 @@
-import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/usecases/params/register_user_params.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
-class ProfileCompletionScreen extends StatefulWidget {
+class ProfileCompletionScreen extends ConsumerStatefulWidget {
   const ProfileCompletionScreen({super.key});
 
   @override
-  State<ProfileCompletionScreen> createState() =>
+  ConsumerState<ProfileCompletionScreen> createState() =>
       _ProfileCompletionScreenState();
 }
 
-class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
+class _ProfileCompletionScreenState
+    extends ConsumerState<ProfileCompletionScreen> {
   final _nameController = TextEditingController(text: '');
   final _phoneController = TextEditingController(text: '');
   final _formKey = GlobalKey<FormState>();
@@ -27,10 +28,10 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     super.dispose();
   }
 
-  void _updateProfile(AuthController authController) async {
-    final user = authController.user;
+  void _updateProfile() async {
+    final user = ref.read(authControllerProvider).userData;
     if (_formKey.currentState!.validate() && user != null) {
-      await authController.registerUser(
+      await ref.read(authControllerProvider.notifier).registerUser(
         RegisterUserParams(
           userId: user.id!,
           phoneNumber: _phoneController.text.trim(),
@@ -43,26 +44,25 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final authState = ref.watch(authControllerProvider);
     return Scaffold(
       backgroundColor: colors.background,
       bottomNavigationBar: SafeArea(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 24),
           width: double.infinity,
-          child: Consumer<AuthController>(
-            builder: (context, auth, _) => ElevatedButton(
-              onPressed: () => auth.isLoading ? null : _updateProfile(auth),
-              child: auth.isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Continue'),
-            ),
+          child: ElevatedButton(
+            onPressed: authState.isLoading ? null : _updateProfile,
+            child: authState.isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Continue'),
           ),
         ),
       ),

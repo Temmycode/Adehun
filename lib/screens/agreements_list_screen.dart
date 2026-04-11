@@ -1,10 +1,13 @@
+import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
-import '../constants/mock_data.dart';
 import '../widgets/agreement_card.dart';
 
 class AgreementsListScreen extends StatefulWidget {
@@ -22,21 +25,26 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
     'Pending',
     'Completed',
     'Disputed',
+    'Refunded',
   ];
 
-  List<Map<String, dynamic>> get _filteredAgreements {
-    if (_selectedFilter == 'All') return MockData.agreements;
-    return MockData.agreements.where((a) {
-      final status = a['status'] as String;
+  List<AgreementResponse> _filteredAgreements(
+    List<AgreementResponse> agreements,
+  ) {
+    if (_selectedFilter == 'All') return agreements;
+    return agreements.where((a) {
+      final status = a.status;
       switch (_selectedFilter) {
         case 'Active':
-          return status == 'ACTIVE' || status == 'CONDITIONS_IN_PROGRESS';
+          return status == 'active' || status == 'CONDITIONS_IN_PROGRESS';
         case 'Pending':
-          return status == 'PENDING_ACCEPTANCE' || status == 'DRAFT';
+          return status == 'pending' || status == 'DRAFT';
         case 'Completed':
-          return status == 'COMPLETED' || status == 'CONDITIONS_MET';
+          return status == 'completed' || status == 'CONDITIONS_MET';
         case 'Disputed':
-          return status == 'DISPUTED';
+          return status == 'disputed';
+        case 'Refunded':
+          return status == 'refunded';
         default:
           return true;
       }
@@ -46,7 +54,6 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final agreements = _filteredAgreements;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -126,27 +133,61 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
               ),
             ),
 
-            // Agreements list
-            if (agreements.isEmpty)
-              SliverFillRemaining(child: _EmptyState())
-            else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final agreement = agreements[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: AgreementCard(
-                        agreement: agreement,
-                        onTap: () =>
-                            context.push('/agreement/${agreement['id']}'),
-                      ),
-                    );
-                  }, childCount: agreements.length),
-                ),
-              ),
+            Consumer(
+              builder: (context, ref, _) {
+                final agreementState = ref.watch(agreementControllerProvider);
+                final conditionController = ref.read(
+                  conditionControllerProvider.notifier,
+                );
 
+                return agreementState.when(
+                  data: (stateData) {
+                    final agreements = _filteredAgreements(
+                      stateData.agreements,
+                    );
+                    if (agreements.isEmpty) {
+                      return SliverFillRemaining(child: _EmptyState());
+                    } else {
+                      return SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final agreement = agreements[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: AgreementCard(
+                                agreement: agreement,
+                                conditions: conditionController
+                                    .getAgreementConditions(agreement.id!),
+                                onTap: () {
+                                  context.push('/agreement/${agreement.id}');
+                                },
+                              ),
+                            );
+                          }, childCount: agreements.length),
+                        ),
+                      );
+                    }
+                  },
+                  loading: () => const SliverToBoxAdapter(
+                    child: CircularProgressIndicator(),
+                  ),
+                  error: (err, stk) => SliverToBoxAdapter(
+                    child: Text(
+                      'An error occurred $err',
+                      style: TextTheme.of(
+                        context,
+                      ).bodyMedium?.copyWith(color: Colors.red),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Agreements list
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),

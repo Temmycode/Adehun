@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:adehun_mvp/data/local/preferences_service.dart';
 import 'package:adehun_mvp/resources/service_locator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
@@ -45,19 +45,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
-  void _nextPage() {
+  void _nextPage(WidgetRef ref) {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     } else {
-      _completeOnboarding();
+      _completeOnboarding(ref);
     }
   }
 
-  void _completeOnboarding() {
-    sl<PreferencesService>().setFirstLaunch(false);
+  void _completeOnboarding(WidgetRef ref) {
+    ref.read(preferencesServiceProvider).setFirstLaunch(false);
     context.go('/auth');
   }
 
@@ -76,20 +76,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             // Skip button
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextButton(
-                  onPressed: _completeOnboarding,
-                  child: Text(
-                    'Skip',
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: colors.textSecondary,
+            Consumer(
+              builder: (context, ref, _) {
+                return Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TextButton(
+                      onPressed: () => _completeOnboarding(ref),
+                      child: Text(
+                        'Skip',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
 
             // Page content
@@ -186,35 +190,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   // Next button with circular progress
-                  GestureDetector(
-                    onTap: _nextPage,
-                    child: SizedBox(
-                      width: 64,
-                      height: 64,
-                      child: CustomPaint(
-                        painter: _CircularProgressPainter(
-                          progress: (_currentPage + 1) / _pages.length,
-                          trackColor: AppColors.primary.withValues(alpha: 0.15),
-                          progressColor: AppColors.primary,
-                          strokeWidth: 3,
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 52,
-                            height: 52,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primary,
+                  Consumer(
+                    builder: (context, ref, _) {
+                      return GestureDetector(
+                        onTap: () => _nextPage(ref),
+                        child: SizedBox(
+                          width: 64,
+                          height: 64,
+                          child: CustomPaint(
+                            painter: _CircularProgressPainter(
+                              progress: (_currentPage + 1) / _pages.length,
+                              trackColor: AppColors.primary.withValues(
+                                alpha: 0.15,
+                              ),
+                              progressColor: AppColors.primary,
+                              strokeWidth: 3,
                             ),
-                            child: const Icon(
-                              CupertinoIcons.arrow_right,
-                              color: Colors.white,
-                              size: 22,
+                            child: Center(
+                              child: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.primary,
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.arrow_right,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -231,9 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: AppTextStyles.displayMedium.copyWith(
-          color: colors.textPrimary,
-        ),
+        style: AppTextStyles.displayMedium.copyWith(color: colors.textPrimary),
         children: [
           if (parts.isNotEmpty) TextSpan(text: parts[0]),
           TextSpan(

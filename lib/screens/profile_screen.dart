@@ -1,20 +1,20 @@
-import 'package:adehun_mvp/providers/auth_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/theme/theme_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../constants/mock_data.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
 
     String generateInitials(String username) {
@@ -39,8 +39,10 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 28),
               // Profile card
-              Consumer<AuthController>(
-                builder: (context, auth, _) {
+              Consumer(
+                builder: (context, ref, _) {
+                  final authState = ref.watch(authControllerProvider);
+                  final user = authState.userData;
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
@@ -55,7 +57,7 @@ class ProfileScreen extends StatelessWidget {
                           radius: 40,
                           backgroundColor: colors.primarySurface,
                           child: Text(
-                            generateInitials(auth.user?.name ?? 'User'),
+                            generateInitials(user?.name ?? 'User'),
                             style: AppTextStyles.h1.copyWith(
                               color: AppColors.primary,
                               fontSize: 28,
@@ -64,14 +66,14 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          auth.user?.name ?? 'User',
+                          user?.name ?? 'User',
                           style: AppTextStyles.h2.copyWith(
                             color: colors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          auth.user?.email ?? 'example@example.com',
+                          user?.email ?? 'example@example.com',
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: colors.textSecondary,
                           ),
@@ -228,7 +230,7 @@ class ProfileScreen extends StatelessWidget {
                   iconColor: AppColors.error,
                   titleColor: AppColors.error,
                   showArrow: false,
-                  onTap: () => _showSignOutSheet(context),
+                  onTap: () => _showSignOutSheet(context, ref),
                 ),
               ),
               const SizedBox(height: 16),
@@ -247,7 +249,7 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-void _showSignOutSheet(BuildContext context) {
+void _showSignOutSheet(BuildContext context, WidgetRef ref) {
   final colors = context.colors;
 
   showModalBottomSheet(
@@ -311,7 +313,7 @@ void _showSignOutSheet(BuildContext context) {
                     child: ElevatedButton(
                       onPressed: () async {
                         Navigator.pop(sheetContext);
-                        await context.read<AuthController>().signOut();
+                        await ref.read(authControllerProvider.notifier).signOut();
                         if (context.mounted) {
                           context.go('/auth');
                         }
@@ -388,64 +390,60 @@ class _SettingsSection extends StatelessWidget {
   }
 }
 
-class _ThemeSettingsItem extends StatelessWidget {
+class _ThemeSettingsItem extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
+    final mode = ref.watch(themeControllerProvider);
+    final label = switch (mode) {
+      ThemeMode.light => 'Light',
+      ThemeMode.dark => 'Dark',
+      ThemeMode.system => 'System',
+    };
 
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, _) {
-        final mode = themeProvider.themeMode;
-        final label = switch (mode) {
-          ThemeMode.light => 'Light',
-          ThemeMode.dark => 'Dark',
-          ThemeMode.system => 'System',
-        };
-
-        return GestureDetector(
-          onTap: () => _showThemePicker(context),
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Icon(
-                  context.isDarkMode ? Iconsax.moon_copy : Iconsax.sun_1_copy,
-                  color: colors.textSecondary,
-                  size: 22,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    'Appearance',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                ),
-                Text(
-                  label,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: colors.textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  CupertinoIcons.chevron_forward,
-                  size: 14,
-                  color: colors.textTertiary,
-                ),
-              ],
+    return GestureDetector(
+      onTap: () => _showThemePicker(context, ref),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(
+              context.isDarkMode ? Iconsax.moon_copy : Iconsax.sun_1_copy,
+              color: colors.textSecondary,
+              size: 22,
             ),
-          ),
-        );
-      },
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Appearance',
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: colors.textPrimary,
+                ),
+              ),
+            ),
+            Text(
+              label,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              CupertinoIcons.chevron_forward,
+              size: 14,
+              color: colors.textTertiary,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  void _showThemePicker(BuildContext context) {
+  void _showThemePicker(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final themeProvider = context.read<ThemeProvider>();
+    final themeNotifier = ref.read(themeControllerProvider.notifier);
+    final currentMode = ref.read(themeControllerProvider);
 
     showModalBottomSheet(
       context: context,
@@ -477,9 +475,9 @@ class _ThemeSettingsItem extends StatelessWidget {
                 _ThemeOption(
                   icon: Iconsax.sun_1_copy,
                   title: 'Light',
-                  isSelected: themeProvider.themeMode == ThemeMode.light,
+                  isSelected: currentMode == ThemeMode.light,
                   onTap: () {
-                    themeProvider.setThemeMode(ThemeMode.light);
+                    themeNotifier.setThemeMode(ThemeMode.light);
                     Navigator.pop(context);
                   },
                 ),
@@ -487,9 +485,9 @@ class _ThemeSettingsItem extends StatelessWidget {
                 _ThemeOption(
                   icon: Iconsax.moon_copy,
                   title: 'Dark',
-                  isSelected: themeProvider.themeMode == ThemeMode.dark,
+                  isSelected: currentMode == ThemeMode.dark,
                   onTap: () {
-                    themeProvider.setThemeMode(ThemeMode.dark);
+                    themeNotifier.setThemeMode(ThemeMode.dark);
                     Navigator.pop(context);
                   },
                 ),
@@ -497,9 +495,9 @@ class _ThemeSettingsItem extends StatelessWidget {
                 _ThemeOption(
                   icon: Iconsax.monitor_copy,
                   title: 'System',
-                  isSelected: themeProvider.themeMode == ThemeMode.system,
+                  isSelected: currentMode == ThemeMode.system,
                   onTap: () {
-                    themeProvider.setThemeMode(ThemeMode.system);
+                    themeNotifier.setThemeMode(ThemeMode.system);
                     Navigator.pop(context);
                   },
                 ),

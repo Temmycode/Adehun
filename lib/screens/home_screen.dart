@@ -1,54 +1,24 @@
-import 'package:adehun_mvp/providers/agreement_controller.dart';
-import 'package:adehun_mvp/providers/auth_controller.dart';
-import 'package:adehun_mvp/providers/condition_controller.dart';
-import 'package:adehun_mvp/providers/stats_controller.dart';
+import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
+import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/controllers/stats_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
-import '../constants/mock_data.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/agreement_card.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  void _loadData() {
-    final agreementController = context.read<AgreementController>();
-    final conditionsController = context.read<ConditionController>();
-
-    Future.wait([
-      agreementController.getAllAgreements(),
-      conditionsController.getUsersConditions(),
-    ]);
-  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     // Get active agreements only
-    final activeAgreements = MockData.agreements
-        .where(
-          (a) =>
-              a['status'] == 'ACTIVE' ||
-              a['status'] == 'CONDITIONS_IN_PROGRESS' ||
-              a['status'] == 'PENDING_ACCEPTANCE',
-        )
-        .toList();
 
     String generateInitials(String username) {
       return username.split(' ').map((name) => name[0]).join('');
@@ -60,8 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: CustomScrollView(
           slivers: [
             // App bar
-            Consumer<AuthController>(
-              builder: (context, auth, _) {
+            Consumer(
+              builder: (context, ref, _) {
+                final user = ref.watch(authControllerProvider).userData;
                 return SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -71,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           radius: 22,
                           backgroundColor: colors.primarySurface,
                           child: Text(
-                            generateInitials(auth.user?.name ?? "User"),
+                            generateInitials(user?.name ?? "User"),
                             style: AppTextStyles.labelLarge.copyWith(
                               color: AppColors.primary,
                             ),
@@ -89,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                auth.user?.name ?? "User",
+                                user?.name ?? "User",
                                 style: AppTextStyles.h3.copyWith(
                                   color: colors.textPrimary,
                                 ),
@@ -194,21 +165,59 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // Active agreements list
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final agreement = activeAgreements[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: AgreementCard(
-                      agreement: agreement,
-                      onTap: () =>
-                          context.push('/agreement/${agreement['id']}'),
+            Consumer(
+              builder: (context, ref, _) {
+                final agreementState = ref.watch(agreementControllerProvider);
+                final conditionController = ref.read(
+                  conditionControllerProvider.notifier,
+                );
+
+                return agreementState.when(
+                  data: (stateData) {
+                    final activeAgreements = stateData.agreements
+                        .where((agt) => agt.status == 'active')
+                        .toList();
+
+                    if (activeAgreements.isEmpty) {
+                      return SliverToBoxAdapter(
+                        child: Container(),
+                      ); // TODO: Change to empty state view
+                    }
+
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final agreement = activeAgreements[index];
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: AgreementCard(
+                              agreement: agreement,
+                              conditions: conditionController
+                                  .getAgreementConditions(agreement.id!),
+                              onTap: () {
+                                context.push('/agreement/${agreement.id}');
+                              },
+                            ),
+                          );
+                        }, childCount: activeAgreements.length),
+                      ),
+                    );
+                  },
+                  loading: () => const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (err, stk) => SliverToBoxAdapter(
+                    child: Text(
+                      'An error occurred $err',
+                      style: TextTheme.of(
+                        context,
+                      ).bodyMedium?.copyWith(color: Colors.red),
                     ),
-                  );
-                }, childCount: activeAgreements.length),
-              ),
+                  ),
+                );
+              },
             ),
 
             // Bottom spacing to clear floating nav bar
@@ -340,61 +349,72 @@ class _AnalyticsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Consumer<StatsController>(
-      builder: (context, statsProvider, _) {
-        final maxVal = statsProvider.agreementStats.totalAgreements > 0
-            ? statsProvider.agreementStats.totalAgreements
-            : 1;
-        return Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: colors.cardBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return Consumer(
+      builder: (context, ref, _) {
+        final agreementStats = ref.watch(statsControllerProvider);
+        return agreementStats.when(
+          data: (stats) {
+            final maxVal = stats.totalAgreements > 0
+                ? stats.totalAgreements
+                : 1;
+
+            return Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colors.cardBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Iconsax.chart_1_copy,
-                    size: 16,
-                    color: colors.textTertiary,
+                  Row(
+                    children: [
+                      Icon(
+                        Iconsax.chart_1_copy,
+                        size: 16,
+                        color: colors.textTertiary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Agreement Overview',
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Agreement Overview',
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: colors.textSecondary,
-                    ),
+                  const SizedBox(height: 16),
+                  _BarRow(
+                    label: 'Active',
+                    count: stats.activeAgreements,
+                    fraction: stats.activeAgreements / maxVal,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(height: 12),
+                  _BarRow(
+                    label: 'Completed',
+                    count: stats.completedAgreements,
+                    fraction: stats.completedAgreements / maxVal,
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(height: 12),
+                  _BarRow(
+                    label: 'Total',
+                    count: stats.totalAgreements,
+                    fraction: 1.0,
+                    color: AppColors.accent,
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              _BarRow(
-                label: 'Active',
-                count: statsProvider.agreementStats.activeAgreements,
-                fraction:
-                    statsProvider.agreementStats.activeAgreements / maxVal,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: 12),
-              _BarRow(
-                label: 'Completed',
-                count: statsProvider.agreementStats.completedAgreements,
-                fraction:
-                    statsProvider.agreementStats.completedAgreements / maxVal,
-                color: AppColors.success,
-              ),
-              const SizedBox(height: 12),
-              _BarRow(
-                label: 'Total',
-                count: statsProvider.agreementStats.totalAgreements,
-                fraction: 1.0,
-                color: AppColors.accent,
-              ),
-            ],
+            );
+          },
+          loading: () => CircularProgressIndicator(),
+          error: (err, _) => Text(
+            'An error occurred $err',
+            style: TextTheme.of(
+              context,
+            ).bodyMedium?.copyWith(color: Colors.red),
           ),
         );
       },
