@@ -11,6 +11,7 @@ import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/agreement_card.dart';
+import '../widgets/skeletons.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -150,6 +151,7 @@ class HomeScreen extends StatelessWidget {
                         color: colors.textPrimary,
                       ),
                     ),
+
                     GestureDetector(
                       onTap: () => context.go('/agreements'),
                       child: Text(
@@ -168,6 +170,7 @@ class HomeScreen extends StatelessWidget {
             Consumer(
               builder: (context, ref, _) {
                 final agreementState = ref.watch(agreementControllerProvider);
+                final statsState = ref.watch(statsControllerProvider);
                 final conditionController = ref.read(
                   conditionControllerProvider.notifier,
                 );
@@ -179,9 +182,19 @@ class HomeScreen extends StatelessWidget {
                         .toList();
 
                     if (activeAgreements.isEmpty) {
+                      final hasNoAgreementsAtAll = statsState.maybeWhen(
+                        data: (s) => s.totalAgreements == 0,
+                        orElse: () => stateData.agreements.isEmpty,
+                      );
                       return SliverToBoxAdapter(
-                        child: Container(),
-                      ); // TODO: Change to empty state view
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                          child: hasNoAgreementsAtAll
+                              ? const _HomeEmptyState()
+                              : const _NoActiveAgreementsState(),
+                        ),
+                      );
                     }
 
                     return SliverPadding(
@@ -205,8 +218,11 @@ class HomeScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  loading: () => const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator()),
+                  loading: () => const SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    sliver: SliverToBoxAdapter(
+                      child: AgreementListSkeleton(count: 3),
+                    ),
                   ),
                   error: (err, stk) => SliverToBoxAdapter(
                     child: Text(
@@ -402,14 +418,14 @@ class _AnalyticsCard extends StatelessWidget {
                   _BarRow(
                     label: 'Total',
                     count: stats.totalAgreements,
-                    fraction: 1.0,
+                    fraction: stats.totalAgreements == 0 ? 0.0 : 1.0,
                     color: AppColors.accent,
                   ),
                 ],
               ),
             );
           },
-          loading: () => CircularProgressIndicator(),
+          loading: () => const AnalyticsCardSkeleton(),
           error: (err, _) => Text(
             'An error occurred $err',
             style: TextTheme.of(
@@ -490,6 +506,107 @@ class _BarRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _NoActiveAgreementsState extends StatelessWidget {
+  const _NoActiveAgreementsState();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Iconsax.clock_copy,
+              color: AppColors.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No active agreements',
+            style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Your pending and completed agreements\nare available in the full list',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          TextButton(
+            onPressed: () => context.go('/agreements'),
+            child: const Text('View all agreements'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeEmptyState extends StatelessWidget {
+  const _HomeEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: colors.primarySurface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Iconsax.document_text_copy,
+              color: AppColors.primary,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'No agreements yet',
+            style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Create your first escrow agreement\nto see it here',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

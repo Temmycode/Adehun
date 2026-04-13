@@ -1,3 +1,4 @@
+import 'package:adehun_mvp/providers/auth_providers.dart';
 import 'package:adehun_mvp/resources/service_locator.dart';
 import 'package:adehun_mvp/theme/theme_controller.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,22 @@ class AdehunApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final theme = ref.watch(themeControllerProvider);
+
+    ref.listen<AuthNavigationState>(authNavigationStateProvider, (prev, next) {
+      if (prev == next) return;
+      switch (next) {
+        case AuthNavigationState.authenticated:
+          appRouter.go('/home');
+        case AuthNavigationState.needsProfile:
+          appRouter.go('/profile-completion');
+        case AuthNavigationState.unauthenticated:
+          appRouter.go('/auth');
+        case AuthNavigationState.loading:
+        case AuthNavigationState.error:
+          break;
+      }
+    });
+
     return MaterialApp.router(
       title: 'Adehun',
       debugShowCheckedModeBanner: false,

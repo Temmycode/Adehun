@@ -1,6 +1,9 @@
+import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/usecases/params/create_agreement_params.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
@@ -8,31 +11,38 @@ import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/currency_input_formatter.dart';
 
-class CreateAgreementScreen extends StatefulWidget {
+class CreateAgreementScreen extends ConsumerStatefulWidget {
   const CreateAgreementScreen({super.key});
 
   @override
-  State<CreateAgreementScreen> createState() => _CreateAgreementScreenState();
+  ConsumerState<CreateAgreementScreen> createState() =>
+      _CreateAgreementScreenState();
 }
 
-class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
+class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
+  final _detailsFormKey = GlobalKey<FormState>();
+  final _partiesFormKey = GlobalKey<FormState>();
   int _currentStep = 0;
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
   final _inviteController = TextEditingController();
   String _role = 'depositor';
+  bool _conditionsError = false;
+
+  static final _emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$');
+  static final _phoneRegex = RegExp(r'^\+?[0-9]{7,15}$');
 
   // Richer condition model: each condition has title, description, requiredFrom
   final List<Map<String, dynamic>> _conditions = [];
 
   // Derived participant info based on role + invite
   Map<String, dynamic> get _myParticipant => {
-        'id': 'me',
-        'name': 'You',
-        'initials': 'YO',
-        'role': _role,
-      };
+    'id': 'me',
+    'name': 'You',
+    'initials': 'YO',
+    'role': _role,
+  };
 
   Map<String, dynamic> get _otherParticipant {
     final otherRole = _role == 'depositor' ? 'beneficiary' : 'depositor';
@@ -40,15 +50,15 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
     return {
       'id': 'other',
       'name': inviteText.isNotEmpty ? inviteText : 'Other Party',
-      'initials': inviteText.isNotEmpty
-          ? inviteText[0].toUpperCase()
-          : 'OP',
+      'initials': inviteText.isNotEmpty ? inviteText[0].toUpperCase() : 'OP',
       'role': otherRole,
     };
   }
 
-  List<Map<String, dynamic>> get _participants =>
-      [_myParticipant, _otherParticipant];
+  List<Map<String, dynamic>> get _participants => [
+    _myParticipant,
+    _otherParticipant,
+  ];
 
   @override
   void dispose() {
@@ -59,9 +69,46 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
     super.dispose();
   }
 
+  void _createAgreement() {
+    if (!_validateCurrentStep()) return;
+    if (_currentStep < 2) {
+      setState(() => _currentStep++);
+      return;
+    }
+
+    final amount =
+        int.tryParse(
+          _amountController.text.trim().replaceAll(',', '').split('.').first,
+        ) ??
+        0;
+
+    final params = CreateAgreementParams(
+      otherParticipantEmailOrPhone: _inviteController.text.trim(),
+      role: _role,
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      amount: amount,
+      conditions: _conditions.map((c) {
+        final requiredFrom = c['requiredFrom'] as Map<String, dynamic>;
+        final isMe = requiredFrom['id'] == 'me';
+        return CreateConditionParams(
+          title: c['title'] as String,
+          description: c['description'] as String,
+          requiredFromEmail: isMe ? '' : _inviteController.text.trim(),
+        );
+      }).toList(),
+    );
+
+    ref.read(agreementControllerProvider.notifier).createAgreement(params);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final isCreating = ref.watch(
+      agreementControllerProvider.select((s) => s.value?.isCreating ?? false),
+    );
+
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
@@ -78,49 +125,25 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
             child: Row(
-              children: List.generate(3, (index) {
-                final isActive = index <= _currentStep;
-                final isComplete = index < _currentStep;
-                return Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.primary
-                              : colors.surfaceVariant,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: isComplete
-                              ? const Icon(Iconsax.tick_circle,
-                                  color: Colors.white, size: 18)
-                              : Text(
-                                  '${index + 1}',
-                                  style: AppTextStyles.labelMedium.copyWith(
-                                    color: isActive
-                                        ? Colors.white
-                                        : colors.textTertiary,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      if (index < 2)
-                        Expanded(
-                          child: Container(
-                            height: 2,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            color: index < _currentStep
-                                ? AppColors.primary
-                                : colors.surfaceVariant,
-                          ),
-                        ),
-                    ],
+              children: [
+                for (var index = 0; index < 3; index++) ...[
+                  _StepDot(
+                    index: index,
+                    currentStep: _currentStep,
+                    colors: colors,
                   ),
-                );
-              }),
+                  if (index < 2)
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        color: index < _currentStep
+                            ? AppColors.primary
+                            : colors.surfaceVariant,
+                      ),
+                    ),
+                ],
+              ],
             ),
           ),
           Padding(
@@ -173,25 +196,28 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                 if (_currentStep > 0)
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () =>
-                          setState(() => _currentStep--),
+                      onPressed: () => setState(() => _currentStep--),
                       child: const Text('Back'),
                     ),
                   ),
                 if (_currentStep > 0) const SizedBox(width: 12),
                 Expanded(
-                  flex: _currentStep == 0 ? 1 : 1,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_currentStep < 2) {
-                        setState(() => _currentStep++);
-                      } else {
-                        context.push('/success/agreement-created');
-                      }
-                    },
-                    child: Text(
-                      _currentStep == 2 ? 'Create Agreement' : 'Continue',
-                    ),
+                    onPressed: isCreating ? null : _createAgreement,
+                    child: isCreating && _currentStep == 2
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            _currentStep == 2 ? 'Create Agreement' : 'Continue',
+                          ),
                   ),
                 ),
               ],
@@ -215,117 +241,185 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
     }
   }
 
+  bool _validateCurrentStep() {
+    switch (_currentStep) {
+      case 0:
+        return _detailsFormKey.currentState?.validate() ?? false;
+      case 1:
+        return _partiesFormKey.currentState?.validate() ?? false;
+      case 2:
+        if (_conditions.isEmpty) {
+          setState(() => _conditionsError = true);
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text('Add at least one condition before continuing'),
+              ),
+            );
+          return false;
+        }
+        setState(() => _conditionsError = false);
+        return true;
+      default:
+        return false;
+    }
+  }
+
   Widget _buildDetailsStep() {
     final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Agreement Details', style: AppTextStyles.h2),
-        const SizedBox(height: 4),
-        Text(
-          'Describe what this agreement is about',
-          style: AppTextStyles.bodySmall,
-        ),
-        const SizedBox(height: 24),
-        Text('Title', style: AppTextStyles.labelLarge),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _titleController,
-          decoration: const InputDecoration(
-            hintText: 'e.g., Website Redesign Project',
+    return Form(
+      key: _detailsFormKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Agreement Details', style: AppTextStyles.h2),
+          const SizedBox(height: 4),
+          Text(
+            'Describe what this agreement is about',
+            style: AppTextStyles.bodySmall,
           ),
-        ),
-        const SizedBox(height: 20),
-        Text('Description', style: AppTextStyles.labelLarge),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _descriptionController,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            hintText: 'Describe the deliverables and expectations...',
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text('Amount', style: AppTextStyles.labelLarge),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _amountController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-            CurrencyInputFormatter(),
-          ],
-          style: AppTextStyles.amountMedium,
-          decoration: InputDecoration(
-            hintText: '0.00',
-            hintStyle: AppTextStyles.amountMedium.copyWith(
-              color: colors.textTertiary,
+          const SizedBox(height: 24),
+          Text('Title', style: AppTextStyles.labelLarge),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _titleController,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              hintText: 'e.g., Website Redesign Project',
             ),
-            prefixText: '\u20A6  ',
-            prefixStyle: AppTextStyles.amountMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) return 'Add a title';
+              if (v.length < 3) return 'Title must be at least 3 characters';
+              return null;
+            },
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          Text('Description', style: AppTextStyles.labelLarge),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _descriptionController,
+            maxLines: 4,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              hintText: 'Describe the deliverables and expectations...',
+            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) return 'Add a description';
+              if (v.length < 10) {
+                return 'Description must be at least 10 characters';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          Text('Amount', style: AppTextStyles.labelLarge),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _amountController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              CurrencyInputFormatter(),
+            ],
+            style: AppTextStyles.amountMedium,
+            decoration: InputDecoration(
+              hintText: '0.00',
+              hintStyle: AppTextStyles.amountMedium.copyWith(
+                color: colors.textTertiary,
+              ),
+              prefixText: '\u20A6  ',
+              prefixStyle: AppTextStyles.amountMedium.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) return 'Add an amount';
+              final parsed = double.tryParse(v.replaceAll(',', ''));
+              if (parsed == null) return 'Enter a valid amount';
+              if (parsed < 100_000) {
+                return 'Amount must be at least \u20A6100,000.00';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildPartiesStep() {
     final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Your Role', style: AppTextStyles.h2),
-        const SizedBox(height: 4),
-        Text(
-          'What is your role in this agreement?',
-          style: AppTextStyles.bodySmall,
-        ),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              child: _RoleCard(
-                icon: Iconsax.money_send_copy,
-                title: 'Depositor',
-                subtitle: 'I\'m paying for a service',
-                isSelected: _role == 'depositor',
-                onTap: () => setState(() => _role = 'depositor'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _RoleCard(
-                icon: Iconsax.setting_2_copy,
-                title: 'Beneficiary',
-                subtitle: 'I\'m delivering a service',
-                isSelected: _role == 'beneficiary',
-                onTap: () => setState(() => _role = 'beneficiary'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 28),
-        Text('Invite Other Party', style: AppTextStyles.h2),
-        const SizedBox(height: 4),
-        Text(
-          'Enter their email or phone number',
-          style: AppTextStyles.bodySmall,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _inviteController,
-          decoration: InputDecoration(
-            hintText: 'Email address or phone number',
-            prefixIcon: Icon(
-              Iconsax.user_add_copy,
-              color: colors.textTertiary,
-            ),
+    return Form(
+      key: _partiesFormKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Your Role', style: AppTextStyles.h2),
+          const SizedBox(height: 4),
+          Text(
+            'What is your role in this agreement?',
+            style: AppTextStyles.bodySmall,
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _RoleCard(
+                  icon: Iconsax.money_send_copy,
+                  title: 'Depositor',
+                  subtitle: 'I\'m paying for a service',
+                  isSelected: _role == 'depositor',
+                  onTap: () => setState(() => _role = 'depositor'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _RoleCard(
+                  icon: Iconsax.setting_2_copy,
+                  title: 'Beneficiary',
+                  subtitle: 'I\'m delivering a service',
+                  isSelected: _role == 'beneficiary',
+                  onTap: () => setState(() => _role = 'beneficiary'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          Text('Invite Other Party', style: AppTextStyles.h2),
+          const SizedBox(height: 4),
+          Text(
+            'Enter their email or phone number',
+            style: AppTextStyles.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _inviteController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              hintText: 'Email address or phone number',
+              prefixIcon: Icon(
+                Iconsax.user_add_copy,
+                color: colors.textTertiary,
+              ),
+            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) return 'Enter an email or phone number';
+              if (_emailRegex.hasMatch(v) || _phoneRegex.hasMatch(v)) {
+                return null;
+              }
+              return 'Enter a valid email or phone number';
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -350,8 +444,11 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
           ),
           child: Row(
             children: [
-              const Icon(Iconsax.info_circle_copy,
-                  color: AppColors.info, size: 18),
+              const Icon(
+                Iconsax.info_circle_copy,
+                color: AppColors.info,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -367,9 +464,16 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
         const SizedBox(height: 20),
 
         // Condition cards list
-        if (_conditions.isEmpty)
-          _EmptyConditions(onAdd: () => _showAddConditionSheet())
-        else ...[
+        if (_conditions.isEmpty) ...[
+          _EmptyConditions(onAdd: () => _showAddConditionSheet()),
+          if (_conditionsError) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Add at least one condition before continuing',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+            ),
+          ],
+        ] else ...[
           ...List.generate(_conditions.length, (index) {
             final condition = _conditions[index];
             return Padding(
@@ -400,11 +504,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Iconsax.add,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
+                  const Icon(Iconsax.add, color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Add Condition',
@@ -430,8 +530,8 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
       text: isEditing ? _conditions[editIndex]['description'] as String : '',
     );
     String? selectedParticipantId = isEditing
-        ? (_conditions[editIndex]['requiredFrom']
-            as Map<String, dynamic>)['id'] as String
+        ? (_conditions[editIndex]['requiredFrom'] as Map<String, dynamic>)['id']
+              as String
         : null;
 
     showModalBottomSheet(
@@ -439,13 +539,17 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
+        String? titleError;
+        String? participantError;
         return StatefulBuilder(
           builder: (builderContext, setSheetState) {
             final colors = builderContext.colors;
             return Container(
               decoration: BoxDecoration(
                 color: colors.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(builderContext).viewInsets.bottom,
@@ -488,9 +592,15 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                       TextField(
                         controller: titleCtrl,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'e.g., Deliver homepage mockup',
+                          errorText: titleError,
                         ),
+                        onChanged: (_) {
+                          if (titleError != null) {
+                            setSheetState(() => titleError = null);
+                          }
+                        },
                       ),
                       const SizedBox(height: 20),
 
@@ -502,8 +612,7 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                         maxLines: 3,
                         textCapitalization: TextCapitalization.sentences,
                         decoration: const InputDecoration(
-                          hintText:
-                              'Describe what this condition entails...',
+                          hintText: 'Describe what this condition entails...',
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -560,11 +669,11 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                           participant['initials'] as String,
                                           style: AppTextStyles.labelMedium
                                               .copyWith(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : colors.textSecondary,
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : colors.textSecondary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -572,16 +681,17 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                         isMe
                                             ? 'You'
                                             : _truncateName(
-                                                participant['name'] as String),
+                                                participant['name'] as String,
+                                              ),
                                         style: AppTextStyles.labelMedium
                                             .copyWith(
-                                          color: isSelected
-                                              ? AppColors.primary
-                                              : colors.textPrimary,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w600,
-                                        ),
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : colors.textPrimary,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w600,
+                                            ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -594,22 +704,25 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? AppColors.primary
-                                                  .withValues(alpha: 0.1)
+                                              ? AppColors.primary.withValues(
+                                                  alpha: 0.1,
+                                                )
                                               : colors.surfaceVariant,
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           _capitalize(
-                                              participant['role'] as String),
-                                          style:
-                                              AppTextStyles.labelSmall.copyWith(
-                                            color: isSelected
-                                                ? AppColors.primary
-                                                : colors.textTertiary,
-                                            fontSize: 9,
+                                            participant['role'] as String,
                                           ),
+                                          style: AppTextStyles.labelSmall
+                                              .copyWith(
+                                                color: isSelected
+                                                    ? AppColors.primary
+                                                    : colors.textTertiary,
+                                                fontSize: 9,
+                                              ),
                                         ),
                                       ),
                                     ],
@@ -620,6 +733,15 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                           );
                         }).toList(),
                       ),
+                      if (participantError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          participantError!,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 28),
 
@@ -628,13 +750,22 @@ class _CreateAgreementScreenState extends State<CreateAgreementScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            if (titleCtrl.text.trim().isEmpty) return;
-                            if (selectedParticipantId == null) return;
+                            final titleEmpty = titleCtrl.text.trim().isEmpty;
+                            final noParticipant = selectedParticipantId == null;
+                            if (titleEmpty || noParticipant) {
+                              setSheetState(() {
+                                titleError = titleEmpty ? 'Add a title' : null;
+                                participantError = noParticipant
+                                    ? 'Select who must fulfill this condition'
+                                    : null;
+                              });
+                              return;
+                            }
 
-                            final selectedParticipant =
-                                _participants.firstWhere(
-                              (p) => p['id'] == selectedParticipantId,
-                            );
+                            final selectedParticipant = _participants
+                                .firstWhere(
+                                  (p) => p['id'] == selectedParticipantId,
+                                );
 
                             final conditionData = {
                               'title': titleCtrl.text.trim(),
@@ -919,6 +1050,42 @@ class _RoleCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StepDot extends StatelessWidget {
+  final int index;
+  final int currentStep;
+  final AppColorScheme colors;
+
+  const _StepDot({
+    required this.index,
+    required this.currentStep,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = index <= currentStep;
+    final isComplete = index < currentStep;
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: isActive ? AppColors.primary : colors.surfaceVariant,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: isComplete
+            ? const Icon(Iconsax.tick_circle, color: Colors.white, size: 18)
+            : Text(
+                '${index + 1}',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: isActive ? Colors.white : colors.textTertiary,
+                ),
+              ),
       ),
     );
   }

@@ -55,7 +55,7 @@ class _AgreementApiService implements AgreementApiService {
   }
 
   @override
-  Future<HttpResponse<AgreementResponse>> createAgreement(
+  Future<HttpResponse<AgreementCreateResponse>> createAgreement(
     Map<String, dynamic> body,
   ) async {
     final _extra = <String, dynamic>{};
@@ -63,7 +63,7 @@ class _AgreementApiService implements AgreementApiService {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _options = _setStreamType<HttpResponse<AgreementResponse>>(
+    final _options = _setStreamType<HttpResponse<AgreementCreateResponse>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -74,9 +74,9 @@ class _AgreementApiService implements AgreementApiService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late AgreementResponse _value;
+    late AgreementCreateResponse _value;
     try {
-      _value = AgreementResponse.fromJson(_result.data!);
+      _value = AgreementCreateResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

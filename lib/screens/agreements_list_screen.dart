@@ -9,6 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
 import '../widgets/agreement_card.dart';
+import '../widgets/skeletons.dart';
 
 class AgreementsListScreen extends StatefulWidget {
   const AgreementsListScreen({super.key});
@@ -172,8 +173,11 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                       );
                     }
                   },
-                  loading: () => const SliverToBoxAdapter(
-                    child: CircularProgressIndicator(),
+                  loading: () => const SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    sliver: SliverToBoxAdapter(
+                      child: AgreementListSkeleton(),
+                    ),
                   ),
                   error: (err, stk) => SliverToBoxAdapter(
                     child: Text(

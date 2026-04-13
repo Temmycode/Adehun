@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:adehun_mvp/controllers/auth_controller.dart';
+import 'package:adehun_mvp/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
@@ -64,7 +64,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isLoading = ref.watch(authControllerProvider).isLoading;
+    final isLoading = ref.watch(authLoadingProvider);
     return Stack(
       children: [
         Scaffold(
@@ -216,9 +216,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
 class _GoogleSignInButton extends ConsumerWidget {
   void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
-    final authProvider = ref.watch(authControllerProvider);
+    final isLoading = ref.watch(authLoadingProvider);
     final authController = ref.read(authControllerProvider.notifier);
-    if (authProvider.isLoading) return;
+    if (isLoading) return;
 
     await authController.googleSignIn();
   }

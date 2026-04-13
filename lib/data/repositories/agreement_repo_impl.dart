@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:adehun_mvp/constants/errors.dart';
 import 'package:adehun_mvp/data/services/agreement_api_service.dart';
 import 'package:adehun_mvp/domain/agreement_repository.dart';
+import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:adehun_mvp/resources/data_state.dart';
 import 'package:flutter/foundation.dart';
@@ -32,20 +33,22 @@ class AgreementRepoImpl implements AgreementRepository {
   }
 
   @override
-  Future<DataState<AgreementResponse>> createAgreement({
-    required String participantEmail,
+  Future<DataState<AgreementCreateResponse>> createAgreement({
+    required String otherParticipantEmailOrPhone,
     required String role,
     required String title,
     required String description,
     required int amount,
+    required List<Map<String, dynamic>> conditions,
   }) async {
     try {
       final apiResponse = await _agreementApiService.createAgreement({
-        "participant_email": participantEmail,
+        "other_participant_email_or_phone": otherParticipantEmailOrPhone,
         "role": role,
         "title": title,
         "description": description,
         "amount": amount,
+        "conditions": conditions,
       });
 
       if (apiResponse.response.statusCode == HttpStatus.created) {

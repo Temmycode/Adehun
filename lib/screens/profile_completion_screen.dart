@@ -1,4 +1,5 @@
 import 'package:adehun_mvp/controllers/auth_controller.dart';
+import 'package:adehun_mvp/providers/auth_providers.dart';
 import 'package:adehun_mvp/usecases/params/register_user_params.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,20 +32,22 @@ class _ProfileCompletionScreenState
   void _updateProfile() async {
     final user = ref.read(authControllerProvider).userData;
     if (_formKey.currentState!.validate() && user != null) {
-      await ref.read(authControllerProvider.notifier).registerUser(
-        RegisterUserParams(
-          userId: user.id!,
-          phoneNumber: _phoneController.text.trim(),
-          fullName: _nameController.text.trim(),
-        ),
-      );
+      await ref
+          .read(authControllerProvider.notifier)
+          .registerUser(
+            RegisterUserParams(
+              userId: user.id!,
+              phoneNumber: _phoneController.text.trim(),
+              fullName: _nameController.text.trim(),
+            ),
+          );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final authState = ref.watch(authControllerProvider);
+    final isLoading = ref.watch(authLoadingProvider);
     return Scaffold(
       backgroundColor: colors.background,
       bottomNavigationBar: SafeArea(
@@ -52,17 +55,18 @@ class _ProfileCompletionScreenState
           margin: const EdgeInsets.symmetric(horizontal: 24),
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: authState.isLoading ? null : _updateProfile,
-            child: authState.isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Continue'),
+            onPressed: isLoading ? null : _updateProfile,
+            child: switch (isLoading) {
+              true => const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              false => const Text('Continue'),
+            },
           ),
         ),
       ),

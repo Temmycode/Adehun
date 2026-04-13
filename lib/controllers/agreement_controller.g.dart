@@ -20,7 +20,7 @@ final class AgreementControllerProvider
         argument: null,
         retry: null,
         name: r'agreementControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -34,7 +34,7 @@ final class AgreementControllerProvider
 }
 
 String _$agreementControllerHash() =>
-    r'59b877fedc2754efc5ad5fa1d5549bbb2cbd6cce';
+    r'cd1cd966fe9f3eb2e4e68fbcaf6212e255b0a295';
 
 abstract class _$AgreementController extends $AsyncNotifier<AgreementState> {
   FutureOr<AgreementState> build();

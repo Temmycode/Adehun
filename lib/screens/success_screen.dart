@@ -47,6 +47,16 @@ class _SuccessScreenState extends State<SuccessScreen>
     super.dispose();
   }
 
+  void _navigate(BuildContext context, String route) {
+    const shellRoots = {'/home', '/wallet', '/agreements', '/profile'};
+    if (shellRoots.contains(route)) {
+      context.go(route);
+    } else {
+      context.go('/home');
+      context.push(route);
+    }
+  }
+
   _SuccessConfig get _config {
     switch (widget.type) {
       case 'agreement-created':
@@ -199,8 +209,9 @@ class _SuccessScreenState extends State<SuccessScreen>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: config.accentColor
-                                      .withValues(alpha: 0.3),
+                                  color: config.accentColor.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -237,7 +248,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => context.go(config.primaryRoute),
+                    onPressed: () => _navigate(context, config.primaryRoute),
                     child: Text(config.primaryAction),
                   ),
                 ),
@@ -246,7 +257,8 @@ class _SuccessScreenState extends State<SuccessScreen>
                   SizedBox(
                     width: double.infinity,
                     child: TextButton(
-                      onPressed: () => context.go(config.secondaryRoute!),
+                      onPressed: () =>
+                          _navigate(context, config.secondaryRoute!),
                       child: Text(config.secondaryAction!),
                     ),
                   ),

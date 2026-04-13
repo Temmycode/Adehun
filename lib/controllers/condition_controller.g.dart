@@ -20,7 +20,7 @@ final class ConditionControllerProvider
         argument: null,
         retry: null,
         name: r'conditionControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -34,7 +34,7 @@ final class ConditionControllerProvider
 }
 
 String _$conditionControllerHash() =>
-    r'0d852b80a1bdf94a876f8442c07b2cc8c054a1f5';
+    r'28b35c70e029d516619a2af5129c773e9a631a90';
 
 abstract class _$ConditionController extends $AsyncNotifier<ConditionState> {
   FutureOr<ConditionState> build();

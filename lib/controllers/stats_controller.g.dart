@@ -20,7 +20,7 @@ final class StatsControllerProvider
         argument: null,
         retry: null,
         name: r'statsControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -33,7 +33,7 @@ final class StatsControllerProvider
   StatsController create() => StatsController();
 }
 
-String _$statsControllerHash() => r'd92201e91f669885d7fd91d0138df8d0ed85d909';
+String _$statsControllerHash() => r'bee11281e77a622fff9185b7cbfee85494dfc6b0';
 
 abstract class _$StatsController
     extends $AsyncNotifier<AgreementStatsResponse> {

@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'stats_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class StatsController extends _$StatsController {
   @override
   FutureOr<AgreementStatsResponse> build() async {
@@ -16,8 +16,9 @@ class StatsController extends _$StatsController {
     const initialState = AgreementStatsResponse.empty();
 
     try {
-      final dataState =
-          await ref.read(statsRepositoryProvider).getUserAgreementStats();
+      final dataState = await ref
+          .read(statsRepositoryProvider)
+          .getUserAgreementStats();
 
       if (dataState is DataSuccess && dataState.data != null) {
         return dataState.data ?? initialState;
@@ -35,8 +36,9 @@ class StatsController extends _$StatsController {
     state = AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final dataState =
-          await ref.read(statsRepositoryProvider).getUserAgreementStats();
+      final dataState = await ref
+          .read(statsRepositoryProvider)
+          .getUserAgreementStats();
 
       if (dataState is DataSuccess && dataState.data != null) {
         return dataState.data ?? currentState;

@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:adehun_mvp/domain/states/agreement_state.dart';
 import 'package:adehun_mvp/resources/data_state.dart';
@@ -11,7 +13,7 @@ import 'package:uuid/uuid.dart';
 
 part 'agreement_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class AgreementController extends _$AgreementController {
   @override
   FutureOr<AgreementState> build() async {
@@ -22,8 +24,9 @@ class AgreementController extends _$AgreementController {
     const initialState = AgreementState();
 
     try {
-      final dataState =
-          await ref.read(agreementRepositoryProvider).getAllUserAgreements();
+      final dataState = await ref
+          .read(agreementRepositoryProvider)
+          .getAllUserAgreements();
 
       if (dataState is DataSuccess && dataState.data != null) {
         return initialState.copyWith(agreements: dataState.data!);
@@ -41,8 +44,9 @@ class AgreementController extends _$AgreementController {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final dataState =
-          await ref.read(agreementRepositoryProvider).getAllUserAgreements();
+      final dataState = await ref
+          .read(agreementRepositoryProvider)
+          .getAllUserAgreements();
 
       if (dataState is DataSuccess && dataState.data != null) {
         return currentState.copyWith(agreements: dataState.data!);
@@ -52,6 +56,37 @@ class AgreementController extends _$AgreementController {
     });
   }
 
+  void addAgreementToList(AgreementResponse agreement) {
+    final currentState = state.value ?? const AgreementState();
+    state = AsyncData(
+      currentState.copyWith(
+        agreements: [agreement, ...currentState.agreements],
+      ),
+    );
+  }
+
+  void updateTempAgreement(AgreementCreateResponse agreement, String tempId) {
+    final currentState = state.value ?? const AgreementState();
+    final filtered = currentState.agreements.where((agt) => agt.id != tempId);
+    state = AsyncData(
+      currentState.copyWith(
+        isCreating: false,
+        agreements: [agreement.toAgreementResponse(), ...filtered],
+      ),
+    );
+  }
+
+  void rollback(String tempId) {
+    final currentState = state.value ?? const AgreementState();
+    final rolledBack = currentState.agreements
+        .where((a) => a.id != tempId)
+        .toList();
+
+    state = AsyncData(
+      currentState.copyWith(isCreating: false, agreements: rolledBack),
+    );
+  }
+
   Future<void> createAgreement(CreateAgreementParams params) async {
     final currentState = state.value ?? const AgreementState();
     state = AsyncData(currentState.copyWith(isCreating: true));
@@ -59,57 +94,34 @@ class AgreementController extends _$AgreementController {
     final tempId = Uuid().v4();
     final newAgreement = AgreementResponse.fromCreateParams(params, tempId);
 
-    // Optimistic Update
-    state = AsyncData(
-      currentState.copyWith(
-        isCreating: true,
-        agreements: [newAgreement, ...currentState.agreements],
-      ),
-    );
-
-    // Navigate back
-    appRouter.pop();
+    addAgreementToList(newAgreement);
 
     try {
-      final dataState =
-          await ref.read(agreementRepositoryProvider).createAgreement(
-        participantEmail: params.participantEmail,
-        role: params.role,
-        title: params.title,
-        description: params.description,
-        amount: params.amount,
-      );
-      final latestState = state.value ?? currentState;
-
+      final dataState = await ref
+          .read(agreementRepositoryProvider)
+          .createAgreement(
+            otherParticipantEmailOrPhone: params.otherParticipantEmailOrPhone,
+            role: params.role,
+            title: params.title,
+            description: params.description,
+            amount: params.amount,
+            conditions: params.conditions.map((c) => c.toJson()).toList(),
+          );
       if (dataState is DataSuccess && dataState.data != null) {
-        final filtered = latestState.agreements.where(
-          (agt) => agt.id != tempId,
-        );
-        state = AsyncData(
-          latestState.copyWith(
-            isCreating: false,
-            agreements: [dataState.data!, ...filtered],
-          ),
-        );
+        final created = dataState.data!;
+        updateTempAgreement(created, tempId);
+        final conditionController =
+            ref.read(conditionControllerProvider.notifier);
+        for (final condition in created.conditions ?? []) {
+          conditionController.addNewCondition(condition);
+        }
+        appRouter.push('/success/agreement-created');
       } else {
-        final rolledBack = latestState.agreements
-            .where((a) => a.id != tempId)
-            .toList();
-
-        state = AsyncData(
-          latestState.copyWith(isCreating: false, agreements: rolledBack),
-        );
+        rollback(tempId);
         state = AsyncData(currentState.copyWith(isCreating: false));
       }
     } catch (err) {
-      final latestState = state.value ?? currentState;
-      final rolledBack = latestState.agreements
-          .where((a) => a.id != tempId)
-          .toList();
-
-      state = AsyncData(
-        latestState.copyWith(isCreating: false, agreements: rolledBack),
-      );
+      rollback(tempId);
     }
   }
 

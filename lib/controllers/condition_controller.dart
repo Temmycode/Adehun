@@ -10,7 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'condition_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ConditionController extends _$ConditionController {
   @override
   FutureOr<ConditionState> build() async {
@@ -60,6 +60,15 @@ class ConditionController extends _$ConditionController {
     });
   }
 
+  void addNewCondition(ConditionResponse condition) {
+    final currentState = state.value ?? const ConditionState();
+    state = AsyncData(
+      currentState.copyWith(
+        conditions: [condition, ...currentState.conditions],
+      ),
+    );
+  }
+
   Future<void> addConditionToAgreement(AddConditionParams params) async {
     final currentState = state.value ?? const ConditionState();
     state = AsyncData(currentState.copyWith(isAdding: true));
@@ -77,12 +86,7 @@ class ConditionController extends _$ConditionController {
       final latestState = state.value ?? currentState;
 
       if (dataState is DataSuccess && dataState.data != null) {
-        state = AsyncData(
-          latestState.copyWith(
-            isAdding: false,
-            conditions: [dataState.data!, ...latestState.conditions],
-          ),
-        );
+        addNewCondition(dataState.data!);
       } else {
         state = AsyncData(latestState.copyWith(isAdding: false));
       }

@@ -2,18 +2,28 @@
 import 'package:adehun_mvp/domain/models/user_data.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
+enum AuthStatus { initial, authenticated, noAccount, error }
+
 @immutable
 class AuthState {
   final UserData? userData;
+  final AuthStatus status;
   final bool isLoading;
 
-  const AuthState({required this.userData, this.isLoading = false});
+  const AuthState({
+    this.userData,
+    this.isLoading = false,
+    this.status = .initial,
+  });
 
-  const AuthState.unknown() : userData = null, isLoading = false;
-
-  AuthState copyWith({UserData? userData, bool? isLoading}) {
+  AuthState copyWith({
+    UserData? userData,
+    bool? isLoading,
+    AuthStatus? status,
+  }) {
     return AuthState(
       userData: userData ?? this.userData,
+      status: status ?? this.status,
       isLoading: isLoading ?? this.isLoading,
     );
   }
