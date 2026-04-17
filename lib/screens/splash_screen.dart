@@ -1,4 +1,4 @@
-import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

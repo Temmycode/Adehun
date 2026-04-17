@@ -1,7 +1,7 @@
 import 'package:adehun_mvp/domain/auth_repository.dart';
 import 'package:adehun_mvp/domain/models/user_data.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/usecase.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/usecase.dart';
 import 'package:adehun_mvp/usecases/params/register_user_params.dart';
 
 class RegisterUserUseCase

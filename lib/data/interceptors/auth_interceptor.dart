@@ -1,12 +1,14 @@
 import 'dart:developer';
 
 import 'package:adehun_mvp/constants/urls.dart';
+import 'package:adehun_mvp/core/network/api_response.dart';
+import 'package:adehun_mvp/data/interceptors/api_response_interceptor.dart';
 import 'package:adehun_mvp/data/local/token_storage.dart';
 import 'package:dio/dio.dart';
 
 class AuthInterceptor extends QueuedInterceptor {
   final TokenStorage _tokenStorage;
-  final Dio _refreshDio = Dio();
+  final Dio _refreshDio;
   final void Function()? onSessionExpired;
 
   static const _authPaths = [
@@ -19,7 +21,12 @@ class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor(
     TokenStorage tokenStorage, {
     this.onSessionExpired,
-  }) : _tokenStorage = tokenStorage;
+  })  : _tokenStorage = tokenStorage,
+        _refreshDio = Dio() {
+    // Unwrap the envelope on the refresh response too, so we can read
+    // `access_token` / `refresh_token` directly from the data payload.
+    _refreshDio.interceptors.add(ApiResponseInterceptor());
+  }
 
   @override
   void onRequest(
@@ -41,7 +48,14 @@ class AuthInterceptor extends QueuedInterceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode != 401) {
+    // Branch on the envelope's error code first, fall back to HTTP 401
+    // for legacy endpoints or network errors that never hit the envelope.
+    final apiError = err.error;
+    final isUnauthorized = apiError is ApiError
+        ? apiError.code == 'UNAUTHORIZED'
+        : err.response?.statusCode == 401;
+
+    if (!isUnauthorized) {
       return handler.next(err);
     }
 
@@ -91,7 +105,12 @@ class AuthInterceptor extends QueuedInterceptor {
       final retryResponse = await _refreshDio.fetch(options);
       return handler.resolve(retryResponse);
     } on DioException catch (e) {
-      log('[AuthInterceptor] Refresh failed: ${e.response?.statusCode} - ${e.response?.data}');
+      final refreshApiError = e.error;
+      if (refreshApiError is ApiError) {
+        log('[AuthInterceptor] Refresh failed: ${refreshApiError.code} - ${refreshApiError.message}');
+      } else {
+        log('[AuthInterceptor] Refresh failed: ${e.response?.statusCode} - ${e.response?.data}');
+      }
       await _tokenStorage.clearTokens();
       onSessionExpired?.call();
       return handler.next(err);

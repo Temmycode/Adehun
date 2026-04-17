@@ -1,7 +1,7 @@
 import 'package:adehun_mvp/domain/agreement_repository.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/usecase.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/usecase.dart';
 import 'package:adehun_mvp/usecases/params/create_agreement_params.dart';
 
 class CreateAgreementUseCase

@@ -2,8 +2,8 @@ import 'dart:developer';
 
 import 'package:adehun_mvp/domain/models/condition_response.dart';
 import 'package:adehun_mvp/domain/states/condition_state.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:adehun_mvp/usecases/params/add_condition_params.dart';
 import 'package:adehun_mvp/usecases/params/reject_condition_params.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

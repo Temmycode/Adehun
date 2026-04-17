@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:adehun_mvp/domain/condition_repository.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/usecase.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/usecase.dart';
 
 class GetUsersConditionsUseCase
     implements UseCase<DataState<List<ConditionResponse>>, void> {

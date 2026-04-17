@@ -1,3 +1,6 @@
+import 'package:adehun_mvp/core/utils/relative_time.dart';
+import 'package:adehun_mvp/domain/models/notification_model.dart';
+import 'package:adehun_mvp/domain/models/notification_type.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
@@ -5,33 +8,27 @@ import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
 class NotificationTile extends StatelessWidget {
-  final Map<String, dynamic> notification;
+  final NotificationModel notification;
   final VoidCallback? onTap;
 
-  const NotificationTile({
-    super.key,
-    required this.notification,
-    this.onTap,
-  });
+  const NotificationTile({super.key, required this.notification, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final type = notification['type'] as String;
-    final title = notification['title'] as String;
-    final message = notification['message'] as String;
-    final timestamp = notification['timestamp'] as String;
-    final read = notification['read'] as bool;
+    final type = notification.notificationType;
+    final read = notification.isRead;
 
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: read ? colors.surface : colors.primarySurface.withValues(alpha: 0.5),
-          border: Border(
-            bottom: BorderSide(color: colors.cardBorder),
-          ),
+          color: read
+              ? colors.surface
+              : colors.primarySurface.withValues(alpha: 0.5),
+          border: Border(bottom: BorderSide(color: colors.cardBorder)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,12 +37,12 @@ class NotificationTile extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: _getIconBgColor(type, colors),
+                color: _iconBgColor(type, colors),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                _getIcon(type),
-                color: _getIconColor(type),
+                _icon(type),
+                color: _iconColor(type),
                 size: 20,
               ),
             ),
@@ -58,9 +55,11 @@ class NotificationTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          title,
+                          notification.title,
                           style: AppTextStyles.labelLarge.copyWith(
-                            fontWeight: read ? FontWeight.w500 : FontWeight.w700,
+                            fontWeight: read
+                                ? FontWeight.w500
+                                : FontWeight.w700,
                           ),
                         ),
                       ),
@@ -77,7 +76,7 @@ class NotificationTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    message,
+                    notification.message,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: colors.textSecondary,
                     ),
@@ -86,7 +85,7 @@ class NotificationTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    timestamp,
+                    notification.createdAt.toRelativeTime(),
                     style: AppTextStyles.labelSmall,
                   ),
                 ],
@@ -98,60 +97,34 @@ class NotificationTile extends StatelessWidget {
     );
   }
 
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'INVITATION':
-        return Iconsax.sms_copy;
-      case 'CONDITION_UPDATE':
-        return Iconsax.refresh_circle_copy;
-      case 'APPROVAL':
-        return Iconsax.tick_circle_copy;
-      case 'PAYMENT':
-        return Iconsax.wallet_3_copy;
-      case 'DISPUTE':
-        return Iconsax.warning_2_copy;
-      case 'REMINDER':
-        return Iconsax.notification_copy;
-      default:
-        return Iconsax.notification_copy;
-    }
-  }
+  IconData _icon(NotificationType type) => switch (type) {
+    NotificationType.invitationReceived => Iconsax.sms_copy,
+    NotificationType.agreementAccepted => Iconsax.tick_circle_copy,
+    NotificationType.agreementDeclined => Iconsax.close_circle_copy,
+    NotificationType.conditionAdded => Iconsax.add_circle_copy,
+    NotificationType.conditionUpdated => Iconsax.refresh_circle_copy,
+    NotificationType.agreementCompleted => Iconsax.verify_copy,
+    NotificationType.general => Iconsax.notification_copy,
+  };
 
-  Color _getIconColor(String type) {
-    switch (type) {
-      case 'INVITATION':
-        return AppColors.primary;
-      case 'CONDITION_UPDATE':
-        return AppColors.info;
-      case 'APPROVAL':
-        return AppColors.success;
-      case 'PAYMENT':
-        return AppColors.success;
-      case 'DISPUTE':
-        return AppColors.error;
-      case 'REMINDER':
-        return AppColors.accent;
-      default:
-        return AppColors.statusDraft;
-    }
-  }
+  Color _iconColor(NotificationType type) => switch (type) {
+    NotificationType.invitationReceived => AppColors.primary,
+    NotificationType.agreementAccepted => AppColors.success,
+    NotificationType.agreementDeclined => AppColors.error,
+    NotificationType.conditionAdded => AppColors.info,
+    NotificationType.conditionUpdated => AppColors.info,
+    NotificationType.agreementCompleted => AppColors.success,
+    NotificationType.general => AppColors.accent,
+  };
 
-  Color _getIconBgColor(String type, AppColorScheme colors) {
-    switch (type) {
-      case 'INVITATION':
-        return colors.primarySurface;
-      case 'CONDITION_UPDATE':
-        return colors.infoLight;
-      case 'APPROVAL':
-        return colors.successLight;
-      case 'PAYMENT':
-        return colors.successLight;
-      case 'DISPUTE':
-        return colors.errorLight;
-      case 'REMINDER':
-        return colors.warningLight;
-      default:
-        return colors.surfaceVariant;
-    }
-  }
+  Color _iconBgColor(NotificationType type, AppColorScheme colors) =>
+      switch (type) {
+        NotificationType.invitationReceived => colors.primarySurface,
+        NotificationType.agreementAccepted => colors.successLight,
+        NotificationType.agreementDeclined => colors.errorLight,
+        NotificationType.conditionAdded => colors.infoLight,
+        NotificationType.conditionUpdated => colors.infoLight,
+        NotificationType.agreementCompleted => colors.successLight,
+        NotificationType.general => colors.warningLight,
+      };
 }

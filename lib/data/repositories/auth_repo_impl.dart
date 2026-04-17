@@ -6,7 +6,7 @@ import 'package:adehun_mvp/data/services/auth_api_service.dart';
 import 'package:adehun_mvp/domain/auth_repository.dart';
 import 'package:adehun_mvp/domain/models/login_response.dart';
 import 'package:adehun_mvp/domain/models/user_data.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';

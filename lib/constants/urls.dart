@@ -24,3 +24,9 @@ const String rejectConditionUrl = '/conditions/{condition_id}/reject';
 
 /// STATISTICS ENDPOINTS
 const String getUserAgreementsStatsUrl = '/stats/agreements/';
+
+/// NOTIFICATION ENDPOINTS
+const String getNotificationsUrl = '/notifications';
+const String getUnreadNotificationsCountUrl = '/notifications/unread-count';
+const String markNotificationsReadUrl = '/notifications/read';
+const String markAllNotificationsReadUrl = '/notifications/read-all';

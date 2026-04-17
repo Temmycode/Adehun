@@ -6,7 +6,7 @@ import 'package:adehun_mvp/data/services/agreement_api_service.dart';
 import 'package:adehun_mvp/domain/agreement_repository.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:flutter/foundation.dart';
 
 class AgreementRepoImpl implements AgreementRepository {

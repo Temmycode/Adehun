@@ -1,7 +1,7 @@
 import 'package:adehun_mvp/domain/models/user_data.dart';
 import 'package:adehun_mvp/domain/states/auth_state.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:adehun_mvp/usecases/params/register_from_invite_params.dart';
 import 'package:adehun_mvp/usecases/params/register_user_params.dart';
 import 'package:firebase_auth/firebase_auth.dart';

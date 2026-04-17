@@ -2,6 +2,7 @@ import 'package:adehun_mvp/controllers/agreement_controller.dart';
 import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/controllers/condition_controller.dart';
 import 'package:adehun_mvp/controllers/stats_controller.dart';
+import 'package:adehun_mvp/controllers/unread_count_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,10 +70,20 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        _IconButton(
-                          icon: Iconsax.notification_copy,
-                          badgeCount: 2,
-                          onTap: () => context.push('/notifications'),
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final unreadCount = ref
+                                .watch(unreadCountControllerProvider)
+                                .maybeWhen(
+                                  data: (count) => count,
+                                  orElse: () => 0,
+                                );
+                            return _IconButton(
+                              icon: Iconsax.notification_copy,
+                              badgeCount: unreadCount,
+                              onTap: () => context.push('/notifications'),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -275,18 +286,21 @@ class _IconButton extends StatelessWidget {
             Icon(icon, color: colors.textPrimary, size: 22),
             if (badgeCount > 0)
               Positioned(
-                top: 8,
-                right: 8,
+                top: 6,
+                right: 6,
                 child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: const BoxDecoration(
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
                     color: AppColors.error,
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
                     child: Text(
-                      '$badgeCount',
+                      badgeCount > 99 ? '99+' : '$badgeCount',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,

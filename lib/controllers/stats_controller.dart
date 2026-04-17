@@ -1,6 +1,6 @@
 import 'package:adehun_mvp/domain/models/agreement_stats_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'stats_controller.g.dart';

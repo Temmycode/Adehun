@@ -1,5 +1,5 @@
 import 'package:adehun_mvp/domain/models/condition_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
 
 abstract class ConditionRepository {
   Future<DataState<ConditionResponse>> addConditionToAgreement({

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

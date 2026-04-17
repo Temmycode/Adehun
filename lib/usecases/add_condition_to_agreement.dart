@@ -1,7 +1,7 @@
 import 'package:adehun_mvp/domain/condition_repository.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/usecase.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/usecase.dart';
 import 'package:adehun_mvp/usecases/params/add_condition_params.dart';
 
 class AddConditionToAgreementUseCase

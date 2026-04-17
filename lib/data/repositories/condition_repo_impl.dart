@@ -5,7 +5,7 @@ import 'package:adehun_mvp/constants/errors.dart';
 import 'package:adehun_mvp/data/services/condition_api_service.dart';
 import 'package:adehun_mvp/domain/condition_repository.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:flutter/foundation.dart';
 
 class ConditionRepoImpl implements ConditionRepository {

@@ -23,3 +23,11 @@ class ApproveConditionError implements Exception {}
 class RejectConditionError implements Exception {}
 
 class GetAgreementStatsError implements Exception {}
+
+class GetNotificationsError implements Exception {}
+
+class GetUnreadCountError implements Exception {}
+
+class MarkNotificationsReadError implements Exception {}
+
+class MarkAllNotificationsReadError implements Exception {}

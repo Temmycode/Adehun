@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:adehun_mvp/domain/auth_repository.dart';
 import 'package:adehun_mvp/domain/models/login_response.dart';
-import 'package:adehun_mvp/resources/data_state.dart';
-import 'package:adehun_mvp/resources/usecase.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/core/resources/usecase.dart';
 import 'package:adehun_mvp/usecases/params/register_from_invite_params.dart';
 
 class RegisterFromInviteUseCase

@@ -1,5 +1,5 @@
 import 'package:adehun_mvp/data/local/preferences_service.dart';
-import 'package:adehun_mvp/resources/service_locator.dart';
+import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
