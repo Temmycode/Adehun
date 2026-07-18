@@ -22,6 +22,12 @@ class ApproveConditionError implements Exception {}
 
 class RejectConditionError implements Exception {}
 
+class GetConditionAssetsError implements Exception {}
+
+class AddConditionAssetsError implements Exception {}
+
+class GetConditionAssetUploadSignatureError implements Exception {}
+
 class GetAgreementStatsError implements Exception {}
 
 class GetNotificationsError implements Exception {}

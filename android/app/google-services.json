@@ -12,7 +12,20 @@
           "package_name": "com.tolutech.adehun.adehun_mvp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "332730445451-r1jegksa7uspr03h8ur6r4imhqip4odn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tolutech.adehun.adehun_mvp",
+            "certificate_hash": "7a0c5e11cad6936523dc0e241666d1047b05100a"
+          }
+        },
+        {
+          "client_id": "332730445451-1o2i3o1o2phi3mrfrrn4akus6mcs14r2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDgdEA8TbOwRdG_Zp8biahy1HTwG7zdY-I"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "332730445451-1o2i3o1o2phi3mrfrrn4akus6mcs14r2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "332730445451-9unpdp0c8dp5sq7qcdsr28km7amhb39f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tolutech.adehun.adehunMvp"
+              }
+            }
+          ]
         }
       }
     }

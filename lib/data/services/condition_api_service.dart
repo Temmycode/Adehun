@@ -1,5 +1,7 @@
 import 'package:adehun_mvp/constants/urls.dart';
+import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
+import 'package:adehun_mvp/domain/models/upload_signature_response.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -17,7 +19,9 @@ abstract class ConditionApiService {
   );
 
   @GET(getUserConditionsUrl)
-  Future<HttpResponse<List<ConditionResponse>>> getUsersConditions();
+  Future<HttpResponse<List<ConditionResponse>>> getAgreementConditions(
+    @Path('agreement_id') String agreementId,
+  );
 
   @GET(getConditionDetailsUrl)
   Future<HttpResponse<ConditionResponse>> getConditionDetails(
@@ -34,4 +38,19 @@ abstract class ConditionApiService {
     @Path('condition_id') String conditionId,
     @Body() Map<String, dynamic> body,
   );
+
+  @GET(getConditionAssetsUrl)
+  Future<HttpResponse<List<AssetsResponse>>> getConditionAssets(
+    @Path('condition_id') String conditionId,
+  );
+
+  @POST(getConditionAssetsUrl)
+  Future<HttpResponse<List<AssetsResponse>>> addConditionAssets(
+    @Path('condition_id') String conditionId,
+    @Body() Map<String, dynamic> body,
+  );
+
+  @GET(getConditionAssetUploadSignatureUrl)
+  Future<HttpResponse<UploadSignatureResponse>>
+  getConditionAssetUploadSignature(@Path('condition_id') String conditionId);
 }

@@ -1,63 +1,87 @@
+import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
+import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/domain/models/agreement_response.dart';
+import 'package:adehun_mvp/domain/models/condition_response.dart';
+import 'package:adehun_mvp/domain/models/participant.dart';
+import 'package:adehun_mvp/utils/random_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
-import '../constants/mock_data.dart';
+import '../widgets/skeletons.dart';
 import '../widgets/status_badge.dart';
 
-class AgreementDetailScreen extends StatefulWidget {
+class AgreementDetailScreen extends ConsumerStatefulWidget {
   final String agreementId;
 
   const AgreementDetailScreen({super.key, required this.agreementId});
 
   @override
-  State<AgreementDetailScreen> createState() => _AgreementDetailScreenState();
+  ConsumerState<AgreementDetailScreen> createState() =>
+      _AgreementDetailScreenState();
 }
 
-class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
+class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
   // Local mutable copy of conditions so we can add new ones in pre-active states
-  late List<Map<String, dynamic>> _localConditions;
-  bool _initialized = false;
 
-  Map<String, dynamic> get _agreement {
-    return MockData.agreements.firstWhere(
-      (a) => a['id'] == widget.agreementId,
-      orElse: () => MockData.agreements.first,
-    );
+  AgreementResponse? get _agreement {
+    return ref
+        .read(agreementControllerProvider)
+        .maybeWhen(
+          data: (state) => state.agreements.firstWhere(
+            (agreement) => agreement.id == widget.agreementId,
+          ),
+          orElse: () => null,
+        );
   }
 
   bool get _canAddConditions {
-    final status = _agreement['status'] as String;
+    final status = _agreement?.status;
     return status == 'DRAFT' || status == 'PENDING_ACCEPTANCE';
+  }
+
+  void getAgreementConditions() {
+    final agreementId = widget.agreementId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(conditionControllerProvider.notifier)
+          .getAgreementConditions(agreementId);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getAgreementConditions();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final agreement = _agreement;
+    final currentUser = ref.watch(authControllerProvider).userData;
+    final status = agreement?.status ?? "No status";
+    final amount = double.parse(agreement?.amount ?? "0");
+    final depositor = agreement?.depositor;
+    final beneficiary = agreement?.beneficiary;
 
-    // Initialize local conditions from mock data once
-    if (!_initialized) {
-      _localConditions = List<Map<String, dynamic>>.from(
-        (agreement['conditions'] as List)
-            .map((c) => Map<String, dynamic>.from(c)),
-      );
-      _initialized = true;
+    if (currentUser == null) {
+      return SizedBox.shrink();
     }
-
-    final status = agreement['status'] as String;
-    final amount = agreement['amount'] as double;
-    final depositor = agreement['depositor'] as Map<String, dynamic>;
-    final beneficiary = agreement['beneficiary'] as Map<String, dynamic>;
 
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: colors.background,
-        title: Text('Agreement Details', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
+        title: Text(
+          'Agreement Details',
+          style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
+        ),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
           onPressed: () => context.pop(),
@@ -79,10 +103,13 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             // Status & Title
             StatusBadge(status: status),
             const SizedBox(height: 12),
-            Text(agreement['title'] as String, style: AppTextStyles.h1.copyWith(color: colors.textPrimary)),
+            Text(
+              agreement?.title ?? "No title",
+              style: AppTextStyles.h1.copyWith(color: colors.textPrimary),
+            ),
             const SizedBox(height: 8),
             Text(
-              agreement['description'] as String,
+              agreement?.description ?? "No description",
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textSecondary,
               ),
@@ -119,7 +146,10 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
 
             const SizedBox(height: 24),
             // Parties
-            Text('Parties', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
+            Text(
+              'Parties',
+              style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
+            ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
@@ -132,9 +162,9 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                 children: [
                   _PartyRow(
                     label: 'Depositor',
-                    name: depositor['name'] as String,
-                    initials: depositor['initials'] as String,
-                    isYou: depositor['name'] == MockData.userName,
+                    name: depositor?.name ?? "No depositor",
+                    initials: getInitials(depositor?.name ?? ""),
+                    isYou: depositor?.email == currentUser.email!,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -155,13 +185,9 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                   ),
                   _PartyRow(
                     label: 'Beneficiary',
-                    name: (beneficiary['name'] as String).isNotEmpty
-                        ? beneficiary['name'] as String
-                        : 'Not assigned',
-                    initials: (beneficiary['initials'] as String).isNotEmpty
-                        ? beneficiary['initials'] as String
-                        : '?',
-                    isYou: beneficiary['name'] == MockData.userName,
+                    name: beneficiary?.name ?? "Not assigned",
+                    initials: getInitials(beneficiary?.name ?? ""),
+                    isYou: beneficiary?.email == currentUser.email,
                   ),
                 ],
               ),
@@ -169,98 +195,133 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
 
             // Conditions
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Conditions', style: AppTextStyles.h3.copyWith(color: colors.textPrimary)),
-                if (_localConditions.isNotEmpty)
-                  Text(
-                    '${_localConditions.where((c) => c['status'] == 'MET').length}/${_localConditions.length} met',
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-              ],
+            Consumer(
+              builder: (context, ref, _) {
+                final conditionProvider = ref.watch(
+                  conditionControllerProvider,
+                );
+                return conditionProvider.when(
+                  data: (state) {
+                    final conditions =
+                        state.conditions[widget.agreementId] ?? [];
+                    return Column(
+                      crossAxisAlignment: .start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Conditions',
+                              style: AppTextStyles.h3.copyWith(
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                            if (conditions.isNotEmpty)
+                              Text(
+                                '${conditions.where((c) => c.status == 'MET').length}/${conditions.length} met',
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // Progress bar (only if conditions exist and agreement is past draft)
+                        if (conditions.isNotEmpty &&
+                            status != 'DRAFT' &&
+                            status != 'PENDING_ACCEPTANCE') ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: conditions.isEmpty
+                                  ? 0
+                                  : conditions
+                                            .where((c) => c.status == 'met')
+                                            .length /
+                                        conditions.length,
+                              minHeight: 6,
+                              backgroundColor: colors.surfaceVariant,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.success,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Condition cards
+                        if (conditions.isEmpty && !_canAddConditions)
+                          _buildEmptyConditions()
+                        else ...[
+                          ...conditions.map((condition) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _ConditionCard(
+                                condition: condition,
+                                onTap: () {
+                                  context.push(
+                                    '/condition/${condition.id}?agreementId=${widget.agreementId}',
+                                  );
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+
+                        // Add condition button for pre-active agreements
+                        if (_canAddConditions) ...[
+                          const SizedBox(height: 4),
+                          GestureDetector(
+                            onTap: () {
+                              _showAddConditionSheet(
+                                ref,
+                                depositor,
+                                beneficiary,
+                              );
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.primary,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Iconsax.add,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Add Condition',
+                                    style: AppTextStyles.labelLarge.copyWith(
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                  loading: () => const _ConditionListSkeleton(),
+                  error: (err, stk) => const Center(child: Icon(Icons.error)),
+                );
+              },
             ),
             const SizedBox(height: 12),
 
-            // Progress bar (only if conditions exist and agreement is past draft)
-            if (_localConditions.isNotEmpty &&
-                status != 'DRAFT' &&
-                status != 'PENDING_ACCEPTANCE') ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: _localConditions.isEmpty
-                      ? 0
-                      : _localConditions
-                              .where((c) => c['status'] == 'MET')
-                              .length /
-                          _localConditions.length,
-                  minHeight: 6,
-                  backgroundColor: colors.surfaceVariant,
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.success),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Condition cards
-            if (_localConditions.isEmpty && !_canAddConditions)
-              _buildEmptyConditions()
-            else ...[
-              ..._localConditions.map((condition) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _ConditionCard(
-                    condition: condition,
-                    onTap: () =>
-                        context.push('/condition/${condition['id']}'),
-                  ),
-                );
-              }),
-            ],
-
-            // Add condition button for pre-active agreements
-            if (_canAddConditions) ...[
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () => _showAddConditionSheet(depositor, beneficiary),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.primary,
-                      style: BorderStyle.solid,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Iconsax.add,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Add Condition',
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
             // Action buttons based on status
             const SizedBox(height: 24),
-            _buildActionButtons(context, status),
+            _buildActionButtons(context, ref, status),
             const SizedBox(height: 32),
           ],
         ),
@@ -289,11 +350,16 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Text('No conditions defined', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
+          Text(
+            'No conditions defined',
+            style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+          ),
           const SizedBox(height: 4),
           Text(
             'Conditions will appear here once added',
-            style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -301,9 +367,11 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
   }
 
   void _showAddConditionSheet(
-    Map<String, dynamic> depositor,
-    Map<String, dynamic> beneficiary,
+    WidgetRef ref,
+    Participant? depositor,
+    Participant? beneficiary,
   ) {
+    final currentUser = ref.watch(authControllerProvider).userData!;
     final colors = context.colors;
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
@@ -321,7 +389,9 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: colors.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(builderContext).viewInsets.bottom,
@@ -346,16 +416,28 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      Text('Add Condition', style: AppTextStyles.h2.copyWith(color: colors.textPrimary)),
+                      Text(
+                        'Add Condition',
+                        style: AppTextStyles.h2.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         'Define what needs to be done and who is responsible',
-                        style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 24),
 
                       // Title
-                      Text('Title', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
+                      Text(
+                        'Title',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: titleCtrl,
@@ -367,7 +449,12 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                       const SizedBox(height: 20),
 
                       // Description
-                      Text('Description', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
+                      Text(
+                        'Description',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: descCtrl,
@@ -380,20 +467,26 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                       const SizedBox(height: 20),
 
                       // Required from
-                      Text('Required From', style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary)),
+                      Text(
+                        'Required From',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         'Who must fulfill this condition?',
-                        style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 12),
 
                       Row(
                         children: participants.map((participant) {
-                          final pId = participant['id'] as String;
+                          final pId = participant?.id;
                           final isSelected = selectedParticipantId == pId;
-                          final isFirst =
-                              participant == participants.first;
+                          final isFirst = participant == participants.first;
                           return Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
@@ -429,31 +522,32 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                             ? AppColors.primary
                                             : colors.surfaceVariant,
                                         child: Text(
-                                          participant['initials'] as String,
+                                          getInitials(participant?.name ?? ""),
                                           style: AppTextStyles.labelMedium
                                               .copyWith(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : colors.textSecondary,
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : colors.textSecondary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        participant['name'] == MockData.userName
+                                        participant?.email == currentUser.email
                                             ? 'You'
                                             : _truncateName(
-                                                participant['name'] as String),
+                                                participant?.name ?? "",
+                                              ),
                                         style: AppTextStyles.labelMedium
                                             .copyWith(
-                                          color: isSelected
-                                              ? AppColors.primary
-                                              : colors.textPrimary,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w600,
-                                        ),
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : colors.textPrimary,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w600,
+                                            ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -466,22 +560,25 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? AppColors.primary
-                                                  .withValues(alpha: 0.1)
+                                              ? AppColors.primary.withValues(
+                                                  alpha: 0.1,
+                                                )
                                               : colors.surfaceVariant,
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           _capitalize(
-                                              participant['role'] as String),
-                                          style:
-                                              AppTextStyles.labelSmall.copyWith(
-                                            color: isSelected
-                                                ? AppColors.primary
-                                                : colors.textTertiary,
-                                            fontSize: 9,
+                                            participant?.role ?? "No role",
                                           ),
+                                          style: AppTextStyles.labelSmall
+                                              .copyWith(
+                                                color: isSelected
+                                                    ? AppColors.primary
+                                                    : colors.textTertiary,
+                                                fontSize: 9,
+                                              ),
                                         ),
                                       ),
                                     ],
@@ -502,26 +599,25 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
                             if (titleCtrl.text.trim().isEmpty) return;
                             if (selectedParticipantId == null) return;
 
-                            final selectedParticipant =
-                                participants.firstWhere(
-                              (p) => p['id'] == selectedParticipantId,
-                            );
+                            // final selectedParticipant = participants.firstWhere(
+                            //   (p) => p?.id == selectedParticipantId,
+                            // );
 
-                            setState(() {
-                              _localConditions.add({
-                                'id': 'c_new_${_localConditions.length + 1}',
-                                'title': titleCtrl.text.trim(),
-                                'description': descCtrl.text.trim(),
-                                'status': 'PENDING',
-                                'requiredFrom': selectedParticipant,
-                                'addedBy': {
-                                  'id': 'me',
-                                  'name': MockData.userName,
-                                  'initials': MockData.userInitials,
-                                },
-                                'assets': <Map<String, dynamic>>[],
-                              });
-                            });
+                            // setState(() {
+                            //   _localConditions.add({
+                            //     'id': 'c_new_${_localConditions.length + 1}',
+                            //     'title': titleCtrl.text.trim(),
+                            //     'description': descCtrl.text.trim(),
+                            //     'status': 'PENDING',
+                            //     'requiredFrom': selectedParticipant,
+                            //     'addedBy': {
+                            //       'id': 'me',
+                            //       'name': MockData.userName,
+                            //       'initials': MockData.userInitials,
+                            //     },
+                            //     'assets': <Map<String, dynamic>>[],
+                            //   });
+                            // });
 
                             Navigator.pop(builderContext);
                           },
@@ -539,7 +635,11 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, String status) {
+  Widget _buildActionButtons(
+    BuildContext context,
+    WidgetRef ref,
+    String status,
+  ) {
     final colors = context.colors;
     switch (status) {
       case 'DRAFT':
@@ -554,44 +654,71 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
         return Column(
           children: [
             // Agree & Activate button — shown when conditions exist
-            if (_localConditions.isNotEmpty) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colors.infoLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Iconsax.people_copy,
-                        color: AppColors.info, size: 22),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Once both parties are satisfied with the conditions, agree to activate the escrow.',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.info,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Mock: just show a confirmation dialog
-                    _showAgreeConfirmation(context);
+            Consumer(
+              builder: (context, ref, _) {
+                final conditionProvider = ref.watch(
+                  conditionControllerProvider,
+                );
+
+                return conditionProvider.when(
+                  data: (state) {
+                    final conditions =
+                        state.conditions[widget.agreementId] ?? [];
+                    if (conditions.isNotEmpty) {
+                      return Column(
+                        crossAxisAlignment: .start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colors.infoLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Iconsax.people_copy,
+                                  color: AppColors.info,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Once both parties are satisfied with the conditions, agree to activate the escrow.',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.info,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // Mock: just show a confirmation dialog
+                                _showAgreeConfirmation(context);
+                              },
+                              icon: const Icon(Iconsax.tick_circle, size: 20),
+                              label: const Text('Agree & Activate'),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      );
+                    } else {
+                      return SizedBox.shrink();
+                    }
                   },
-                  icon: const Icon(Iconsax.tick_circle, size: 20),
-                  label: const Text('Agree & Activate'),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
+                  loading: () => Container(),
+                  error: (err, stk) => Icon(Icons.error),
+                );
+              },
+            ),
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -601,8 +728,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Iconsax.timer_1_copy,
-                      color: AppColors.accent, size: 22),
+                  Icon(Iconsax.timer_1_copy, color: AppColors.accent, size: 22),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -645,8 +771,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () =>
-                    context.push('/dispute/${widget.agreementId}'),
+                onPressed: () => context.push('/dispute/${widget.agreementId}'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: const BorderSide(color: AppColors.error),
@@ -661,9 +786,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => context.push('/success/funds-released'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             icon: const Icon(Iconsax.tick_circle, size: 20),
             label: const Text('Release Funds'),
           ),
@@ -679,8 +802,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Iconsax.tick_circle,
-                  color: AppColors.success, size: 22),
+              Icon(Iconsax.tick_circle, color: AppColors.success, size: 22),
               const SizedBox(width: 10),
               Text(
                 'Agreement Completed Successfully',
@@ -725,8 +847,7 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Iconsax.close_circle,
-                  color: colors.textTertiary, size: 22),
+              Icon(Iconsax.close_circle, color: colors.textTertiary, size: 22),
               const SizedBox(width: 10),
               Text(
                 'This agreement has been cancelled',
@@ -748,8 +869,11 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Iconsax.refresh_copy,
-                  color: AppColors.statusRefunded, size: 22),
+              Icon(
+                Iconsax.refresh_copy,
+                color: AppColors.statusRefunded,
+                size: 22,
+              ),
               const SizedBox(width: 10),
               Text(
                 'Funds have been refunded',
@@ -770,22 +894,17 @@ class _AgreementDetailScreenState extends State<AgreementDetailScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Iconsax.people,
-                color: AppColors.primary, size: 24),
+            const Icon(Iconsax.people, color: AppColors.primary, size: 24),
             const SizedBox(width: 10),
             Text('Confirm Agreement', style: AppTextStyles.h3),
           ],
         ),
         content: Text(
           'By agreeing, both parties confirm that all conditions are set and the escrow will become active. Funds will need to be deposited to proceed.',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: colors.textSecondary,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -958,19 +1077,19 @@ class _PartyRow extends StatelessWidget {
   }
 }
 
-class _ConditionCard extends StatelessWidget {
-  final Map<String, dynamic> condition;
+class _ConditionCard extends ConsumerWidget {
+  final ConditionResponse condition;
   final VoidCallback? onTap;
 
   const _ConditionCard({required this.condition, this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final status = condition['status'] as String;
-    final assets = condition['assets'] as List? ?? [];
-    final requiredFrom =
-        condition['requiredFrom'] as Map<String, dynamic>?;
+    final status = condition.status ?? "No status";
+    // final assets = condition['assets'] as List? ?? [];
+    final requiredFrom = condition.requiredFromParticipant;
+    final currentUser = ref.watch(authControllerProvider).userData;
 
     return GestureDetector(
       onTap: onTap,
@@ -1005,14 +1124,14 @@ class _ConditionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        condition['title'] as String,
+                        condition.title ?? "No title",
                         style: AppTextStyles.labelLarge,
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        '${assets.length} asset${assets.length != 1 ? 's' : ''}',
-                        style: AppTextStyles.bodySmall,
-                      ),
+                      // Text(
+                      //   '${assets.length} asset${assets.length != 1 ? 's' : ''}',
+                      //   style: AppTextStyles.bodySmall,
+                      // ),
                     ],
                   ),
                 ),
@@ -1029,8 +1148,10 @@ class _ConditionCard extends StatelessWidget {
             if (requiredFrom != null) ...[
               const SizedBox(height: 10),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: colors.primarySurface,
                   borderRadius: BorderRadius.circular(8),
@@ -1040,10 +1161,11 @@ class _ConditionCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 9,
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.15),
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.15,
+                      ),
                       child: Text(
-                        requiredFrom['initials'] as String,
+                        requiredFrom.user?.name ?? "No initials",
                         style: AppTextStyles.labelSmall.copyWith(
                           color: AppColors.primary,
                           fontSize: 7,
@@ -1054,7 +1176,7 @@ class _ConditionCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        'Required from ${requiredFrom['name'] == MockData.userName ? 'You' : requiredFrom['name'] as String}',
+                        'Required from ${requiredFrom.user?.email == currentUser?.email ? 'You' : requiredFrom.user?.name ?? "No name"}',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: colors.textSecondary,
                           fontSize: 10,
@@ -1125,8 +1247,50 @@ class _OptionTile extends StatelessWidget {
         ),
       ),
       onTap: onTap,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+}
+
+class _ConditionListSkeleton extends StatelessWidget {
+  const _ConditionListSkeleton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        3,
+        (_) => const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Shimmer(child: _ConditionSkeletonCard()),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConditionSkeletonCard extends StatelessWidget {
+  const _ConditionSkeletonCard({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          SkeletonBox(width: double.infinity, height: 16),
+          SizedBox(height: 10),
+          SkeletonBox(width: 120, height: 12),
+          SizedBox(height: 12),
+          SkeletonBox(width: double.infinity, height: 12),
+        ],
       ),
     );
   }

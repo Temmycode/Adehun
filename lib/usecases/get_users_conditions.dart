@@ -5,14 +5,14 @@ import 'package:adehun_mvp/domain/models/condition_response.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/usecase.dart';
 
-class GetUsersConditionsUseCase
-    implements UseCase<DataState<List<ConditionResponse>>, void> {
+class GetAgreementConditionsUseCase
+    implements UseCase<DataState<List<ConditionResponse>>, String> {
   final ConditionRepository conditionRepository;
 
-  GetUsersConditionsUseCase(this.conditionRepository);
+  GetAgreementConditionsUseCase(this.conditionRepository);
 
   @override
-  Future<DataState<List<ConditionResponse>>> call({void params}) async {
-    return await conditionRepository.getUsersConditions();
+  Future<DataState<List<ConditionResponse>>> call({String? params}) async {
+    return await conditionRepository.getAgreementConditions(params!);
   }
 }

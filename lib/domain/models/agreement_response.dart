@@ -16,6 +16,10 @@ class AgreementResponse {
   @JsonKey(fromJson: _participantFromJson, toJson: _participantToJson)
   final Participant? beneficiary;
   final DateTime? createdAt;
+  @JsonKey(defaultValue: 0)
+  final int conditionCount;
+  @JsonKey(defaultValue: 0)
+  final int conditionsMetCount;
 
   const AgreementResponse({
     this.id,
@@ -26,6 +30,8 @@ class AgreementResponse {
     this.depositor,
     this.beneficiary,
     this.createdAt,
+    this.conditionCount = 0,
+    this.conditionsMetCount = 0,
   });
 
   factory AgreementResponse.fromJson(Map<String, dynamic> json) =>

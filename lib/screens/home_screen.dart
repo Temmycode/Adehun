@@ -199,8 +199,7 @@ class HomeScreen extends StatelessWidget {
                       );
                       return SliverToBoxAdapter(
                         child: Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                           child: hasNoAgreementsAtAll
                               ? const _HomeEmptyState()
                               : const _NoActiveAgreementsState(),
@@ -218,8 +217,6 @@ class HomeScreen extends StatelessWidget {
                             padding: const EdgeInsets.only(bottom: 12),
                             child: AgreementCard(
                               agreement: agreement,
-                              conditions: conditionController
-                                  .getAgreementConditions(agreement.id!),
                               onTap: () {
                                 context.push('/agreement/${agreement.id}');
                               },

@@ -14,62 +14,85 @@ part 'condition_controller.g.dart';
 class ConditionController extends _$ConditionController {
   @override
   FutureOr<ConditionState> build() async {
-    return await _getUsersConditions();
+    return ConditionState();
   }
 
-  List<ConditionResponse> getAgreementConditions(String agreementId) {
-    final allConditions = state.value?.conditions ?? [];
-    return allConditions
-        .where((condition) => condition.agreementId == agreementId)
-        .toList();
-  }
+  Future<void> getAgreementConditions(String agreementId) async {
+    final currentState = state.value ?? const ConditionState();
+    final cache = ref.read(localDataCacheManagerProvider);
+    final cachedConditions = cache.getCachedConditions(agreementId);
 
-  Future<ConditionState> _getUsersConditions() async {
-    const initialState = ConditionState();
+    if (cachedConditions != null) {
+      final updatedConditions = Map<String, List<ConditionResponse>>.from(
+        currentState.conditions,
+      )..[agreementId] = cachedConditions;
+
+      state = AsyncData(currentState.copyWith(conditions: updatedConditions));
+    } else {
+      state = const AsyncLoading();
+    }
 
     try {
       final dataState = await ref
           .read(conditionRepositoryProvider)
-          .getUsersConditions();
+          .getAgreementConditions(agreementId);
 
       if (dataState is DataSuccess && dataState.data != null) {
-        return initialState.copyWith(conditions: dataState.data!);
-      }
+        await cache.cacheConditions(agreementId, dataState.data!);
 
-      return initialState;
-    } catch (e) {
-      log('Error fetching conditions: $e');
-      return initialState;
+        final updatedConditions = Map<String, List<ConditionResponse>>.from(
+          currentState.conditions,
+        )..[agreementId] = dataState.data!;
+
+        state = AsyncData(currentState.copyWith(conditions: updatedConditions));
+      } else if (cachedConditions == null) {
+        state = AsyncData(currentState);
+      }
+    } catch (err, stk) {
+      log('Failed to load conditions: $err');
+      if (cachedConditions == null) {
+        state = AsyncValue.error(err, stk);
+      }
     }
   }
 
-  Future<void> refresh() async {
+  Future<void> refresh(String agreementId) async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
       final currentState = state.value ?? const ConditionState();
       final dataState = await ref
           .read(conditionRepositoryProvider)
-          .getUsersConditions();
+          .getAgreementConditions(agreementId);
 
       if (dataState is DataSuccess && dataState.data != null) {
-        return currentState.copyWith(conditions: dataState.data!);
+        return currentState.copyWith(
+          conditions: {agreementId: dataState.data!},
+        );
       }
 
       return currentState;
     });
   }
 
-  void addNewCondition(ConditionResponse condition) {
+  void addNewCondition(String agreementId, ConditionResponse condition) {
     final currentState = state.value ?? const ConditionState();
+    final currentConditions =
+        state.value?.conditions ?? <String, List<ConditionResponse>>{};
+
     state = AsyncData(
       currentState.copyWith(
-        conditions: [condition, ...currentState.conditions],
+        conditions: Map<String, List<ConditionResponse>>.from(
+          currentConditions,
+        )..[agreementId] = [...currentConditions[agreementId] ?? [], condition],
       ),
     );
   }
 
-  Future<void> addConditionToAgreement(AddConditionParams params) async {
+  Future<void> addConditionToAgreement(
+    String agreementId,
+    AddConditionParams params,
+  ) async {
     final currentState = state.value ?? const ConditionState();
     state = AsyncData(currentState.copyWith(isAdding: true));
 
@@ -86,7 +109,7 @@ class ConditionController extends _$ConditionController {
       final latestState = state.value ?? currentState;
 
       if (dataState is DataSuccess && dataState.data != null) {
-        addNewCondition(dataState.data!);
+        addNewCondition(agreementId, dataState.data!);
       } else {
         state = AsyncData(latestState.copyWith(isAdding: false));
       }
@@ -127,15 +150,16 @@ class ConditionController extends _$ConditionController {
       final latestState = state.value ?? currentState;
 
       if (dataState is DataSuccess && dataState.data != null) {
-        final updated = latestState.conditions.map((c) {
-          return c.id == conditionId ? dataState.data! : c;
-        }).toList();
+        final approvedCondition = dataState.data!;
 
         state = AsyncData(
           latestState.copyWith(
             isApproving: false,
-            conditions: updated,
-            selectedCondition: dataState.data!,
+            conditions: _replaceCondition(
+              latestState.conditions,
+              approvedCondition,
+            ),
+            selectedCondition: approvedCondition,
           ),
         );
       } else {
@@ -164,15 +188,16 @@ class ConditionController extends _$ConditionController {
       final latestState = state.value ?? currentState;
 
       if (dataState is DataSuccess && dataState.data != null) {
-        final updated = latestState.conditions.map((c) {
-          return c.id == params.conditionId ? dataState.data! : c;
-        }).toList();
+        final rejectedCondition = dataState.data!;
 
         state = AsyncData(
           latestState.copyWith(
             isRejecting: false,
-            conditions: updated,
-            selectedCondition: dataState.data!,
+            conditions: _replaceCondition(
+              latestState.conditions,
+              rejectedCondition,
+            ),
+            selectedCondition: rejectedCondition,
           ),
         );
       } else {
@@ -184,5 +209,23 @@ class ConditionController extends _$ConditionController {
         (state.value ?? currentState).copyWith(isRejecting: false),
       );
     }
+  }
+
+  Map<String, List<ConditionResponse>> _replaceCondition(
+    Map<String, List<ConditionResponse>> conditions,
+    ConditionResponse updated,
+  ) {
+    final updatedConditions = Map<String, List<ConditionResponse>>.from(
+      conditions,
+    );
+    final agreementId = updated.agreementId!;
+    final agreementConditions =
+        updatedConditions[agreementId] ?? const <ConditionResponse>[];
+
+    updatedConditions[agreementId] = agreementConditions
+        .map((c) => c.id == updated.id ? updated : c)
+        .toList();
+
+    return updatedConditions;
   }
 }

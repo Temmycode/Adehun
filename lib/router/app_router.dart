@@ -20,20 +20,19 @@ import '../screens/dispute_screen.dart';
 import '../screens/success_screen.dart';
 import '../shell/main_shell.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> _shellNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'shell');
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'root',
+);
+final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shell',
+);
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
     // Splash
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
 
     // Onboarding
     GoRoute(
@@ -42,10 +41,7 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // Auth
-    GoRoute(
-      path: '/auth',
-      builder: (context, state) => const AuthScreen(),
-    ),
+    GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
 
     // Profile Completion
     GoRoute(
@@ -60,27 +56,23 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/home',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: HomeScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: HomeScreen()),
         ),
         GoRoute(
           path: '/wallet',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: WalletScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: WalletScreen()),
         ),
         GoRoute(
           path: '/agreements',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: AgreementsListScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: AgreementsListScreen()),
         ),
         GoRoute(
           path: '/profile',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: ProfileScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: ProfileScreen()),
         ),
       ],
     ),
@@ -105,7 +97,8 @@ final GoRouter appRouter = GoRouter(
       path: '/condition/:id',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
-        return ConditionDetailScreen(conditionId: id);
+        final agreementId = state.uri.queryParameters['agreementId'] ?? '';
+        return ConditionDetailScreen(agreementId: agreementId, conditionId: id);
       },
     ),
     GoRoute(

@@ -1,34 +1,63 @@
+import 'package:adehun_mvp/controllers/assets_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
+import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/domain/models/assets_response.dart';
+import 'package:adehun_mvp/domain/models/condition_response.dart';
+import 'package:adehun_mvp/utils/random_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
-import '../constants/mock_data.dart';
+import '../widgets/skeletons.dart';
 import '../widgets/status_badge.dart';
 
-class ConditionDetailScreen extends StatelessWidget {
+class ConditionDetailScreen extends ConsumerStatefulWidget {
   final String conditionId;
+  final String agreementId;
 
-  const ConditionDetailScreen({super.key, required this.conditionId});
+  const ConditionDetailScreen({
+    super.key,
+    required this.conditionId,
+    required this.agreementId,
+  });
 
-  Map<String, dynamic>? _findCondition() {
-    for (final agreement in MockData.agreements) {
-      final conditions = agreement['conditions'] as List;
-      for (final condition in conditions) {
-        if (condition['id'] == conditionId) {
-          return condition;
-        }
-      }
-    }
-    return null;
+  @override
+  ConsumerState<ConditionDetailScreen> createState() =>
+      _ConditionDetailScreenState();
+}
+
+class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
+  ConditionResponse? _findCondition(WidgetRef ref) {
+    final conditionState = ref.read(conditionControllerProvider);
+    return conditionState.maybeWhen(
+      data: (state) => state.conditions[widget.agreementId]?.firstWhere(
+        (condition) => condition.id == widget.conditionId,
+      ),
+      orElse: () => null,
+    );
+  }
+
+  void getAssets() {
+    final assetsProvider = ref.read(assetsControllerProvider.notifier);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      assetsProvider.getConditionAssets(widget.conditionId);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getAssets();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final condition = _findCondition();
+    final condition = _findCondition(ref);
     if (condition == null) {
       return Scaffold(
         appBar: AppBar(
@@ -41,10 +70,9 @@ class ConditionDetailScreen extends StatelessWidget {
       );
     }
 
-    final status = condition['status'] as String;
-    final assets = condition['assets'] as List;
-    final requiredFrom =
-        condition['requiredFrom'] as Map<String, dynamic>?;
+    final status = condition.status ?? "No status";
+    final requiredFrom = condition.requiredFromParticipant;
+    final currentUser = ref.watch(authControllerProvider).userData;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -64,13 +92,10 @@ class ConditionDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             StatusBadge(status: status),
             const SizedBox(height: 12),
-            Text(
-              condition['title'] as String,
-              style: AppTextStyles.h1,
-            ),
+            Text(condition.title ?? "No title", style: AppTextStyles.h1),
             const SizedBox(height: 8),
             Text(
-              condition['description'] as String,
+              condition.description ?? "No description",
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textSecondary,
               ),
@@ -93,10 +118,11 @@ class ConditionDetailScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.15),
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.15,
+                      ),
                       child: Text(
-                        requiredFrom['initials'] as String,
+                        getInitials(requiredFrom.user?.name ?? ""),
                         style: AppTextStyles.labelMedium.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
@@ -118,14 +144,14 @@ class ConditionDetailScreen extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                requiredFrom['name'] == MockData.userName
+                                requiredFrom.user?.email == currentUser?.email
                                     ? 'You'
-                                    : requiredFrom['name'] as String,
+                                    : requiredFrom.user?.name ?? "",
                                 style: AppTextStyles.labelLarge.copyWith(
                                   color: AppColors.primary,
                                 ),
                               ),
-                              if (requiredFrom['role'] != null) ...[
+                              if (requiredFrom.role != null) ...[
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -133,18 +159,19 @@ class ConditionDetailScreen extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.1),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    (requiredFrom['role'] as String)
-                                        .substring(0, 1)
-                                        .toUpperCase() +
-                                        (requiredFrom['role'] as String)
-                                            .substring(1),
-                                    style:
-                                        AppTextStyles.labelSmall.copyWith(
+                                    (requiredFrom.role as String)
+                                            .substring(0, 1)
+                                            .toUpperCase() +
+                                        (requiredFrom.role as String).substring(
+                                          1,
+                                        ),
+                                    style: AppTextStyles.labelSmall.copyWith(
                                       color: AppColors.primary,
                                       fontSize: 9,
                                     ),
@@ -166,14 +193,12 @@ class ConditionDetailScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Assets (${assets.length})',
-                  style: AppTextStyles.h3,
-                ),
+                // Text('Assets (${assets.length})', style: AppTextStyles.h3),
                 if (status != 'MET')
                   GestureDetector(
-                    onTap: () =>
-                        context.push('/upload-assets/$conditionId'),
+                    onTap: () {
+                      context.push('/upload-assets/${widget.conditionId}');
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -186,8 +211,11 @@ class ConditionDetailScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Iconsax.add,
-                              color: Colors.white, size: 16),
+                          const Icon(
+                            Iconsax.add,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Upload',
@@ -203,47 +231,73 @@ class ConditionDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            if (assets.isEmpty)
-              _EmptyAssets(conditionId: conditionId)
-            else
-              ...assets.map((asset) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _AssetCard(asset: asset),
-                );
-              }),
+            Consumer(
+              builder: (context, ref, _) {
+                final assetState = ref.watch(assetsControllerProvider);
 
-            // Approve/Reject buttons for review
-            if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
-                      ),
-                      icon: const Icon(CupertinoIcons.xmark, size: 18),
-                      label: const Text('Reject'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () =>
-                          context.push('/success/conditions-met'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                      ),
-                      icon: const Icon(Iconsax.tick_circle, size: 18),
-                      label: const Text('Approve'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                return assetState.when(
+                  data: (state) {
+                    final assets = state.assets[widget.conditionId] ?? [];
+                    return Column(
+                      crossAxisAlignment: .start,
+                      children: [
+                        if (assets.isEmpty)
+                          _EmptyAssets(conditionId: widget.conditionId)
+                        else
+                          ...assets.map((asset) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _AssetCard(asset: asset),
+                            );
+                          }),
+
+                        // Approve/Reject buttons for review
+                        if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {},
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.error,
+                                    side: const BorderSide(
+                                      color: AppColors.error,
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    CupertinoIcons.xmark,
+                                    size: 18,
+                                  ),
+                                  label: const Text('Reject'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () =>
+                                      context.push('/success/conditions-met'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                  icon: const Icon(
+                                    Iconsax.tick_circle,
+                                    size: 18,
+                                  ),
+                                  label: const Text('Approve'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                  loading: () => const _AssetListSkeleton(),
+                  error: (err, stk) => const Center(child: Icon(Icons.error)),
+                );
+              },
+            ),
             const SizedBox(height: 32),
           ],
         ),
@@ -253,16 +307,16 @@ class ConditionDetailScreen extends StatelessWidget {
 }
 
 class _AssetCard extends StatelessWidget {
-  final Map<String, dynamic> asset;
+  final AssetsResponse asset;
 
   const _AssetCard({required this.asset});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final name = asset['name'] as String;
-    final type = asset['type'] as String;
-    final status = asset['status'] as String;
+    final name = asset.file.url.split('/').last;
+    final type = asset.file.type;
+    final status = asset.isApproved ? 'Approved' : 'Pending';
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -284,12 +338,8 @@ class _AssetCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              type == 'image'
-                  ? Iconsax.gallery_copy
-                  : Iconsax.document_copy,
-              color: type == 'image'
-                  ? AppColors.primary
-                  : colors.textSecondary,
+              type == 'image' ? Iconsax.gallery_copy : Iconsax.document_copy,
+              color: type == 'image' ? AppColors.primary : colors.textSecondary,
               size: 24,
             ),
           ),
@@ -355,6 +405,50 @@ class _EmptyAssets extends StatelessWidget {
             label: const Text('Upload Asset'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AssetListSkeleton extends StatelessWidget {
+  const _AssetListSkeleton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        2,
+        (_) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Shimmer(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: context.colors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: context.colors.cardBorder),
+              ),
+              child: Row(
+                children: const [
+                  SkeletonBox(width: 48, height: 48, radius: 10),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonBox(width: double.infinity, height: 14),
+                        SizedBox(height: 8),
+                        SkeletonBox(width: 120, height: 10),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  SkeletonBox(width: 64, height: 20, radius: 10),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

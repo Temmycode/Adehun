@@ -3,14 +3,15 @@ import 'package:flutter/foundation.dart' show immutable;
 
 @immutable
 class ConditionState {
-  final List<ConditionResponse> conditions;
+  final Map<String, List<ConditionResponse>>
+  conditions; // {"id": [...] // list of conditions}
   final ConditionResponse? selectedCondition;
   final bool isAdding;
   final bool isApproving;
   final bool isRejecting;
 
   const ConditionState({
-    this.conditions = const [],
+    this.conditions = const {},
     this.selectedCondition,
     this.isAdding = false,
     this.isApproving = false,
@@ -18,7 +19,7 @@ class ConditionState {
   });
 
   ConditionState copyWith({
-    List<ConditionResponse>? conditions,
+    Map<String, List<ConditionResponse>>? conditions,
     ConditionResponse? selectedCondition,
     bool? isAdding,
     bool? isApproving,

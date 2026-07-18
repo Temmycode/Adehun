@@ -36,6 +36,7 @@ class AuthController extends _$AuthController {
           dataState.data != null &&
           dataState.data!.accessToken != null &&
           dataState.data!.refreshToken != null) {
+        print("What is going on");
         await ref
             .read(tokenStorageProvider)
             .saveTokens(
@@ -54,8 +55,8 @@ class AuthController extends _$AuthController {
         print("An error occurred while signing in with Google.");
         return;
       }
-    } catch (e) {
-      print("An error occurred while signing in with Google: $e");
+    } catch (e, stk) {
+      print("An error occurred while signing in with Google: $e, STK: $stk");
     } finally {
       state = state.copyWith(isLoading: false);
     }

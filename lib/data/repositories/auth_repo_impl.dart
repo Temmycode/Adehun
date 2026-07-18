@@ -27,8 +27,9 @@ class AuthRepoImpl implements AuthRepository {
 
       // Sign into Firebase Auth to get a Firebase ID token
       final credential = GoogleAuthProvider.credential(idToken: googleIdToken);
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
       final firebaseIdToken = await userCredential.user?.getIdToken();
 
       if (firebaseIdToken == null) {

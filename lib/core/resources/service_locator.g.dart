@@ -726,6 +726,54 @@ final class NotificationRepositoryProvider
 String _$notificationRepositoryHash() =>
     r'6573555fae7170f80d341bcfbfe9b558f30d9a88';
 
+@ProviderFor(localDataCacheManager)
+final localDataCacheManagerProvider = LocalDataCacheManagerProvider._();
+
+final class LocalDataCacheManagerProvider
+    extends
+        $FunctionalProvider<
+          LocalDataCacheManager,
+          LocalDataCacheManager,
+          LocalDataCacheManager
+        >
+    with $Provider<LocalDataCacheManager> {
+  LocalDataCacheManagerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localDataCacheManagerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localDataCacheManagerHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalDataCacheManager> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalDataCacheManager create(Ref ref) {
+    return localDataCacheManager(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalDataCacheManager value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LocalDataCacheManager>(value),
+    );
+  }
+}
+
+String _$localDataCacheManagerHash() =>
+    r'714fdbc18042bd99d314f047c684d5b97293695d';
+
 @ProviderFor(getNotificationsUseCase)
 final getNotificationsUseCaseProvider = GetNotificationsUseCaseProvider._();
 
@@ -821,6 +869,153 @@ final class GetUnreadCountUseCaseProvider
 
 String _$getUnreadCountUseCaseHash() =>
     r'37a8fd87e8aeff4dee85a935dd842850be30469d';
+
+@ProviderFor(getConditionAssetsUseCase)
+final getConditionAssetsUseCaseProvider = GetConditionAssetsUseCaseProvider._();
+
+final class GetConditionAssetsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetConditionAssetsUseCase,
+          GetConditionAssetsUseCase,
+          GetConditionAssetsUseCase
+        >
+    with $Provider<GetConditionAssetsUseCase> {
+  GetConditionAssetsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getConditionAssetsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getConditionAssetsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetConditionAssetsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetConditionAssetsUseCase create(Ref ref) {
+    return getConditionAssetsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetConditionAssetsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetConditionAssetsUseCase>(value),
+    );
+  }
+}
+
+String _$getConditionAssetsUseCaseHash() =>
+    r'2710a70846b1f826afd83c720a0427e0f16603d3';
+
+@ProviderFor(addConditionAssetsUseCase)
+final addConditionAssetsUseCaseProvider = AddConditionAssetsUseCaseProvider._();
+
+final class AddConditionAssetsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          AddConditionAssetsUseCase,
+          AddConditionAssetsUseCase,
+          AddConditionAssetsUseCase
+        >
+    with $Provider<AddConditionAssetsUseCase> {
+  AddConditionAssetsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'addConditionAssetsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$addConditionAssetsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AddConditionAssetsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AddConditionAssetsUseCase create(Ref ref) {
+    return addConditionAssetsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AddConditionAssetsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AddConditionAssetsUseCase>(value),
+    );
+  }
+}
+
+String _$addConditionAssetsUseCaseHash() =>
+    r'1803716736b28f5f5b61eb6aa2978e13bd1b0e19';
+
+@ProviderFor(getConditionAssetUploadSignatureUseCase)
+final getConditionAssetUploadSignatureUseCaseProvider =
+    GetConditionAssetUploadSignatureUseCaseProvider._();
+
+final class GetConditionAssetUploadSignatureUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetConditionAssetUploadSignatureUseCase,
+          GetConditionAssetUploadSignatureUseCase,
+          GetConditionAssetUploadSignatureUseCase
+        >
+    with $Provider<GetConditionAssetUploadSignatureUseCase> {
+  GetConditionAssetUploadSignatureUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getConditionAssetUploadSignatureUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$getConditionAssetUploadSignatureUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetConditionAssetUploadSignatureUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetConditionAssetUploadSignatureUseCase create(Ref ref) {
+    return getConditionAssetUploadSignatureUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetConditionAssetUploadSignatureUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<GetConditionAssetUploadSignatureUseCase>(value),
+    );
+  }
+}
+
+String _$getConditionAssetUploadSignatureUseCaseHash() =>
+    r'cf44d2110396082f3f2692ee060f445f00729eb2';
 
 @ProviderFor(markNotificationsAsReadUseCase)
 final markNotificationsAsReadUseCaseProvider =

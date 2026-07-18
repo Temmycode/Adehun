@@ -9,15 +9,9 @@ import 'status_badge.dart';
 
 class AgreementCard extends StatelessWidget {
   final AgreementResponse agreement;
-  final List<ConditionResponse> conditions;
   final VoidCallback? onTap;
 
-  const AgreementCard({
-    super.key,
-    required this.agreement,
-    required this.conditions,
-    this.onTap,
-  });
+  const AgreementCard({super.key, required this.agreement, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -81,21 +75,17 @@ class AgreementCard extends StatelessWidget {
               ],
             ),
             // Row 3: Conditions progress (only if conditions exist)
-            if (conditions.isNotEmpty) ...[
+            if (agreement.conditionCount != 0) ...[
               const SizedBox(height: 14),
               _ConditionBar(
-                met: _metConditions(conditions),
-                total: conditions.length,
+                met: agreement.conditionsMetCount,
+                total: agreement.conditionCount,
               ),
             ],
           ],
         ),
       ),
     );
-  }
-
-  int _metConditions(List<ConditionResponse> conditions) {
-    return conditions.where((c) => c.status == 'MET').length;
   }
 
   String _formatAmount(double amount) {

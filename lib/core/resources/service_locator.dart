@@ -1,5 +1,6 @@
 import 'package:adehun_mvp/data/interceptors/api_response_interceptor.dart';
 import 'package:adehun_mvp/data/interceptors/auth_interceptor.dart';
+import 'package:adehun_mvp/data/local/local_data_cache_manager.dart';
 import 'package:adehun_mvp/data/local/preferences_service.dart';
 import 'package:adehun_mvp/router/app_router.dart';
 import 'package:adehun_mvp/data/local/token_storage.dart';
@@ -20,6 +21,9 @@ import 'package:adehun_mvp/domain/notification_repository.dart';
 import 'package:adehun_mvp/domain/stats_repository.dart';
 import 'package:adehun_mvp/usecases/get_notifications.dart';
 import 'package:adehun_mvp/usecases/get_unread_count.dart';
+import 'package:adehun_mvp/usecases/get_condition_asset_upload_signature.dart';
+import 'package:adehun_mvp/usecases/get_condition_assets.dart';
+import 'package:adehun_mvp/usecases/add_condition_assets.dart';
 import 'package:adehun_mvp/usecases/mark_all_notifications_as_read.dart';
 import 'package:adehun_mvp/usecases/mark_notifications_as_read.dart';
 import 'package:dio/dio.dart';
@@ -148,6 +152,12 @@ NotificationRepository notificationRepository(Ref ref) {
   return NotificationRepoImpl(notificationService);
 }
 
+@riverpod
+LocalDataCacheManager localDataCacheManager(Ref ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return LocalDataCacheManager(prefs);
+}
+
 // Notification usecases
 @riverpod
 GetNotificationsUseCase getNotificationsUseCase(Ref ref) {
@@ -159,6 +169,26 @@ GetNotificationsUseCase getNotificationsUseCase(Ref ref) {
 GetUnreadCountUseCase getUnreadCountUseCase(Ref ref) {
   final repo = ref.watch(notificationRepositoryProvider);
   return GetUnreadCountUseCase(repo);
+}
+
+@riverpod
+GetConditionAssetsUseCase getConditionAssetsUseCase(Ref ref) {
+  final repo = ref.watch(conditionRepositoryProvider);
+  return GetConditionAssetsUseCase(repo);
+}
+
+@riverpod
+AddConditionAssetsUseCase addConditionAssetsUseCase(Ref ref) {
+  final repo = ref.watch(conditionRepositoryProvider);
+  return AddConditionAssetsUseCase(repo);
+}
+
+@riverpod
+GetConditionAssetUploadSignatureUseCase getConditionAssetUploadSignatureUseCase(
+  Ref ref,
+) {
+  final repo = ref.watch(conditionRepositoryProvider);
+  return GetConditionAssetUploadSignatureUseCase(repo);
 }
 
 @riverpod

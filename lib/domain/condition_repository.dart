@@ -1,4 +1,6 @@
+import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
+import 'package:adehun_mvp/domain/models/upload_signature_response.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 
 abstract class ConditionRepository {
@@ -9,7 +11,9 @@ abstract class ConditionRepository {
     required String requiredFromEmail,
   });
 
-  Future<DataState<List<ConditionResponse>>> getUsersConditions();
+  Future<DataState<List<ConditionResponse>>> getAgreementConditions(
+    String agreementId,
+  );
 
   Future<DataState<ConditionResponse>> getConditionDetails(String conditionId);
 
@@ -19,4 +23,17 @@ abstract class ConditionRepository {
     required String conditionId,
     required String rejectedReason,
   });
+
+  Future<DataState<List<AssetsResponse>>> getConditionAssets(
+    String conditionId,
+  );
+
+  Future<DataState<List<AssetsResponse>>> addConditionAssets({
+    required String conditionId,
+    required List<Map<String, String>> files,
+  });
+
+  Future<DataState<UploadSignatureResponse>> getConditionAssetUploadSignature(
+    String conditionId,
+  );
 }

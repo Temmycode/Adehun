@@ -110,10 +110,11 @@ class AgreementController extends _$AgreementController {
       if (dataState is DataSuccess && dataState.data != null) {
         final created = dataState.data!;
         updateTempAgreement(created, tempId);
-        final conditionController =
-            ref.read(conditionControllerProvider.notifier);
+        final conditionController = ref.read(
+          conditionControllerProvider.notifier,
+        );
         for (final condition in created.conditions ?? []) {
-          conditionController.addNewCondition(condition);
+          conditionController.addNewCondition(created.id!, condition);
         }
         appRouter.push('/success/agreement-created');
       } else {

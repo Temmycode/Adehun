@@ -146,6 +146,7 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                     final agreements = _filteredAgreements(
                       stateData.agreements,
                     );
+
                     if (agreements.isEmpty) {
                       return SliverFillRemaining(child: _EmptyState());
                     } else {
@@ -161,8 +162,6 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: AgreementCard(
                                 agreement: agreement,
-                                conditions: conditionController
-                                    .getAgreementConditions(agreement.id!),
                                 onTap: () {
                                   context.push('/agreement/${agreement.id}');
                                 },
@@ -175,9 +174,7 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
                   },
                   loading: () => const SliverPadding(
                     padding: EdgeInsets.symmetric(horizontal: 24),
-                    sliver: SliverToBoxAdapter(
-                      child: AgreementListSkeleton(),
-                    ),
+                    sliver: SliverToBoxAdapter(child: AgreementListSkeleton()),
                   ),
                   error: (err, stk) => SliverToBoxAdapter(
                     child: Text(

@@ -4,14 +4,16 @@ import 'dart:io';
 import 'package:adehun_mvp/constants/errors.dart';
 import 'package:adehun_mvp/data/services/condition_api_service.dart';
 import 'package:adehun_mvp/domain/condition_repository.dart';
+import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
+import 'package:adehun_mvp/domain/models/upload_signature_response.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:flutter/foundation.dart';
 
 class ConditionRepoImpl implements ConditionRepository {
   final ConditionApiService _conditionApiService;
   const ConditionRepoImpl(ConditionApiService apiService)
-      : _conditionApiService = apiService;
+    : _conditionApiService = apiService;
 
   @override
   Future<DataState<ConditionResponse>> addConditionToAgreement({
@@ -21,12 +23,12 @@ class ConditionRepoImpl implements ConditionRepository {
     required String requiredFromEmail,
   }) async {
     try {
-      final apiResponse =
-          await _conditionApiService.addConditionToAgreement(agreementId, {
-        "title": title,
-        "description": description,
-        "required_from_email": requiredFromEmail,
-      });
+      final apiResponse = await _conditionApiService
+          .addConditionToAgreement(agreementId, {
+            "title": title,
+            "description": description,
+            "required_from_email": requiredFromEmail,
+          });
 
       if (apiResponse.response.statusCode == HttpStatus.created) {
         return DataSuccess(apiResponse.data);
@@ -42,9 +44,13 @@ class ConditionRepoImpl implements ConditionRepository {
   }
 
   @override
-  Future<DataState<List<ConditionResponse>>> getUsersConditions() async {
+  Future<DataState<List<ConditionResponse>>> getAgreementConditions(
+    String agreementId,
+  ) async {
     try {
-      final apiResponse = await _conditionApiService.getUsersConditions();
+      final apiResponse = await _conditionApiService.getAgreementConditions(
+        agreementId,
+      );
 
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
@@ -64,8 +70,9 @@ class ConditionRepoImpl implements ConditionRepository {
     String conditionId,
   ) async {
     try {
-      final apiResponse =
-          await _conditionApiService.getConditionDetails(conditionId);
+      final apiResponse = await _conditionApiService.getConditionDetails(
+        conditionId,
+      );
 
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
@@ -85,8 +92,9 @@ class ConditionRepoImpl implements ConditionRepository {
     String conditionId,
   ) async {
     try {
-      final apiResponse =
-          await _conditionApiService.approveCondition(conditionId);
+      final apiResponse = await _conditionApiService.approveCondition(
+        conditionId,
+      );
 
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
@@ -107,16 +115,84 @@ class ConditionRepoImpl implements ConditionRepository {
     required String rejectedReason,
   }) async {
     try {
-      final apiResponse =
-          await _conditionApiService.rejectCondition(conditionId, {
-        "rejected_reason": rejectedReason,
-      });
+      final apiResponse = await _conditionApiService.rejectCondition(
+        conditionId,
+        {"rejected_reason": rejectedReason},
+      );
 
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
       }
 
       return DataFailed(RejectConditionError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<List<AssetsResponse>>> getConditionAssets(
+    String conditionId,
+  ) async {
+    try {
+      final apiResponse = await _conditionApiService.getConditionAssets(
+        conditionId,
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(GetConditionAssetsError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<List<AssetsResponse>>> addConditionAssets({
+    required String conditionId,
+    required List<Map<String, String>> files,
+  }) async {
+    try {
+      final apiResponse = await _conditionApiService.addConditionAssets(
+        conditionId,
+        {"files": files},
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok ||
+          apiResponse.response.statusCode == HttpStatus.created) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(AddConditionAssetsError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<UploadSignatureResponse>> getConditionAssetUploadSignature(
+    String conditionId,
+  ) async {
+    try {
+      final apiResponse = await _conditionApiService
+          .getConditionAssetUploadSignature(conditionId);
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(GetConditionAssetUploadSignatureError());
     } catch (err, stk) {
       if (kDebugMode) {
         log('$err, $stk');

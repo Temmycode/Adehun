@@ -17,10 +17,13 @@ const String getAgreementUrl = '/agreements/{agreement_id}/';
 /// CONDITION ENDPOINTS
 const String addConditionToAgreementUrl =
     '/agreements/{agreement_id}/conditions';
-const String getUserConditionsUrl = '/conditions/';
+const String getUserConditionsUrl = '/agreements/{agreement_id}/conditions';
 const String getConditionDetailsUrl = '/conditions/{condition_id}';
 const String approveConditionUrl = '/conditions/{condition_id}/approve';
 const String rejectConditionUrl = '/conditions/{condition_id}/reject';
+const String getConditionAssetsUrl = '/conditions/{condition_id}/assets';
+const String getConditionAssetUploadSignatureUrl =
+    '/conditions/{condition_id}/assets/upload-signature';
 
 /// STATISTICS ENDPOINTS
 const String getUserAgreementsStatsUrl = '/stats/agreements/';
