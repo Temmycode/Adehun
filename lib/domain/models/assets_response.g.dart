@@ -45,12 +45,32 @@ Map<String, dynamic> _$UploaderResponseToJson(UploaderResponse instance) =>
 FileResponse _$FileResponseFromJson(Map<String, dynamic> json) => FileResponse(
   id: json['id'] as String,
   url: json['url'] as String,
-  type: json['type'] as String,
+  type: $enumDecode(
+    _$AssetTypeEnumMap,
+    json['type'],
+    unknownValue: AssetType.unknown,
+  ),
+  name: json['name'] as String,
+  size: (json['size'] as num?)?.toDouble() ?? 0.0,
+  path: json['path'] as String?,
 );
 
 Map<String, dynamic> _$FileResponseToJson(FileResponse instance) =>
     <String, dynamic>{
       'id': instance.id,
       'url': instance.url,
-      'type': instance.type,
+      'type': _$AssetTypeEnumMap[instance.type]!,
+      'name': instance.name,
+      'size': instance.size,
+      'path': instance.path,
     };
+
+const _$AssetTypeEnumMap = {
+  AssetType.image: 'image',
+  AssetType.audio: 'audio',
+  AssetType.video: 'video',
+  AssetType.pdf: 'pdf',
+  AssetType.document: 'document',
+  AssetType.archive: 'archive',
+  AssetType.unknown: 'unknown',
+};

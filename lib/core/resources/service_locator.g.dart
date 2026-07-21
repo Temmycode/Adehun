@@ -232,7 +232,7 @@ final class AuthInterceptorProvider
   }
 }
 
-String _$authInterceptorHash() => r'334eab288d7941c352c93746f337ffb972fba9bb';
+String _$authInterceptorHash() => r'2d07d74c3e4f4be4ecb6388aebd9613c836025a3';
 
 @ProviderFor(dio)
 final dioProvider = DioProvider._();
@@ -1016,6 +1016,104 @@ final class GetConditionAssetUploadSignatureUseCaseProvider
 
 String _$getConditionAssetUploadSignatureUseCaseHash() =>
     r'cf44d2110396082f3f2692ee060f445f00729eb2';
+
+@ProviderFor(approveConditionAssetUseCase)
+final approveConditionAssetUseCaseProvider =
+    ApproveConditionAssetUseCaseProvider._();
+
+final class ApproveConditionAssetUseCaseProvider
+    extends
+        $FunctionalProvider<
+          ApproveConditionAssetUseCase,
+          ApproveConditionAssetUseCase,
+          ApproveConditionAssetUseCase
+        >
+    with $Provider<ApproveConditionAssetUseCase> {
+  ApproveConditionAssetUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'approveConditionAssetUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$approveConditionAssetUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<ApproveConditionAssetUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ApproveConditionAssetUseCase create(Ref ref) {
+    return approveConditionAssetUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ApproveConditionAssetUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ApproveConditionAssetUseCase>(value),
+    );
+  }
+}
+
+String _$approveConditionAssetUseCaseHash() =>
+    r'ddf53def544bb28ed908d54a97c4f4b8d1492a97';
+
+@ProviderFor(rejectConditionAssetUseCase)
+final rejectConditionAssetUseCaseProvider =
+    RejectConditionAssetUseCaseProvider._();
+
+final class RejectConditionAssetUseCaseProvider
+    extends
+        $FunctionalProvider<
+          RejectConditionAssetUseCase,
+          RejectConditionAssetUseCase,
+          RejectConditionAssetUseCase
+        >
+    with $Provider<RejectConditionAssetUseCase> {
+  RejectConditionAssetUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'rejectConditionAssetUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$rejectConditionAssetUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<RejectConditionAssetUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RejectConditionAssetUseCase create(Ref ref) {
+    return rejectConditionAssetUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RejectConditionAssetUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RejectConditionAssetUseCase>(value),
+    );
+  }
+}
+
+String _$rejectConditionAssetUseCaseHash() =>
+    r'ce6d9538ade2b9a66e00882256248942db8eaa8e';
 
 @ProviderFor(markNotificationsAsReadUseCase)
 final markNotificationsAsReadUseCaseProvider =

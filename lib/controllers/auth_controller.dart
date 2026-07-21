@@ -30,12 +30,15 @@ class AuthController extends _$AuthController {
       state = state.copyWith(isLoading: true);
 
       final dataState = await ref.read(authRepositoryProvider).googleSignIn();
-      final data = dataState.data!;
+      final data = dataState.data;
+      if (data == null) {
+        print('Google sign in returned no data');
+        return;
+      }
 
       if (dataState is DataSuccess &&
-          dataState.data != null &&
-          dataState.data!.accessToken != null &&
-          dataState.data!.refreshToken != null) {
+          data.accessToken != null &&
+          data.refreshToken != null) {
         print("What is going on");
         await ref
             .read(tokenStorageProvider)

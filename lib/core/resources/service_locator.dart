@@ -9,6 +9,8 @@ import 'package:adehun_mvp/data/repositories/auth_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/condition_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/notification_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/stats_repo_impl.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
+import 'package:adehun_mvp/domain/states/auth_state.dart';
 import 'package:adehun_mvp/data/services/agreement_api_service.dart';
 import 'package:adehun_mvp/data/services/auth_api_service.dart';
 import 'package:adehun_mvp/data/services/condition_api_service.dart';
@@ -24,8 +26,10 @@ import 'package:adehun_mvp/usecases/get_unread_count.dart';
 import 'package:adehun_mvp/usecases/get_condition_asset_upload_signature.dart';
 import 'package:adehun_mvp/usecases/get_condition_assets.dart';
 import 'package:adehun_mvp/usecases/add_condition_assets.dart';
+import 'package:adehun_mvp/usecases/approve_condition_asset.dart';
 import 'package:adehun_mvp/usecases/mark_all_notifications_as_read.dart';
 import 'package:adehun_mvp/usecases/mark_notifications_as_read.dart';
+import 'package:adehun_mvp/usecases/reject_condition_asset.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -64,9 +68,14 @@ PreferencesService preferencesService(Ref ref) {
 @riverpod
 AuthInterceptor authInterceptor(Ref ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
+  final prefs = ref.watch(preferencesServiceProvider);
+  final authController = ref.read(authControllerProvider.notifier);
+
   return AuthInterceptor(
     tokenStorage,
-    onSessionExpired: () {
+    onSessionExpired: () async {
+      await prefs.setLoggedIn(false);
+      await authController.setUser(null, status: AuthStatus.initial);
       appRouter.go('/auth');
     },
   );
@@ -189,6 +198,18 @@ GetConditionAssetUploadSignatureUseCase getConditionAssetUploadSignatureUseCase(
 ) {
   final repo = ref.watch(conditionRepositoryProvider);
   return GetConditionAssetUploadSignatureUseCase(repo);
+}
+
+@riverpod
+ApproveConditionAssetUseCase approveConditionAssetUseCase(Ref ref) {
+  final repo = ref.watch(conditionRepositoryProvider);
+  return ApproveConditionAssetUseCase(repo);
+}
+
+@riverpod
+RejectConditionAssetUseCase rejectConditionAssetUseCase(Ref ref) {
+  final repo = ref.watch(conditionRepositoryProvider);
+  return RejectConditionAssetUseCase(repo);
 }
 
 @riverpod

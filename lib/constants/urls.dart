@@ -13,6 +13,8 @@ const String getAllUserAgreementUrl = '/agreements/';
 const String addAgreementUrl = '/agreements/';
 const String acceptAgreementUrl = '/agreements/{agreement_id}/';
 const String getAgreementUrl = '/agreements/{agreement_id}/';
+const String getAgreementInvitationUrl =
+    '/agreements/{agreement_id}/invitation';
 
 /// CONDITION ENDPOINTS
 const String addConditionToAgreementUrl =
@@ -24,6 +26,10 @@ const String rejectConditionUrl = '/conditions/{condition_id}/reject';
 const String getConditionAssetsUrl = '/conditions/{condition_id}/assets';
 const String getConditionAssetUploadSignatureUrl =
     '/conditions/{condition_id}/assets/upload-signature';
+const String approveConditionAssetUrl =
+    '/conditions/{condition_id}/assets/{asset_id}/approve';
+const String rejectConditionAssetUrl =
+    '/conditions/{condition_id}/assets/{asset_id}/reject';
 
 /// STATISTICS ENDPOINTS
 const String getUserAgreementsStatsUrl = '/stats/agreements/';

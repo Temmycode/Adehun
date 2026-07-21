@@ -50,6 +50,18 @@ abstract class ConditionApiService {
     @Body() Map<String, dynamic> body,
   );
 
+  @POST(approveConditionAssetUrl)
+  Future<HttpResponse<AssetsResponse>> approveConditionAsset(
+    @Path('condition_id') String conditionId,
+    @Path('asset_id') String assetId,
+  );
+
+  @POST(rejectConditionAssetUrl)
+  Future<HttpResponse<AssetsResponse>> rejectConditionAsset(
+    @Path('condition_id') String conditionId,
+    @Path('asset_id') String assetId,
+  );
+
   @GET(getConditionAssetUploadSignatureUrl)
   Future<HttpResponse<UploadSignatureResponse>>
   getConditionAssetUploadSignature(@Path('condition_id') String conditionId);

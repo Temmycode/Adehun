@@ -1,10 +1,10 @@
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
-import 'package:adehun_mvp/domain/models/condition_response.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/agreement_status.dart';
 import 'status_badge.dart';
 
 class AgreementCard extends StatelessWidget {
@@ -17,7 +17,7 @@ class AgreementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final amount = double.parse(agreement.amount ?? '0');
-    final status = agreement.status ?? 'pending';
+    final status = AgreementStatusHelper.normalize(agreement.status);
     final depositor = agreement.depositor;
     final beneficiary = agreement.beneficiary;
     // final conditions = agreement['conditions'] as List;

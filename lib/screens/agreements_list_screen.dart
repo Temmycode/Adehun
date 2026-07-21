@@ -1,5 +1,4 @@
 import 'package:adehun_mvp/controllers/agreement_controller.dart';
-import 'package:adehun_mvp/controllers/condition_controller.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +9,7 @@ import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
 import '../widgets/agreement_card.dart';
 import '../widgets/skeletons.dart';
+import '../utils/agreement_status.dart';
 
 class AgreementsListScreen extends StatefulWidget {
   const AgreementsListScreen({super.key});
@@ -34,18 +34,18 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
   ) {
     if (_selectedFilter == 'All') return agreements;
     return agreements.where((a) {
-      final status = a.status;
+      final status = AgreementStatusHelper.normalize(a.status);
       switch (_selectedFilter) {
         case 'Active':
-          return status == 'active' || status == 'CONDITIONS_IN_PROGRESS';
+          return AgreementStatusHelper.isActiveLike(status);
         case 'Pending':
-          return status == 'pending' || status == 'DRAFT';
+          return AgreementStatusHelper.isPendingLike(status);
         case 'Completed':
-          return status == 'completed' || status == 'CONDITIONS_MET';
+          return AgreementStatusHelper.isCompletedLike(status);
         case 'Disputed':
-          return status == 'disputed';
+          return AgreementStatusHelper.isDisputedLike(status);
         case 'Refunded':
-          return status == 'refunded';
+          return AgreementStatusHelper.isRefundedLike(status);
         default:
           return true;
       }
@@ -137,9 +137,6 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
             Consumer(
               builder: (context, ref, _) {
                 final agreementState = ref.watch(agreementControllerProvider);
-                final conditionController = ref.read(
-                  conditionControllerProvider.notifier,
-                );
 
                 return agreementState.when(
                   data: (stateData) {

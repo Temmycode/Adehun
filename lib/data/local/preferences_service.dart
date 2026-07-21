@@ -32,10 +32,17 @@ class PreferencesService {
   UserData? get user {
     final cache = _prefs.getString(_userKey);
     if (cache == null) return null;
+
     final json = jsonDecode(cache);
+    if (json == null || json is! Map<String, dynamic>) return null;
+
     return UserData.fromJson(json);
   }
 
-  Future<bool> setUser(UserData? value) =>
-      _prefs.setString(_userKey, jsonEncode(value?.toJson()));
+  Future<bool> setUser(UserData? value) {
+    if (value == null) {
+      return _prefs.remove(_userKey);
+    }
+    return _prefs.setString(_userKey, jsonEncode(value.toJson()));
+  }
 }

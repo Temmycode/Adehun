@@ -1,6 +1,7 @@
 import 'package:adehun_mvp/constants/urls.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
+import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -31,6 +32,11 @@ abstract class AgreementApiService {
 
   @GET(getAgreementUrl)
   Future<HttpResponse<AgreementResponse>> getAgreement(
+    @Path("agreement_id") String agreementId,
+  );
+
+  @GET(getAgreementInvitationUrl)
+  Future<HttpResponse<InvitationResponse>> getAgreementInvitation(
     @Path("agreement_id") String agreementId,
   );
 }

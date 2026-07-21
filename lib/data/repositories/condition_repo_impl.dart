@@ -158,7 +158,7 @@ class ConditionRepoImpl implements ConditionRepository {
   @override
   Future<DataState<List<AssetsResponse>>> addConditionAssets({
     required String conditionId,
-    required List<Map<String, String>> files,
+    required List<Map<String, dynamic>> files,
   }) async {
     try {
       final apiResponse = await _conditionApiService.addConditionAssets(
@@ -172,6 +172,54 @@ class ConditionRepoImpl implements ConditionRepository {
       }
 
       return DataFailed(AddConditionAssetsError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<AssetsResponse>> approveConditionAsset({
+    required String conditionId,
+    required String assetId,
+  }) async {
+    try {
+      final apiResponse = await _conditionApiService.approveConditionAsset(
+        conditionId,
+        assetId,
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(ApproveConditionAssetError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<AssetsResponse>> rejectConditionAsset({
+    required String conditionId,
+    required String assetId,
+  }) async {
+    try {
+      final apiResponse = await _conditionApiService.rejectConditionAsset(
+        conditionId,
+        assetId,
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(RejectConditionAssetError());
     } catch (err, stk) {
       if (kDebugMode) {
         log('$err, $stk');

@@ -24,6 +24,7 @@ AgreementResponse _$AgreementResponseFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['created_at'] as String),
       conditionCount: (json['condition_count'] as num?)?.toInt() ?? 0,
       conditionsMetCount: (json['conditions_met_count'] as num?)?.toInt() ?? 0,
+      currentUserAccepted: json['current_user_accepted'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$AgreementResponseToJson(AgreementResponse instance) =>
@@ -38,4 +39,5 @@ Map<String, dynamic> _$AgreementResponseToJson(AgreementResponse instance) =>
       'created_at': instance.createdAt?.toIso8601String(),
       'condition_count': instance.conditionCount,
       'conditions_met_count': instance.conditionsMetCount,
+      'current_user_accepted': instance.currentUserAccepted,
     };

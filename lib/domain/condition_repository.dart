@@ -30,7 +30,17 @@ abstract class ConditionRepository {
 
   Future<DataState<List<AssetsResponse>>> addConditionAssets({
     required String conditionId,
-    required List<Map<String, String>> files,
+    required List<Map<String, dynamic>> files,
+  });
+
+  Future<DataState<AssetsResponse>> approveConditionAsset({
+    required String conditionId,
+    required String assetId,
+  });
+
+  Future<DataState<AssetsResponse>> rejectConditionAsset({
+    required String conditionId,
+    required String assetId,
   });
 
   Future<DataState<UploadSignatureResponse>> getConditionAssetUploadSignature(

@@ -54,6 +54,17 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
     getAssets();
   }
 
+  Future<void> _refreshConditionDetails() async {
+    await Future.wait([
+      ref
+          .read(conditionControllerProvider.notifier)
+          .refresh(widget.agreementId),
+      ref
+          .read(assetsControllerProvider.notifier)
+          .getConditionAssets(widget.conditionId),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -84,222 +95,224 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            StatusBadge(status: status),
-            const SizedBox(height: 12),
-            Text(condition.title ?? "No title", style: AppTextStyles.h1),
-            const SizedBox(height: 8),
-            Text(
-              condition.description ?? "No description",
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textSecondary,
+      body: RefreshIndicator(
+        onRefresh: _refreshConditionDetails,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              StatusBadge(status: status),
+              const SizedBox(height: 12),
+              Text(condition.title ?? "No title", style: AppTextStyles.h1),
+              const SizedBox(height: 8),
+              Text(
+                condition.description ?? "No description",
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
-            ),
 
-            // Required from participant info
-            if (requiredFrom != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: colors.primarySurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.15),
+              // Required from participant info
+              if (requiredFrom != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: colors.primarySurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.15,
+                        ),
+                        child: Text(
+                          getInitials(requiredFrom.user?.name ?? ""),
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Required from',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Row(
+                              children: [
+                                Text(
+                                  requiredFrom.user?.email == currentUser?.email
+                                      ? 'You'
+                                      : requiredFrom.user?.name ?? "",
+                                  style: AppTextStyles.labelLarge.copyWith(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                if (requiredFrom.role != null) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      (requiredFrom.role as String)
+                                              .substring(0, 1)
+                                              .toUpperCase() +
+                                          (requiredFrom.role as String)
+                                              .substring(1),
+                                      style: AppTextStyles.labelSmall.copyWith(
+                                        color: AppColors.primary,
+                                        fontSize: 9,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: AppColors.primary.withValues(
-                        alpha: 0.15,
-                      ),
-                      child: Text(
-                        getInitials(requiredFrom.user?.name ?? ""),
-                        style: AppTextStyles.labelMedium.copyWith(
+              ],
+
+              const SizedBox(height: 28),
+              // Assets section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Text('Assets (${assets.length})', style: AppTextStyles.h3),
+                  if (status != 'MET')
+                    GestureDetector(
+                      onTap: () {
+                        context.push('/upload-assets/${widget.conditionId}');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
                           color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Iconsax.add,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Upload',
+                              style: AppTextStyles.labelMedium.copyWith(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              Consumer(
+                builder: (context, ref, _) {
+                  final assetState = ref.watch(assetsControllerProvider);
+
+                  return assetState.when(
+                    data: (state) {
+                      final assets = state.assets[widget.conditionId] ?? [];
+                      return Column(
+                        crossAxisAlignment: .start,
                         children: [
-                          Text(
-                            'Required from',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: colors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Row(
-                            children: [
-                              Text(
-                                requiredFrom.user?.email == currentUser?.email
-                                    ? 'You'
-                                    : requiredFrom.user?.name ?? "",
-                                style: AppTextStyles.labelLarge.copyWith(
-                                  color: AppColors.primary,
+                          if (assets.isEmpty)
+                            _EmptyAssets(conditionId: widget.conditionId)
+                          else
+                            ...assets.map((asset) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _AssetCard(asset: asset),
+                              );
+                            }),
+
+                          // Approve/Reject buttons for review
+                          if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {},
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.error,
+                                      side: const BorderSide(
+                                        color: AppColors.error,
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      CupertinoIcons.xmark,
+                                      size: 18,
+                                    ),
+                                    label: const Text('Reject'),
+                                  ),
                                 ),
-                              ),
-                              if (requiredFrom.role != null) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.1,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.success,
                                     ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    (requiredFrom.role as String)
-                                            .substring(0, 1)
-                                            .toUpperCase() +
-                                        (requiredFrom.role as String).substring(
-                                          1,
-                                        ),
-                                    style: AppTextStyles.labelSmall.copyWith(
-                                      color: AppColors.primary,
-                                      fontSize: 9,
+                                    icon: const Icon(
+                                      Iconsax.tick_circle,
+                                      size: 18,
                                     ),
+                                    label: const Text('Approve'),
                                   ),
                                 ),
                               ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 28),
-            // Assets section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Text('Assets (${assets.length})', style: AppTextStyles.h3),
-                if (status != 'MET')
-                  GestureDetector(
-                    onTap: () {
-                      context.push('/upload-assets/${widget.conditionId}');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Iconsax.add,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Upload',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: Colors.white,
                             ),
-                          ),
+                          ],
                         ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            Consumer(
-              builder: (context, ref, _) {
-                final assetState = ref.watch(assetsControllerProvider);
-
-                return assetState.when(
-                  data: (state) {
-                    final assets = state.assets[widget.conditionId] ?? [];
-                    return Column(
-                      crossAxisAlignment: .start,
-                      children: [
-                        if (assets.isEmpty)
-                          _EmptyAssets(conditionId: widget.conditionId)
-                        else
-                          ...assets.map((asset) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _AssetCard(asset: asset),
-                            );
-                          }),
-
-                        // Approve/Reject buttons for review
-                        if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {},
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.error,
-                                    side: const BorderSide(
-                                      color: AppColors.error,
-                                    ),
-                                  ),
-                                  icon: const Icon(
-                                    CupertinoIcons.xmark,
-                                    size: 18,
-                                  ),
-                                  label: const Text('Reject'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () =>
-                                      context.push('/success/conditions-met'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.success,
-                                  ),
-                                  icon: const Icon(
-                                    Iconsax.tick_circle,
-                                    size: 18,
-                                  ),
-                                  label: const Text('Approve'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    );
-                  },
-                  loading: () => const _AssetListSkeleton(),
-                  error: (err, stk) => const Center(child: Icon(Icons.error)),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-          ],
+                      );
+                    },
+                    loading: () => const _AssetListSkeleton(),
+                    error: (err, stk) => const Center(child: Icon(Icons.error)),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -314,7 +327,7 @@ class _AssetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final name = asset.file.url.split('/').last;
+    final name = asset.file.name.split('/').last;
     final type = asset.file.type;
     final status = asset.isApproved ? 'Approved' : 'Pending';
 
@@ -411,7 +424,7 @@ class _EmptyAssets extends StatelessWidget {
 }
 
 class _AssetListSkeleton extends StatelessWidget {
-  const _AssetListSkeleton({Key? key}) : super(key: key);
+  const _AssetListSkeleton();
 
   @override
   Widget build(BuildContext context) {

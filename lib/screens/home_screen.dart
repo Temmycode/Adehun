@@ -1,6 +1,5 @@
 import 'package:adehun_mvp/controllers/agreement_controller.dart';
 import 'package:adehun_mvp/controllers/auth_controller.dart';
-import 'package:adehun_mvp/controllers/condition_controller.dart';
 import 'package:adehun_mvp/controllers/stats_controller.dart';
 import 'package:adehun_mvp/controllers/unread_count_controller.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import '../theme/app_color_scheme.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/agreement_card.dart';
 import '../widgets/skeletons.dart';
+import '../utils/agreement_status.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -182,14 +182,14 @@ class HomeScreen extends StatelessWidget {
               builder: (context, ref, _) {
                 final agreementState = ref.watch(agreementControllerProvider);
                 final statsState = ref.watch(statsControllerProvider);
-                final conditionController = ref.read(
-                  conditionControllerProvider.notifier,
-                );
 
                 return agreementState.when(
                   data: (stateData) {
                     final activeAgreements = stateData.agreements
-                        .where((agt) => agt.status == 'active')
+                        .where(
+                          (agt) =>
+                              AgreementStatusHelper.isActiveLike(agt.status),
+                        )
                         .toList();
 
                     if (activeAgreements.isEmpty) {

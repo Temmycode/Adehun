@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:adehun_mvp/controllers/condition_controller.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
+import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:adehun_mvp/domain/states/agreement_state.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/service_locator.dart';
@@ -127,9 +128,8 @@ class AgreementController extends _$AgreementController {
   }
 
   Future<void> acceptAgreement(String agreementId) async {
-    final currentState = state.value ?? AgreementState();
-
-    state = AsyncData(currentState.copyWith(isAccepting: true));
+    final initial = state.value ?? AgreementState();
+    state = AsyncData(initial.copyWith(isAccepting: true));
 
     try {
       final dataState = await ref
@@ -137,25 +137,22 @@ class AgreementController extends _$AgreementController {
           .acceptAgreement(agreementId);
 
       if (dataState is DataSuccess && dataState.data != null) {
-        final latestState = state.value ?? currentState;
-        final currentAgreements = latestState.agreements;
+        final accepted = dataState.data!;
+
+        final latest = state.value ?? initial;
+
         final updatedAgreements = [
-          dataState.data!,
-          ...currentAgreements.where((agt) => agt.id != dataState.data!.id),
+          accepted,
+          ...latest.agreements.where((agt) => agt.id != accepted.id),
         ];
 
-        state = AsyncData(
-          latestState.copyWith(
-            isAccepting: false,
-            agreements: updatedAgreements,
-          ),
-        );
-      } else {
-        state = AsyncData(currentState.copyWith(isAccepting: false));
+        state = AsyncData(latest.copyWith(agreements: updatedAgreements));
       }
-    } catch (err) {
-      log(err.toString());
-      state = AsyncData(currentState.copyWith(isAccepting: false));
+    } catch (err, stk) {
+      log('Error accepting agreement: $err\n$stk');
+    } finally {
+      final latest = state.value ?? initial;
+      state = AsyncData(latest.copyWith(isAccepting: false));
     }
   }
 
@@ -173,5 +170,33 @@ class AgreementController extends _$AgreementController {
 
       return state.value!;
     });
+  }
+
+  Future<void> getAgreementInvitation(String agreementId) async {
+    final initial = state.value ?? AgreementState();
+    state = AsyncData(initial.copyWith(invitationLoading: true));
+
+    try {
+      final dataState = await ref
+          .read(agreementRepositoryProvider)
+          .getAgreementInvitation(agreementId);
+
+      if (dataState is DataSuccess && dataState.data != null) {
+        final latest = state.value ?? initial;
+
+        state = AsyncData(
+          latest.copyWith(
+            invitations: Map<String, InvitationResponse>.from(
+              latest.invitations,
+            )..[agreementId] = dataState.data!,
+          ),
+        );
+      }
+    } catch (err, stk) {
+      log('Error fetching invitation: $err\n$stk');
+    } finally {
+      final latest = state.value ?? initial;
+      state = AsyncData(latest.copyWith(invitationLoading: false));
+    }
   }
 }

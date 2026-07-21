@@ -1,5 +1,10 @@
+import 'package:adehun_mvp/controllers/assets_controller.dart';
+import 'package:adehun_mvp/core/utils/format_file_size.dart';
+import 'package:adehun_mvp/domain/models/assets_response.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
@@ -16,24 +21,27 @@ class UploadAssetsScreen extends StatefulWidget {
 }
 
 class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
-  final List<_MockFile> _selectedFiles = [];
+  final List<FileResponse> _selectedFiles = [];
 
-  void _pickFiles() {
+  Future<void> _pickFiles() async {
     // Mock file selection
+    FilePickerResult? result = await FilePicker.pickFiles(allowMultiple: true);
+
+    if (result == null) {
+      // ! Show snackbar
+      return;
+    }
+
+    final files = result.files.map((file) => FileResponse.fromFile(file));
     setState(() {
-      _selectedFiles.addAll([
-        _MockFile(
-          name: 'deliverable_v2.pdf',
-          size: '2.4 MB',
-          type: 'pdf',
-        ),
-        _MockFile(
-          name: 'screenshot_proof.png',
-          size: '1.1 MB',
-          type: 'image',
-        ),
-      ]);
+      _selectedFiles.addAll(files);
     });
+  }
+
+  Future<void> _uploadAssetFiles(WidgetRef ref) async {
+    await ref
+        .read(assetsControllerProvider.notifier)
+        .uploadConditionAssets(widget.conditionId, _selectedFiles);
   }
 
   @override
@@ -150,16 +158,16 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: file.type == 'image'
+                            color: file.type == .image
                                 ? colors.primarySurface
                                 : colors.surfaceVariant,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
-                            file.type == 'image'
+                            file.type == .image
                                 ? Iconsax.gallery_copy
                                 : Iconsax.document_copy,
-                            color: file.type == 'image'
+                            color: file.type == .image
                                 ? AppColors.primary
                                 : colors.textSecondary,
                             size: 20,
@@ -170,10 +178,11 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(file.name,
-                                  style: AppTextStyles.labelLarge),
-                              Text(file.size,
-                                  style: AppTextStyles.bodySmall),
+                              Text(file.name, style: AppTextStyles.labelLarge),
+                              Text(
+                                formatFileSize(file.size.toInt()),
+                                style: AppTextStyles.bodySmall,
+                              ),
                             ],
                           ),
                         ),
@@ -198,14 +207,34 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
 
             const Spacer(),
             // Submit button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _selectedFiles.isNotEmpty
-                    ? () => context.pop()
-                    : null,
-                child: const Text('Submit Assets'),
-              ),
+            Consumer(
+              builder: (context, ref, _) {
+                final assetState = ref.watch(assetsControllerProvider);
+
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      _selectedFiles.isNotEmpty
+                          ? await _uploadAssetFiles(ref)
+                          : null;
+                    },
+                    child: assetState.when(
+                      data: (state) {
+                        if (state.isAdding) {
+                          return CircularProgressIndicator(
+                            backgroundColor: Colors.white,
+                          );
+                        } else {
+                          return const Text('Submit Assets');
+                        }
+                      },
+                      error: (err, stk) => Icon(Icons.error),
+                      loading: () => const CircularProgressIndicator(),
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 32),
           ],
@@ -213,12 +242,4 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
       ),
     );
   }
-}
-
-class _MockFile {
-  final String name;
-  final String size;
-  final String type;
-
-  _MockFile({required this.name, required this.size, required this.type});
 }
