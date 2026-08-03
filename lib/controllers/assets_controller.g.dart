@@ -13,7 +13,7 @@ part of 'assets_controller.dart';
 final assetsControllerProvider = AssetsControllerProvider._();
 
 final class AssetsControllerProvider
-    extends $AsyncNotifierProvider<AssetsController, AssetState> {
+    extends $NotifierProvider<AssetsController, AssetState> {
   AssetsControllerProvider._()
     : super(
         from: null,
@@ -31,21 +31,29 @@ final class AssetsControllerProvider
   @$internal
   @override
   AssetsController create() => AssetsController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AssetState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AssetState>(value),
+    );
+  }
 }
 
-String _$assetsControllerHash() => r'5a53e07cef65fa3c6f756c3e9581e54abc46d13d';
+String _$assetsControllerHash() => r'2eb1d4cdbdd34016aa26813d4874e361b9e186b3';
 
-abstract class _$AssetsController extends $AsyncNotifier<AssetState> {
-  FutureOr<AssetState> build();
+abstract class _$AssetsController extends $Notifier<AssetState> {
+  AssetState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<AssetState>, AssetState>;
+    final ref = this.ref as $Ref<AssetState, AssetState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<AssetState>, AssetState>,
-              AsyncValue<AssetState>,
+              AnyNotifier<AssetState, AssetState>,
+              AssetState,
               Object?,
               Object?
             >;

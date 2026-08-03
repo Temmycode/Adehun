@@ -13,6 +13,7 @@ import '../screens/agreement_detail_screen.dart';
 import '../screens/condition_detail_screen.dart';
 import '../screens/upload_assets_screen.dart';
 import '../screens/notifications_screen.dart';
+import '../screens/transactions_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/agreement_invitation_screen.dart';
 import '../screens/upgrade_screen.dart';
@@ -81,6 +82,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/fund-wallet',
       builder: (context, state) => const FundWalletScreen(),
+    ),
+    GoRoute(
+      path: '/transactions',
+      builder: (context, state) => const TransactionsScreen(),
     ),
     GoRoute(
       path: '/create-agreement',

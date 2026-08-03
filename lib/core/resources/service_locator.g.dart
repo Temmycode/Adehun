@@ -499,6 +499,148 @@ final class NotificationServiceProvider
 String _$notificationServiceHash() =>
     r'804c61637771e2ea192f49b6bd9a4ba59613ff17';
 
+@ProviderFor(walletService)
+final walletServiceProvider = WalletServiceProvider._();
+
+final class WalletServiceProvider
+    extends
+        $FunctionalProvider<
+          WalletApiService,
+          WalletApiService,
+          WalletApiService
+        >
+    with $Provider<WalletApiService> {
+  WalletServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<WalletApiService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  WalletApiService create(Ref ref) {
+    return walletService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WalletApiService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WalletApiService>(value),
+    );
+  }
+}
+
+String _$walletServiceHash() => r'90a0f19a4d3181a883fdbee3d742dd5d90587a57';
+
+@ProviderFor(transactionService)
+final transactionServiceProvider = TransactionServiceProvider._();
+
+final class TransactionServiceProvider
+    extends
+        $FunctionalProvider<
+          TransactionApiService,
+          TransactionApiService,
+          TransactionApiService
+        >
+    with $Provider<TransactionApiService> {
+  TransactionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionApiService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionApiService create(Ref ref) {
+    return transactionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionApiService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionApiService>(value),
+    );
+  }
+}
+
+String _$transactionServiceHash() =>
+    r'3964539ad1fda6aea369a2cc0d607e5069c4da08';
+
+@ProviderFor(walletSocketService)
+final walletSocketServiceProvider = WalletSocketServiceProvider._();
+
+final class WalletSocketServiceProvider
+    extends
+        $FunctionalProvider<
+          WalletWebsocketService,
+          WalletWebsocketService,
+          WalletWebsocketService
+        >
+    with $Provider<WalletWebsocketService> {
+  WalletSocketServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletSocketServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletSocketServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<WalletWebsocketService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WalletWebsocketService create(Ref ref) {
+    return walletSocketService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WalletWebsocketService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WalletWebsocketService>(value),
+    );
+  }
+}
+
+String _$walletSocketServiceHash() =>
+    r'970bf6546ec4a7a6d5d78a6811abcbe53bb83500';
+
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 
@@ -725,6 +867,100 @@ final class NotificationRepositoryProvider
 
 String _$notificationRepositoryHash() =>
     r'6573555fae7170f80d341bcfbfe9b558f30d9a88';
+
+@ProviderFor(walletRepository)
+final walletRepositoryProvider = WalletRepositoryProvider._();
+
+final class WalletRepositoryProvider
+    extends
+        $FunctionalProvider<
+          WalletRepository,
+          WalletRepository,
+          WalletRepository
+        >
+    with $Provider<WalletRepository> {
+  WalletRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<WalletRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  WalletRepository create(Ref ref) {
+    return walletRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WalletRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WalletRepository>(value),
+    );
+  }
+}
+
+String _$walletRepositoryHash() => r'6b7599b3ff29fa06dea689c8494415105db2660d';
+
+@ProviderFor(transactionRepository)
+final transactionRepositoryProvider = TransactionRepositoryProvider._();
+
+final class TransactionRepositoryProvider
+    extends
+        $FunctionalProvider<
+          TransactionRepository,
+          TransactionRepository,
+          TransactionRepository
+        >
+    with $Provider<TransactionRepository> {
+  TransactionRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionRepository create(Ref ref) {
+    return transactionRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionRepository>(value),
+    );
+  }
+}
+
+String _$transactionRepositoryHash() =>
+    r'7b2b592c6edfc129e5e77bc81dba8e888617757f';
 
 @ProviderFor(localDataCacheManager)
 final localDataCacheManagerProvider = LocalDataCacheManagerProvider._();

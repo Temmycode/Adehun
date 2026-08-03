@@ -13,7 +13,7 @@ part of 'condition_controller.dart';
 final conditionControllerProvider = ConditionControllerProvider._();
 
 final class ConditionControllerProvider
-    extends $AsyncNotifierProvider<ConditionController, ConditionState> {
+    extends $NotifierProvider<ConditionController, ConditionState> {
   ConditionControllerProvider._()
     : super(
         from: null,
@@ -31,22 +31,30 @@ final class ConditionControllerProvider
   @$internal
   @override
   ConditionController create() => ConditionController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ConditionState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ConditionState>(value),
+    );
+  }
 }
 
 String _$conditionControllerHash() =>
-    r'34659e11382aceec55344d9bbe754b17eba3ad0b';
+    r'1955d7962f1c7f782783e783612eb40877eaed18';
 
-abstract class _$ConditionController extends $AsyncNotifier<ConditionState> {
-  FutureOr<ConditionState> build();
+abstract class _$ConditionController extends $Notifier<ConditionState> {
+  ConditionState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<ConditionState>, ConditionState>;
+    final ref = this.ref as $Ref<ConditionState, ConditionState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<ConditionState>, ConditionState>,
-              AsyncValue<ConditionState>,
+              AnyNotifier<ConditionState, ConditionState>,
+              ConditionState,
               Object?,
               Object?
             >;

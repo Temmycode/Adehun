@@ -1,7 +1,8 @@
-import 'package:adehun_mvp/domain/models/user_data.dart';
-import 'package:adehun_mvp/domain/states/auth_state.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/service_locator.dart';
+import 'package:adehun_mvp/domain/models/user_data.dart';
+import 'package:adehun_mvp/domain/states/auth_state.dart';
+import 'package:adehun_mvp/router/app_router.dart';
 import 'package:adehun_mvp/usecases/params/register_from_invite_params.dart';
 import 'package:adehun_mvp/usecases/params/register_user_params.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,61 +15,70 @@ part 'auth_controller.g.dart';
 class AuthController extends _$AuthController {
   @override
   AuthState build() {
-    final preferenceService = ref.read(preferencesServiceProvider);
-    final user = preferenceService.user;
-    if (user != null) return AuthState(userData: user, status: .authenticated);
-    return AuthState();
+    final user = ref.read(preferencesServiceProvider).user;
+    if (user != null) {
+      return AuthState(userData: user, status: AuthStatus.authenticated);
+    }
+    return const AuthState(status: AuthStatus.initial);
   }
 
+  bool get _isBusy => state.isLoading;
+
   Future<void> setUser(UserData? value, {AuthStatus? status}) async {
-    state = state.copyWith(userData: value, status: status);
+    state = state.copyWith(
+      userData: () => value,
+      status: status ?? state.status,
+    );
     await ref.read(preferencesServiceProvider).setUser(value);
   }
 
   Future<void> googleSignIn() async {
-    try {
-      state = state.copyWith(isLoading: true);
+    if (_isBusy) return;
 
+    state = state.copyWith(isLoading: true, errorMessage: () => null);
+
+    try {
       final dataState = await ref.read(authRepositoryProvider).googleSignIn();
       final data = dataState.data;
-      if (data == null) {
-        print('Google sign in returned no data');
-        return;
+
+      if (dataState is DataSuccess && data != null) {
+        if (data.accessToken != null && data.refreshToken != null) {
+          await ref
+              .read(tokenStorageProvider)
+              .saveTokens(
+                accessToken: data.accessToken!,
+                refreshToken: data.refreshToken!,
+              );
+
+          final prefs = ref.read(preferencesServiceProvider);
+          await prefs.setLoggedIn(true);
+          await prefs.setUser(data.user);
+
+          final isSignedUp = data.isSignedUp ?? false;
+          state = state.copyWith(
+            userData: () => data.user,
+            status: isSignedUp
+                ? AuthStatus.authenticated
+                : AuthStatus.noAccount,
+          );
+          return;
+        }
       }
 
-      if (dataState is DataSuccess &&
-          data.accessToken != null &&
-          data.refreshToken != null) {
-        print("What is going on");
-        await ref
-            .read(tokenStorageProvider)
-            .saveTokens(
-              accessToken: data.accessToken!,
-              refreshToken: data.refreshToken!,
-            );
-
-        final preferencesService = ref.read(preferencesServiceProvider);
-        await preferencesService.setLoggedIn(true);
-        await preferencesService.setUser(data.user);
-        state = state.copyWith(
-          userData: data.user,
-          status: (data.isSignedUp ?? false) ? .authenticated : .noAccount,
-        );
-      } else {
-        print("An error occurred while signing in with Google.");
-        return;
-      }
-    } catch (e, stk) {
-      print("An error occurred while signing in with Google: $e, STK: $stk");
+      _setError(dataState.exception.toString());
+    } catch (e) {
+      _setError('An unexpected error occurred during Google sign in.');
     } finally {
       state = state.copyWith(isLoading: false);
     }
   }
 
   Future<void> registerUser(RegisterUserParams params) async {
-    try {
-      state = state.copyWith(isLoading: true);
+    if (_isBusy) return;
 
+    state = state.copyWith(isLoading: true, errorMessage: () => null);
+
+    try {
       final dataState = await ref
           .read(authRepositoryProvider)
           .registerUser(
@@ -77,61 +87,60 @@ class AuthController extends _$AuthController {
             fullName: params.fullName,
           );
 
-      if (dataState is DataFailed) {
-        // Handle failure
-        return;
-      }
-
-      if (dataState is DataSuccess && dataState.data == null) {
-        // Handle failure
-      }
-
-      // Handle Success
-      await setUser(
-        dataState.data,
-        status: dataState.data != null ? .authenticated : .error,
-      );
-
-      if (dataState is DataFailed) {
-        // Show error
+      if (dataState is DataSuccess && dataState.data != null) {
+        await setUser(dataState.data, status: AuthStatus.authenticated);
+        appRouter.go('shell');
+      } else {
+        _setError(dataState.exception.toString());
       }
     } catch (e) {
-      // Handle error
+      _setError('An error occurred during registration.');
     } finally {
       state = state.copyWith(isLoading: false);
     }
   }
 
   Future<void> registerFromInvite(RegisterFromInviteParams params) async {
-    try {
-      state = state.copyWith(isLoading: true);
+    if (_isBusy) return;
 
+    state = state.copyWith(isLoading: true, errorMessage: () => null);
+
+    try {
       final dataState = await ref
           .read(authRepositoryProvider)
           .registerFromInvite(params.idToken, params.invitationToken);
 
-      if (dataState is DataFailed) {
-        // Handle failure
-        return;
+      if (dataState is DataSuccess && dataState.data != null) {
+        await setUser(dataState.data?.user, status: AuthStatus.authenticated);
+      } else {
+        _setError(dataState.exception.toString());
       }
-
-      if (dataState is DataSuccess && dataState.data == null) {
-        // Handle failure
-      }
-
-      // Handle Success
     } catch (e) {
-      // Handle error
+      _setError('An error occurred while accepting the invitation.');
     } finally {
       state = state.copyWith(isLoading: false);
     }
   }
 
   Future<void> signOut() async {
-    await ref.read(tokenStorageProvider).clearTokens();
-    await ref.read(preferencesServiceProvider).setLoggedIn(false);
-    await FirebaseAuth.instance.signOut();
-    await GoogleSignIn.instance.signOut();
-    state = AuthState();
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref.read(tokenStorageProvider).clearTokens();
+      await ref.read(preferencesServiceProvider).setLoggedIn(false);
+      await FirebaseAuth.instance.signOut();
+      await GoogleSignIn.instance.signOut();
+      state = const AuthState(status: AuthStatus.initial);
+    } catch (e) {
+      _setError('Failed to sign out clean.');
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  void _setError(String message) {
+    state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage: () => message,
+    );
   }
 }

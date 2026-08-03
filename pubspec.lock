@@ -800,6 +800,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  paystack_flutter_sdk:
+    dependency: "direct main"
+    description:
+      name: paystack_flutter_sdk
+      sha256: a8386bee7bed218517c580017a2f3112da1c0e298f3c559f4a3d3f1f7e233221
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-alpha.2"
   petitparser:
     dependency: transitive
     description:
@@ -1190,7 +1198,7 @@ packages:
     source: hosted
     version: "1.0.1"
   web_socket_channel:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web_socket_channel
       sha256: d645757fb0f4773d602444000a8131ff5d48c9e47adfe9772652dd1a4f2d45c8

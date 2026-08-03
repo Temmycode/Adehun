@@ -12,7 +12,7 @@ part of 'agreement_api_service.dart';
 
 class _AgreementApiService implements AgreementApiService {
   _AgreementApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'http://10.0.2.2:8000';
+    baseUrl ??= 'https://adehun-api.onrender.com';
   }
 
   final Dio _dio;

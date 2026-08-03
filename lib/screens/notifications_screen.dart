@@ -11,6 +11,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/notification_tile.dart';
+import '../widgets/skeletons.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -141,12 +142,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             scrollController: _scrollController,
             onTapNotification: _handleTap,
           ),
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          ),
+          loading: () => const NotificationListSkeleton(),
           error: (err, _) => _ErrorState(
             onRetry: () =>
                 ref.read(notificationControllerProvider.notifier).refresh(),

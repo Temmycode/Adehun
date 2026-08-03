@@ -12,7 +12,7 @@ part of 'notification_api_service.dart';
 
 class _NotificationApiService implements NotificationApiService {
   _NotificationApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'http://10.0.2.2:8000';
+    baseUrl ??= 'https://adehun-api.onrender.com';
   }
 
   final Dio _dio;

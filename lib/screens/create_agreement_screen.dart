@@ -1,4 +1,6 @@
 import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/controllers/fund_wallet_controller.dart';
+import 'package:adehun_mvp/controllers/wallet_data_controller.dart';
 import 'package:adehun_mvp/usecases/params/create_agreement_params.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +71,7 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
     super.dispose();
   }
 
-  void _createAgreement() {
+  Future<void> _createAgreement() async {
     if (!_validateCurrentStep()) return;
     if (_currentStep < 2) {
       setState(() => _currentStep++);
@@ -81,6 +83,37 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
           _amountController.text.trim().replaceAll(',', '').split('.').first,
         ) ??
         0;
+
+    // A depositor has to cover the escrow up front, so top up the shortfall
+    // before creating anything.
+    if (_role == 'depositor') {
+      // Null rather than `orElse: () => 0` — the balance arrives over a socket,
+      // and treating "not delivered yet" as a zero balance would charge the user
+      // the full amount even when they already have the funds.
+      final double? walletBalance = ref
+          .read(walletDataControllerProvider)
+          .maybeWhen(data: (data) => data.availableBalance, orElse: () => null);
+
+      if (walletBalance == null) {
+        _showMessage("Couldn't read your wallet balance. Please try again.");
+        return;
+      }
+
+      if (walletBalance < amount) {
+        final funded = await ref
+            .read(fundWalletControllerProvider.notifier)
+            .fundWallet(amount - walletBalance, 'card');
+
+        if (!mounted) return;
+        // Payment failed or the user dismissed the sheet — don't create an
+        // agreement the wallet can't fund.
+        if (!funded) {
+          final error = ref.read(fundWalletControllerProvider).error;
+          _showMessage(error ?? 'Payment was not completed.');
+          return;
+        }
+      }
+    }
 
     final params = CreateAgreementParams(
       otherParticipantEmailOrPhone: _inviteController.text.trim(),
@@ -99,15 +132,31 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
       }).toList(),
     );
 
-    ref.read(agreementControllerProvider.notifier).createAgreement(params);
+    await ref
+        .read(agreementControllerProvider.notifier)
+        .createAgreement(params);
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    // Submitting step 2 can involve two sequential async legs — topping up the
+    // wallet, then creating the agreement. The button has to reflect both, or it
+    // sits enabled and idle-looking through the whole payment.
     final isCreating = ref.watch(
       agreementControllerProvider.select((s) => s.value?.isCreating ?? false),
     );
+    final isFunding = ref.watch(
+      fundWalletControllerProvider.select((s) => s.isLoading),
+    );
+    final isBusy = isCreating || isFunding;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -203,8 +252,8 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
                 if (_currentStep > 0) const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isCreating ? null : _createAgreement,
-                    child: isCreating && _currentStep == 2
+                    onPressed: isBusy ? null : _createAgreement,
+                    child: isBusy && _currentStep == 2
                         ? const SizedBox(
                             height: 18,
                             width: 18,

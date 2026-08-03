@@ -1,6 +1,8 @@
+import 'package:adehun_mvp/controllers/fund_wallet_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
@@ -8,14 +10,14 @@ import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/currency_input_formatter.dart';
 
-class FundWalletScreen extends StatefulWidget {
+class FundWalletScreen extends ConsumerStatefulWidget {
   const FundWalletScreen({super.key});
 
   @override
-  State<FundWalletScreen> createState() => _FundWalletScreenState();
+  ConsumerState<FundWalletScreen> createState() => _FundWalletScreenState();
 }
 
-class _FundWalletScreenState extends State<FundWalletScreen> {
+class _FundWalletScreenState extends ConsumerState<FundWalletScreen> {
   final _amountController = TextEditingController();
   String _selectedMethod = 'card';
   final List<int> _quickAmounts = [5000, 10000, 25000, 50000];
@@ -26,9 +28,49 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
     super.dispose();
   }
 
+  Future<void> _handleFundWallet() async {
+    final fundAmount = _amountController.text.trim();
+    if (fundAmount.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter an amount')));
+      return;
+    }
+
+    // CurrencyInputFormatter writes thousands separators into the field, so the
+    // raw text ("10,000") never parses — strip them first.
+    final amount = double.tryParse(fundAmount.replaceAll(',', ''));
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
+      return;
+    }
+
+    final funded = await ref
+        .read(fundWalletControllerProvider.notifier)
+        .fundWallet(amount, _selectedMethod);
+
+    if (!mounted) return;
+    // On failure we stay put so the user can retry; the error snackbar is wired
+    // up in build() via ref.listen.
+    if (funded) context.push('/success/funds-deposited');
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final fundState = ref.watch(fundWalletControllerProvider);
+
+    // Surface errors as a snackbar exactly once per new error value.
+    ref.listen(fundWalletControllerProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
+    });
+
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
@@ -52,13 +94,14 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                   const SizedBox(height: 12),
                   // Amount input
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: AppColors.primary, width: 1.5),
+                      border: Border.all(color: AppColors.primary, width: 1.5),
                     ),
                     child: Row(
                       children: [
@@ -74,7 +117,9 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                             controller: _amountController,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.,]'),
+                              ),
                               CurrencyInputFormatter(),
                             ],
                             style: AppTextStyles.amountLarge,
@@ -164,8 +209,17 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => context.push('/success/funds-deposited'),
-                  child: const Text('Fund Wallet'),
+                  onPressed: fundState.isLoading ? null : _handleFundWallet,
+                  child: fundState.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Fund Wallet'),
                 ),
               ),
             ),

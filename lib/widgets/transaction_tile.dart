@@ -1,121 +1,215 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import '../core/utils/format_currency.dart';
+import '../core/utils/relative_time.dart';
+import '../domain/models/transaction.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 
-class TransactionTile extends StatelessWidget {
-  final Map<String, dynamic> transaction;
+typedef _TypeVisuals = ({
+  IconData icon,
+  Color foreground,
+  Color background,
+  String label,
+});
 
-  const TransactionTile({super.key, required this.transaction});
+class TransactionTile extends StatelessWidget {
+  final Transaction transaction;
+  final VoidCallback? onTap;
+
+  const TransactionTile({super.key, required this.transaction, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final type = transaction['type'] as String;
-    final amount = transaction['amount'] as double;
-    final description = transaction['description'] as String;
-    final date = transaction['date'] as String;
-    final isPositive = amount > 0;
+    final visuals = _visualsFor(transaction.type, colors);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: _getIconBgColor(type, colors),
-              borderRadius: BorderRadius.circular(12),
+    final isCredit = transaction.direction == TransactionDirection.credit;
+    final isPending = transaction.status == TransactionStatus.pending;
+    final isReversed = transaction.status == TransactionStatus.reversed;
+
+    // The API sends an unsigned decimal string; `direction` carries the sign.
+    final amount = double.tryParse(transaction.amount) ?? 0;
+
+    final amountColor = isReversed
+        ? colors.textTertiary
+        : isPending
+        ? colors.textSecondary
+        : isCredit
+        ? AppColors.success
+        : colors.textPrimary;
+
+    final description = transaction.description?.trim();
+    final title = (description == null || description.isEmpty)
+        ? visuals.label
+        : description;
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: visuals.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(visuals.icon, color: visuals.foreground, size: 20),
             ),
-            child: Icon(
-              _getIcon(type),
-              color: _getIconColor(type, colors),
-              size: 20,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Text(
+                        transaction.createdAt.toRelativeTime(),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      if (isPending || isReversed) ...[
+                        const SizedBox(width: 6),
+                        _StatusPill(status: transaction.status),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  description,
-                  style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  date,
-                  style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
-                ),
-              ],
+            const SizedBox(width: 12),
+            Text(
+              '${isCredit ? '+' : '-'}'
+              '${formatMoney(amount, currency: transaction.currency)}',
+              style: AppTextStyles.labelLarge.copyWith(
+                color: amountColor,
+                decoration: isReversed ? TextDecoration.lineThrough : null,
+                decorationColor: colors.textTertiary,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${isPositive ? '+' : ''}\u20A6${_formatAmount(amount.abs())}',
-            style: AppTextStyles.labelLarge.copyWith(
-              color: isPositive ? AppColors.success : colors.textPrimary,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'DEPOSIT':
-        return Iconsax.arrow_down_2;
-      case 'ESCROW_LOCK':
-        return Iconsax.lock_copy;
-      case 'RECEIVED':
-        return Iconsax.arrow_down_2;
-      default:
-        return Iconsax.arrow_swap_horizontal_copy;
-    }
-  }
+  _TypeVisuals _visualsFor(TransactionType type, AppColorScheme colors) =>
+      switch (type) {
+        TransactionType.deposit => (
+          icon: Iconsax.wallet_add_copy,
+          foreground: AppColors.success,
+          background: colors.successLight,
+          label: 'Wallet funding',
+        ),
+        TransactionType.escrowLock => (
+          icon: Iconsax.lock_copy,
+          foreground: AppColors.primary,
+          background: colors.primarySurface,
+          label: 'Escrow lock',
+        ),
+        TransactionType.escrowReleaseOut => (
+          icon: Iconsax.export_1_copy,
+          foreground: AppColors.primary,
+          background: colors.primarySurface,
+          label: 'Escrow released',
+        ),
+        TransactionType.escrowReleaseIn => (
+          icon: Iconsax.import_1_copy,
+          foreground: AppColors.success,
+          background: colors.successLight,
+          label: 'Escrow received',
+        ),
+        TransactionType.escrowRefund => (
+          icon: Iconsax.rotate_left_copy,
+          foreground: AppColors.warning,
+          background: colors.warningLight,
+          label: 'Escrow refund',
+        ),
+        TransactionType.withdrawal => (
+          icon: Iconsax.wallet_minus_copy,
+          foreground: AppColors.info,
+          background: colors.infoLight,
+          label: 'Withdrawal',
+        ),
+        TransactionType.withdrawalReversal => (
+          icon: Iconsax.undo_copy,
+          foreground: AppColors.warning,
+          background: colors.warningLight,
+          label: 'Withdrawal reversed',
+        ),
+        TransactionType.adjustmentCredit => (
+          icon: Iconsax.add_circle_copy,
+          foreground: AppColors.success,
+          background: colors.successLight,
+          label: 'Credit adjustment',
+        ),
+        TransactionType.adjustmentDebit => (
+          // sic — the typo is in the icon package.
+          icon: Iconsax.minus_cirlce_copy,
+          foreground: AppColors.error,
+          background: colors.errorLight,
+          label: 'Debit adjustment',
+        ),
+      };
+}
 
-  Color _getIconColor(String type, AppColorScheme colors) {
-    switch (type) {
-      case 'DEPOSIT':
-        return AppColors.success;
-      case 'ESCROW_LOCK':
-        return AppColors.primary;
-      case 'RECEIVED':
-        return AppColors.success;
-      default:
-        return colors.textSecondary;
-    }
-  }
+class _StatusPill extends StatelessWidget {
+  final TransactionStatus status;
 
-  Color _getIconBgColor(String type, AppColorScheme colors) {
-    switch (type) {
-      case 'DEPOSIT':
-        return colors.successLight;
-      case 'ESCROW_LOCK':
-        return colors.primarySurface;
-      case 'RECEIVED':
-        return colors.successLight;
-      default:
-        return colors.surfaceVariant;
-    }
-  }
+  const _StatusPill({required this.status});
 
-  String _formatAmount(double amount) {
-    final parts = amount.toStringAsFixed(2).split('.');
-    final whole = parts[0];
-    final decimal = parts[1];
-    final buffer = StringBuffer();
-    for (var i = 0; i < whole.length; i++) {
-      if (i > 0 && (whole.length - i) % 3 == 0) {
-        buffer.write(',');
-      }
-      buffer.write(whole[i]);
-    }
-    return '${buffer.toString()}.$decimal';
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final (String label, Color fg, Color bg, IconData icon) = switch (status) {
+      TransactionStatus.pending => (
+        'Pending',
+        AppColors.warning,
+        colors.warningLight,
+        Iconsax.timer_1_copy,
+      ),
+      TransactionStatus.reversed => (
+        'Reversed',
+        colors.textSecondary,
+        colors.surfaceVariant,
+        Iconsax.rotate_left_copy,
+      ),
+      TransactionStatus.completed => (
+        'Completed',
+        AppColors.success,
+        colors.successLight,
+        Iconsax.tick_circle_copy,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 9, color: fg),
+          const SizedBox(width: 3),
+          Text(label, style: AppTextStyles.labelSmall.copyWith(color: fg)),
+        ],
+      ),
+    );
   }
 }

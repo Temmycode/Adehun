@@ -2,6 +2,7 @@ import 'package:adehun_mvp/controllers/agreement_controller.dart';
 import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/controllers/stats_controller.dart';
 import 'package:adehun_mvp/controllers/unread_count_controller.dart';
+import 'package:adehun_mvp/controllers/wallet_card_balance_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -99,6 +100,7 @@ class HomeScreen extends StatelessWidget {
                 child: WalletCard(
                   compact: true,
                   showActions: false,
+                  balanceVisible: balanceVisibleNotifier,
                   onFundWallet: () => context.push('/fund-wallet'),
                 ),
               ),

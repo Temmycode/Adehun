@@ -2,6 +2,14 @@ import 'package:adehun_mvp/data/interceptors/api_response_interceptor.dart';
 import 'package:adehun_mvp/data/interceptors/auth_interceptor.dart';
 import 'package:adehun_mvp/data/local/local_data_cache_manager.dart';
 import 'package:adehun_mvp/data/local/preferences_service.dart';
+import 'package:adehun_mvp/data/repositories/transaction_repo_impl.dart';
+import 'package:adehun_mvp/data/repositories/wallet_repo_impl.dart';
+import 'package:adehun_mvp/data/services/paystack_service.dart';
+import 'package:adehun_mvp/data/services/transaction_api_service.dart';
+import 'package:adehun_mvp/data/services/wallet_api_service.dart';
+import 'package:adehun_mvp/data/services/websocket_service.dart';
+import 'package:adehun_mvp/domain/transaction_repository.dart';
+import 'package:adehun_mvp/domain/wallet_repository.dart';
 import 'package:adehun_mvp/router/app_router.dart';
 import 'package:adehun_mvp/data/local/token_storage.dart';
 import 'package:adehun_mvp/data/repositories/agreement_repo_impl.dart';
@@ -40,7 +48,9 @@ part 'service_locator.g.dart';
 
 Future<void> initializeDependencies() async {
   const clientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+  const paystackPublicKey = String.fromEnvironment('PAYSTACK_PUBLIC_KEY');
   await GoogleSignIn.instance.initialize(serverClientId: clientId);
+  await PaystackService.instance.initialize(paystackPublicKey);
 }
 
 @riverpod
@@ -130,6 +140,23 @@ NotificationApiService notificationService(Ref ref) {
   return NotificationApiService(dio);
 }
 
+@riverpod
+WalletApiService walletService(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return WalletApiService(dio);
+}
+
+@riverpod
+TransactionApiService transactionService(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return TransactionApiService(dio);
+}
+
+@riverpod
+WalletWebsocketService walletSocketService(Ref ref) {
+  return WalletWebsocketService();
+}
+
 // Repositories
 @riverpod
 AuthRepository authRepository(Ref ref) {
@@ -159,6 +186,19 @@ StatsRepository statsRepository(Ref ref) {
 NotificationRepository notificationRepository(Ref ref) {
   final notificationService = ref.watch(notificationServiceProvider);
   return NotificationRepoImpl(notificationService);
+}
+
+@riverpod
+WalletRepository walletRepository(Ref ref) {
+  final walletService = ref.watch(walletServiceProvider);
+  final walletSocketService = ref.watch(walletSocketServiceProvider);
+  return WalletRepoImpl(walletService, walletSocketService, ref: ref);
+}
+
+@riverpod
+TransactionRepository transactionRepository(Ref ref) {
+  final apiService = ref.watch(transactionServiceProvider);
+  return TransactionRepoImpl(apiService: apiService);
 }
 
 @riverpod

@@ -1,30 +1,35 @@
 import 'dart:ui';
+import 'package:adehun_mvp/controllers/wallet_data_controller.dart';
+import 'package:adehun_mvp/core/extensions/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_text_styles.dart';
-import '../constants/mock_data.dart';
+import 'skeletons.dart';
 
-class WalletCard extends StatefulWidget {
+class WalletCard extends ConsumerStatefulWidget {
   final bool showActions;
   final VoidCallback? onFundWallet;
   final bool compact;
+  final ValueNotifier<bool> balanceVisible;
 
   const WalletCard({
     super.key,
     this.showActions = true,
     this.onFundWallet,
     this.compact = false,
+    required this.balanceVisible,
   });
 
   @override
-  State<WalletCard> createState() => _WalletCardState();
+  ConsumerState<WalletCard> createState() => _WalletCardState();
 }
 
-class _WalletCardState extends State<WalletCard> {
-  bool _balanceVisible = true;
-
+class _WalletCardState extends ConsumerState<WalletCard> {
   @override
   Widget build(BuildContext context) {
+    final walletDataProvider = ref.watch(walletDataControllerProvider);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -166,8 +171,8 @@ class _WalletCardState extends State<WalletCard> {
                       ),
                       // Visibility toggle
                       GestureDetector(
-                        onTap: () =>
-                            setState(() => _balanceVisible = !_balanceVisible),
+                        onTap: () => widget.balanceVisible.value =
+                            !widget.balanceVisible.value,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
                           child: BackdropFilter(
@@ -182,12 +187,16 @@ class _WalletCardState extends State<WalletCard> {
                                   color: Colors.white.withValues(alpha: 0.15),
                                 ),
                               ),
-                              child: Icon(
-                                _balanceVisible
-                                    ? Iconsax.eye_copy
-                                    : Iconsax.eye_slash_copy,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                size: 18,
+                              child: widget.balanceVisible.sync(
+                                builder: (_, value, _) {
+                                  return Icon(
+                                    value
+                                        ? Iconsax.eye_copy
+                                        : Iconsax.eye_slash_copy,
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    size: 18,
+                                  );
+                                },
                               ),
                             ),
                           ),
@@ -197,21 +206,32 @@ class _WalletCardState extends State<WalletCard> {
                   ),
                   SizedBox(height: widget.compact ? 16 : 20),
                   // Balance amount
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      _balanceVisible
-                          ? '${MockData.walletCurrency}${_formatAmount(MockData.walletBalance)}'
-                          : '${MockData.walletCurrency}\u2022\u2022\u2022\u2022\u2022\u2022',
-                      style: AppTextStyles.amountLarge.copyWith(
-                        color: Colors.white,
-                        fontSize: widget.compact ? 30 : 34,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                  walletDataProvider.when(
+                    data: (walletData) {
+                      return FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: widget.balanceVisible.sync(
+                          builder: (_, value, _) {
+                            return Text(
+                              value
+                                  ? '${walletData.currencySymbol}${_formatAmount(walletData.availableBalance)}'
+                                  : '${walletData.currencySymbol}\u2022\u2022\u2022\u2022\u2022\u2022',
+                              style: AppTextStyles.amountLarge.copyWith(
+                                color: Colors.white,
+                                fontSize: widget.compact ? 30 : 34,
+                                letterSpacing: 0.5,
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    error: (err, stk) => const Icon(Icons.error),
+                    loading: () =>
+                        WalletBalanceSkeleton(compact: widget.compact),
                   ),
-                  if (widget.showActions) ...[
+                  if (widget.showActions == true) ...[
                     const SizedBox(height: 24),
                     Row(
                       children: [
@@ -264,11 +284,7 @@ class _ActionChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _ActionChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _ActionChip({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -283,9 +299,7 @@ class _ActionChip extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

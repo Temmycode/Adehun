@@ -3,6 +3,7 @@ import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/controllers/condition_controller.dart';
 import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
+import 'package:adehun_mvp/domain/states/condition_state.dart';
 import 'package:adehun_mvp/utils/random_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -31,14 +32,11 @@ class ConditionDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
-  ConditionResponse? _findCondition(WidgetRef ref) {
-    final conditionState = ref.read(conditionControllerProvider);
-    return conditionState.maybeWhen(
-      data: (state) => state.conditions[widget.agreementId]?.firstWhere(
-        (condition) => condition.id == widget.conditionId,
-      ),
-      orElse: () => null,
-    );
+  ConditionResponse? _findCondition(ConditionState conditionState) {
+    final matches = conditionState
+        .conditionsFor(widget.agreementId)
+        .where((condition) => condition.id == widget.conditionId);
+    return matches.isEmpty ? null : matches.first;
   }
 
   void getAssets() {
@@ -68,7 +66,8 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final condition = _findCondition(ref);
+    final conditionState = ref.watch(conditionControllerProvider);
+    final condition = _findCondition(conditionState);
     if (condition == null) {
       return Scaffold(
         appBar: AppBar(
@@ -77,7 +76,12 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
             onPressed: () => context.pop(),
           ),
         ),
-        body: const Center(child: Text('Condition not found')),
+        body: conditionState.isLoading
+            ? const SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: ConditionDetailSkeleton(),
+              )
+            : const Center(child: Text('Condition not found')),
       );
     }
 
@@ -247,66 +251,62 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
               Consumer(
                 builder: (context, ref, _) {
                   final assetState = ref.watch(assetsControllerProvider);
+                  final assets = assetState.assetsFor(widget.conditionId);
 
-                  return assetState.when(
-                    data: (state) {
-                      final assets = state.assets[widget.conditionId] ?? [];
-                      return Column(
-                        crossAxisAlignment: .start,
-                        children: [
-                          if (assets.isEmpty)
-                            _EmptyAssets(conditionId: widget.conditionId)
-                          else
-                            ...assets.map((asset) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: _AssetCard(asset: asset),
-                              );
-                            }),
+                  // Only spin when there is nothing cached to show yet.
+                  if (assets.isEmpty && assetState.isLoading) {
+                    return const AssetListSkeleton();
+                  }
 
-                          // Approve/Reject buttons for review
-                          if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
-                            const SizedBox(height: 24),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {},
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppColors.error,
-                                      side: const BorderSide(
-                                        color: AppColors.error,
-                                      ),
-                                    ),
-                                    icon: const Icon(
-                                      CupertinoIcons.xmark,
-                                      size: 18,
-                                    ),
-                                    label: const Text('Reject'),
+                  return Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      if (assets.isEmpty)
+                        _EmptyAssets(conditionId: widget.conditionId)
+                      else
+                        ...assets.map((asset) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _AssetCard(asset: asset),
+                          );
+                        }),
+
+                      // Approve/Reject buttons for review
+                      if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () {},
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.error,
+                                  side: const BorderSide(
+                                    color: AppColors.error,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.success,
-                                    ),
-                                    icon: const Icon(
-                                      Iconsax.tick_circle,
-                                      size: 18,
-                                    ),
-                                    label: const Text('Approve'),
-                                  ),
+                                icon: const Icon(
+                                  CupertinoIcons.xmark,
+                                  size: 18,
                                 ),
-                              ],
+                                label: const Text('Reject'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.success,
+                                ),
+                                icon: const Icon(Iconsax.tick_circle, size: 18),
+                                label: const Text('Approve'),
+                              ),
                             ),
                           ],
-                        ],
-                      );
-                    },
-                    loading: () => const _AssetListSkeleton(),
-                    error: (err, stk) => const Center(child: Icon(Icons.error)),
+                        ),
+                      ],
+                    ],
                   );
                 },
               ),
@@ -345,14 +345,14 @@ class _AssetCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: type == 'image'
+              color: type == .image
                   ? colors.primarySurface
                   : colors.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              type == 'image' ? Iconsax.gallery_copy : Iconsax.document_copy,
-              color: type == 'image' ? AppColors.primary : colors.textSecondary,
+              type == .image ? Iconsax.gallery_copy : Iconsax.document_copy,
+              color: type == .image ? AppColors.primary : colors.textSecondary,
               size: 24,
             ),
           ),
@@ -364,7 +364,7 @@ class _AssetCard extends StatelessWidget {
                 Text(name, style: AppTextStyles.labelLarge),
                 const SizedBox(height: 2),
                 Text(
-                  type == 'image' ? 'Image file' : 'Document',
+                  type == .image ? 'Image file' : 'Document',
                   style: AppTextStyles.bodySmall,
                 ),
               ],
@@ -418,50 +418,6 @@ class _EmptyAssets extends StatelessWidget {
             label: const Text('Upload Asset'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AssetListSkeleton extends StatelessWidget {
-  const _AssetListSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(
-        2,
-        (_) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Shimmer(
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: context.colors.cardBorder),
-              ),
-              child: Row(
-                children: const [
-                  SkeletonBox(width: 48, height: 48, radius: 10),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SkeletonBox(width: double.infinity, height: 14),
-                        SizedBox(height: 8),
-                        SkeletonBox(width: 120, height: 10),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  SkeletonBox(width: 64, height: 20, radius: 10),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

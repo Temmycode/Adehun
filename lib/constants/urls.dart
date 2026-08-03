@@ -1,5 +1,4 @@
-const String baseUrl = 'http://10.0.2.2:8000';
-// 'http://127.0.0.1:8000';
+const String baseUrl = 'https://adehun-api.onrender.com';
 const String androidBaseUrl = 'http://10.0.2.2:8000';
 
 /// AUTH ENDPOINTS
@@ -39,3 +38,12 @@ const String getNotificationsUrl = '/notifications';
 const String getUnreadNotificationsCountUrl = '/notifications/unread-count';
 const String markNotificationsReadUrl = '/notifications/read';
 const String markAllNotificationsReadUrl = '/notifications/read-all';
+
+/// WALLET ENDPOINTS
+const String fundWalletUrl = '/wallet/fund';
+const String walletWebsocketUrl = '/wallet/ws';
+
+/// TRANSACTION ENDPOINTS
+const String getTransactionsUrl = '/transactions';
+const String getTransactionSummaryUrl = '/transactions/summary';
+const String getTransactionUrl = '/transactions/{transaction_id}';

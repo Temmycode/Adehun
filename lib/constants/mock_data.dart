@@ -368,58 +368,6 @@ class MockData {
     },
   ];
 
-  // Transactions
-  static const List<Map<String, dynamic>> transactions = [
-    {
-      'id': 't1',
-      'type': 'DEPOSIT',
-      'amount': 150000.0,
-      'description': 'Funded wallet',
-      'date': '2025-03-06',
-      'status': 'COMPLETED',
-    },
-    {
-      'id': 't2',
-      'type': 'ESCROW_LOCK',
-      'amount': -150000.0,
-      'description': 'Escrow: Website Redesign Project',
-      'date': '2025-03-01',
-      'status': 'COMPLETED',
-    },
-    {
-      'id': 't3',
-      'type': 'RECEIVED',
-      'amount': 75000.0,
-      'description': 'Escrow: Content Writing — Funds Released',
-      'date': '2025-02-28',
-      'status': 'COMPLETED',
-    },
-    {
-      'id': 't4',
-      'type': 'DEPOSIT',
-      'amount': 200000.0,
-      'description': 'Funded wallet',
-      'date': '2025-02-15',
-      'status': 'COMPLETED',
-    },
-    {
-      'id': 't5',
-      'type': 'ESCROW_LOCK',
-      'amount': -35000.0,
-      'description': 'Escrow: Social Media Graphics',
-      'date': '2025-02-10',
-      'status': 'COMPLETED',
-    },
-    {
-      'id': 't6',
-      'type': 'DEPOSIT',
-      'amount': 100000.0,
-      'description': 'Funded wallet',
-      'date': '2025-01-20',
-      'status': 'COMPLETED',
-    },
-  ];
-
   // Notifications
   static const List<Map<String, dynamic>> notifications = [
     {

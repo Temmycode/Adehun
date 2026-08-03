@@ -12,7 +12,7 @@ part of 'condition_api_service.dart';
 
 class _ConditionApiService implements ConditionApiService {
   _ConditionApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'http://10.0.2.2:8000';
+    baseUrl ??= 'https://adehun-api.onrender.com';
   }
 
   final Dio _dio;

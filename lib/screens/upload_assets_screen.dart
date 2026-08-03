@@ -214,24 +214,14 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
                 return SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      _selectedFiles.isNotEmpty
-                          ? await _uploadAssetFiles(ref)
-                          : null;
-                    },
-                    child: assetState.when(
-                      data: (state) {
-                        if (state.isAdding) {
-                          return CircularProgressIndicator(
+                    onPressed: assetState.isAdding || _selectedFiles.isEmpty
+                        ? null
+                        : () => _uploadAssetFiles(ref),
+                    child: assetState.isAdding
+                        ? const CircularProgressIndicator(
                             backgroundColor: Colors.white,
-                          );
-                        } else {
-                          return const Text('Submit Assets');
-                        }
-                      },
-                      error: (err, stk) => Icon(Icons.error),
-                      loading: () => const CircularProgressIndicator(),
-                    ),
+                          )
+                        : const Text('Submit Assets'),
                   ),
                 );
               },
