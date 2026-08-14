@@ -54,7 +54,7 @@ final class FundWalletControllerProvider
 }
 
 String _$fundWalletControllerHash() =>
-    r'fc7bce3211ff3be7a25f47602fbd6edcb9d6fe55';
+    r'864fb5b0a2c7f1d89649cb3f830a0a59238c254a';
 
 /// Deliberately `keepAlive` — a payment in flight must not be disposed
 /// mid-checkout. Callers that only `ref.read` this (rather than watching it)

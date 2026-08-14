@@ -641,6 +641,54 @@ final class WalletSocketServiceProvider
 String _$walletSocketServiceHash() =>
     r'970bf6546ec4a7a6d5d78a6811abcbe53bb83500';
 
+@ProviderFor(agreementWebsocketService)
+final agreementWebsocketServiceProvider = AgreementWebsocketServiceProvider._();
+
+final class AgreementWebsocketServiceProvider
+    extends
+        $FunctionalProvider<
+          AgreementWebsocketService,
+          AgreementWebsocketService,
+          AgreementWebsocketService
+        >
+    with $Provider<AgreementWebsocketService> {
+  AgreementWebsocketServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'agreementWebsocketServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$agreementWebsocketServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AgreementWebsocketService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AgreementWebsocketService create(Ref ref) {
+    return agreementWebsocketService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AgreementWebsocketService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AgreementWebsocketService>(value),
+    );
+  }
+}
+
+String _$agreementWebsocketServiceHash() =>
+    r'89a4391a7201a4f4758ac2e2897bf06df0b4b1fb';
+
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 

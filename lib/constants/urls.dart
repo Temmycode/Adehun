@@ -10,10 +10,12 @@ const String refreshUrl = '/auth/refresh';
 /// AGREEMENT ENDPOINTS
 const String getAllUserAgreementUrl = '/agreements/';
 const String addAgreementUrl = '/agreements/';
-const String acceptAgreementUrl = '/agreements/{agreement_id}/';
+const String getInvitedAgreementUrl = '/agreements/invited';
+const String acceptAgreementUrl = '/agreements/{agreement_id}/accept';
 const String getAgreementUrl = '/agreements/{agreement_id}/';
 const String getAgreementInvitationUrl =
     '/agreements/{agreement_id}/invitation';
+const String agreementWebsocketUrl = '/agreements/ws';
 
 /// CONDITION ENDPOINTS
 const String addConditionToAgreementUrl =

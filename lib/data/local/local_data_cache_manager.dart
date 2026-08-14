@@ -64,4 +64,19 @@ class LocalDataCacheManager {
   Future<bool> clearCachedAssets(String conditionId) {
     return _prefs.remove('$_conditionAssetsPrefix$conditionId');
   }
+
+  /// Clears all locally cached agreement conditions and assets entries.
+  /// Returns true if all targeted keys were removed successfully.
+  Future<bool> clearAll() async {
+    final keys = _prefs.getKeys();
+    var success = true;
+    for (final key in keys) {
+      if (key.startsWith(_agreementConditionsPrefix) ||
+          key.startsWith(_conditionAssetsPrefix)) {
+        final removed = await _prefs.remove(key);
+        success = success && removed;
+      }
+    }
+    return success;
+  }
 }

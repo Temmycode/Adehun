@@ -1,11 +1,9 @@
 import 'dart:developer';
 
-import 'package:adehun_mvp/constants/errors.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:adehun_mvp/data/services/paystack_service.dart';
 import 'package:adehun_mvp/domain/states/fund_wallet_state.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -51,13 +49,13 @@ class FundWalletController extends _$FundWalletController {
 
       // Null means the user dismissed the checkout sheet, or the SDK wasn't
       // initialised — neither is an error worth a snackbar.
-      if (reference == null) return false;
+      if (reference == null || reference.isEmpty) return false;
 
       debugPrint('Paystack reference: $reference');
       return true;
     } catch (err, stk) {
       log('$err, $stk');
-      _update(error: () => _friendlyError(err));
+      _update(error: () => err.toString());
       return false;
     } finally {
       _update(isLoading: false);
@@ -65,26 +63,6 @@ class FundWalletController extends _$FundWalletController {
   }
 
   void clearError() => _update(error: () => null);
-
-  /// The repository rethrows raw exceptions, and those are not fit to show a
-  /// user — `DioException.toString()` in particular dumps the entire request.
-  /// [AppException]s already carry readable copy.
-  String _friendlyError(Object err) {
-    if (err is AppException) return err.toString();
-
-    if (err is DioException) {
-      return switch (err.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.sendTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.connectionError =>
-          'Network problem. Check your connection and try again.',
-        _ => "Couldn't complete the payment. Please try again.",
-      };
-    }
-
-    return "Couldn't complete the payment. Please try again.";
-  }
 
   /// Writes state only while the provider is alive.
   ///

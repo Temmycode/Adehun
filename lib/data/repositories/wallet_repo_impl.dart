@@ -61,6 +61,7 @@ class WalletRepoImpl implements WalletRepository {
   }
 
   @override
+  @override
   Stream<WalletData> get walletData {
     _initConnection();
 

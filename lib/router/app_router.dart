@@ -1,3 +1,6 @@
+import 'dart:convert' show json;
+
+import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/splash_screen.dart';
@@ -118,10 +121,12 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const NotificationsScreen(),
     ),
     GoRoute(
-      path: '/agreement-invitation/:id',
+      path: '/agreement-invitation/:invitation',
       builder: (context, state) {
-        final id = state.pathParameters['id']!;
-        return AgreementInvitationScreen(agreementId: id);
+        final data = state.pathParameters['invitation']!;
+        final decodedData = json.decode(data) as Map<String, dynamic>;
+        final invitation = InvitationResponse.fromJson(decodedData);
+        return AgreementInvitationScreen(invitation: invitation);
       },
     ),
     GoRoute(

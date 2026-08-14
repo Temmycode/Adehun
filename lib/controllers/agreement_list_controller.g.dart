@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'agreement_controller.dart';
+part of 'agreement_list_controller.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,34 +9,35 @@ part of 'agreement_controller.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(AgreementController)
-final agreementControllerProvider = AgreementControllerProvider._();
+@ProviderFor(AgreementListController)
+final agreementListControllerProvider = AgreementListControllerProvider._();
 
-final class AgreementControllerProvider
-    extends $AsyncNotifierProvider<AgreementController, AgreementState> {
-  AgreementControllerProvider._()
+final class AgreementListControllerProvider
+    extends $AsyncNotifierProvider<AgreementListController, AgreementState> {
+  AgreementListControllerProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'agreementControllerProvider',
+        name: r'agreementListControllerProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$agreementControllerHash();
+  String debugGetCreateSourceHash() => _$agreementListControllerHash();
 
   @$internal
   @override
-  AgreementController create() => AgreementController();
+  AgreementListController create() => AgreementListController();
 }
 
-String _$agreementControllerHash() =>
-    r'ecd80ae8147a22022142f46d711fe2ae1d4850fc';
+String _$agreementListControllerHash() =>
+    r'19dad6bc1672cea95dc10de40fb6e9bf2ffc1ef8';
 
-abstract class _$AgreementController extends $AsyncNotifier<AgreementState> {
+abstract class _$AgreementListController
+    extends $AsyncNotifier<AgreementState> {
   FutureOr<AgreementState> build();
   @$mustCallSuper
   @override

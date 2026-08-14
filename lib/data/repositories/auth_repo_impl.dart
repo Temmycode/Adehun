@@ -91,7 +91,7 @@ class AuthRepoImpl implements AuthRepository {
         "name": fullName,
       });
 
-      if (apiResponse.response.statusCode == HttpStatus.created) {
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
       }
 

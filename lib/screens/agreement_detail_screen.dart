@@ -211,11 +211,36 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                 ),
                 child: Column(
                   children: [
-                    _PartyRow(
-                      label: 'Depositor',
-                      name: depositor?.name ?? "No depositor",
-                      initials: getInitials(depositor?.name ?? ""),
-                      isYou: depositor?.email == currentUser.email!,
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final agreementState = ref.watch(
+                          agreementControllerProvider,
+                        );
+
+                        return agreementState.when(
+                          data: (state) {
+                            final invitation =
+                                state.invitations[widget.agreementId];
+                            if (state.invitationLoading) {
+                              return const PartyRowSkeleton();
+                            }
+
+                            return _PartyRow(
+                              label: 'Depositor',
+                              name:
+                                  depositor?.name ??
+                                  invitation?.email ??
+                                  "No depositor",
+                              initials: getInitials(
+                                depositor?.name ?? invitation?.email ?? "",
+                              ),
+                              isYou: depositor?.email == currentUser.email!,
+                            );
+                          },
+                          error: (err, stk) => Icon(Icons.error),
+                          loading: () => const PartyRowSkeleton(),
+                        );
+                      },
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -253,7 +278,9 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                                   beneficiary?.name ??
                                   invitation?.email ??
                                   "No beneficiary",
-                              initials: getInitials(beneficiary?.name ?? ""),
+                              initials: getInitials(
+                                beneficiary?.name ?? invitation?.email ?? "",
+                              ),
                               isYou: beneficiary?.email == currentUser.email,
                             );
                           },

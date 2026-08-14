@@ -24,7 +24,7 @@ ConditionResponse _$ConditionResponseFromJson(Map<String, dynamic> json) =>
             ),
       invitation: json['invitation'] == null
           ? null
-          : InvitationResponse.fromJson(
+          : AgreementInvitationResponse.fromJson(
               json['invitation'] as Map<String, dynamic>,
             ),
       approvedAt: json['approved_at'] == null

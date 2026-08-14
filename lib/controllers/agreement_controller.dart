@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:adehun_mvp/controllers/condition_controller.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
-import 'package:adehun_mvp/domain/models/invitation_response.dart';
+import 'package:adehun_mvp/domain/models/agreement_invitation_response.dart';
 import 'package:adehun_mvp/domain/states/agreement_state.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/service_locator.dart';
@@ -156,20 +156,33 @@ class AgreementController extends _$AgreementController {
     }
   }
 
-  Future<void> getAgreement(String agreementId) async {
-    state = const AsyncLoading();
+  Future<void> declineAgreement(String agreementId) async {
+    final initial = state.value ?? AgreementState();
+    state = AsyncData(initial.copyWith(isDeclining: true));
 
-    state = await AsyncValue.guard(() async {
+    try {
       final dataState = await ref
           .read(agreementRepositoryProvider)
-          .getAgreement(agreementId);
+          .rejectAgreement(agreementId);
 
       if (dataState is DataSuccess && dataState.data != null) {
-        return state.value!.copyWith(selectedAgreement: dataState.data!);
-      }
+        final declined = dataState.data!;
 
-      return state.value!;
-    });
+        final latest = state.value ?? initial;
+
+        // Remove the declined agreement from list if present
+        final updated = latest.agreements
+            .where((agt) => agt.id != declined.id)
+            .toList();
+
+        state = AsyncData(latest.copyWith(agreements: updated));
+      }
+    } catch (err, stk) {
+      log('Error declining agreement: $err\n$stk');
+    } finally {
+      final latest = state.value ?? initial;
+      state = AsyncData(latest.copyWith(isDeclining: false));
+    }
   }
 
   Future<void> getAgreementInvitation(String agreementId) async {
@@ -186,7 +199,7 @@ class AgreementController extends _$AgreementController {
 
         state = AsyncData(
           latest.copyWith(
-            invitations: Map<String, InvitationResponse>.from(
+            invitations: Map<String, AgreementInvitationResponse>.from(
               latest.invitations,
             )..[agreementId] = dataState.data!,
           ),

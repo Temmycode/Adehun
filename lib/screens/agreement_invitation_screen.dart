@@ -1,28 +1,37 @@
+import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
-import '../constants/mock_data.dart';
 
-class AgreementInvitationScreen extends StatelessWidget {
-  final String agreementId;
+class AgreementInvitationScreen extends ConsumerWidget {
+  final InvitationResponse invitation;
 
-  const AgreementInvitationScreen({super.key, required this.agreementId});
+  const AgreementInvitationScreen({super.key, required this.invitation});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final agreement = MockData.agreements.firstWhere(
-      (a) => a['id'] == agreementId,
-      orElse: () => MockData.agreements[2],
+    final agreement = invitation.agreement;
+    final invitedBy = invitation.invitedByUser;
+    final amount = double.parse(agreement.amount ?? "0");
+    final conditions =
+        ref.watch(conditionControllerProvider).conditions[agreement.id] ?? [];
+    final agState = ref.watch(agreementControllerProvider);
+    final isAccepting = agState.maybeWhen(
+      data: (s) => s.isAccepting,
+      orElse: () => false,
     );
-
-    final depositor = agreement['depositor'] as Map<String, dynamic>;
-    final amount = agreement['amount'] as double;
-    final conditions = agreement['conditions'] as List;
+    final isDeclining = agState.maybeWhen(
+      data: (s) => s.isDeclining,
+      orElse: () => false,
+    );
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -54,13 +63,13 @@ class AgreementInvitationScreen extends StatelessWidget {
                     radius: 28,
                     backgroundColor: AppColors.primary,
                     child: Text(
-                      depositor['initials'] as String,
+                      invitedBy.initials,
                       style: AppTextStyles.h3.copyWith(color: Colors.white),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    '${depositor['name']} invited you',
+                    '${invitation.invitedByUser.name} invited you',
                     style: AppTextStyles.h3,
                   ),
                   const SizedBox(height: 4),
@@ -89,18 +98,18 @@ class AgreementInvitationScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _DetailRow('Title', agreement['title'] as String),
+                  _DetailRow('Title', agreement.title ?? "No title"),
                   const SizedBox(height: 12),
                   _DetailRow(
-                      'Description', agreement['description'] as String),
+                    'Description',
+                    agreement.description ?? "No description",
+                  ),
                   const SizedBox(height: 12),
-                  _DetailRow('Amount',
-                      '\u20A6${_formatAmount(amount)}'),
+                  _DetailRow('Amount', '\u20A6${_formatAmount(amount)}'),
                   const SizedBox(height: 12),
-                  _DetailRow('Your Role', 'Beneficiary'),
+                  _DetailRow('Your Role', invitation.role),
                   const SizedBox(height: 12),
-                  _DetailRow(
-                      'Conditions', '${conditions.length} conditions'),
+                  _DetailRow('Conditions', '${conditions.length} conditions'),
                 ],
               ),
             ),
@@ -110,33 +119,35 @@ class AgreementInvitationScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Text('Conditions', style: AppTextStyles.h3),
               const SizedBox(height: 10),
-              ...conditions.map((c) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: colors.surfaceVariant,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Icon(
-                            Iconsax.tick_square_copy,
-                            color: colors.textTertiary,
-                            size: 16,
-                          ),
+              ...conditions.map(
+                (condition) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: colors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            c['title'] as String,
-                            style: AppTextStyles.bodyMedium,
-                          ),
+                        child: Icon(
+                          Iconsax.tick_square_copy,
+                          color: colors.textTertiary,
+                          size: 16,
                         ),
-                      ],
-                    ),
-                  )),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          condition.title ?? "No title",
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
 
             const Spacer(),
@@ -145,22 +156,52 @@ class AgreementInvitationScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => context.pop(),
+                    onPressed: isDeclining
+                        ? null
+                        : () {
+                            if (agreement.id == null) return;
+                            ref
+                                .read(agreementControllerProvider.notifier)
+                                .declineAgreement(agreement.id!);
+                          },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: const BorderSide(color: AppColors.error),
                     ),
-                    child: const Text('Decline'),
+                    child: isDeclining
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.error,
+                            ),
+                          )
+                        : const Text('Decline'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      context.pop();
-                      context.push('/agreement/$agreementId');
-                    },
-                    child: const Text('Accept'),
+                    onPressed: isAccepting
+                        ? null
+                        : () {
+                            if (agreement.id == null) return;
+
+                            ref
+                                .read(agreementControllerProvider.notifier)
+                                .acceptAgreement(agreement.id!);
+                          },
+                    child: isAccepting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Accept'),
                   ),
                 ),
               ],
@@ -198,17 +239,9 @@ class _DetailRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 100,
-          child: Text(
-            label,
-            style: AppTextStyles.bodySmall,
-          ),
+          child: Text(label, style: AppTextStyles.bodySmall),
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: AppTextStyles.labelLarge,
-          ),
-        ),
+        Expanded(child: Text(value, style: AppTextStyles.labelLarge)),
       ],
     );
   }

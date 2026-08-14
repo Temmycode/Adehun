@@ -1,3 +1,7 @@
+import 'package:adehun_mvp/controllers/agreement_list_controller.dart';
+import 'package:adehun_mvp/controllers/notification_controller.dart';
+import 'package:adehun_mvp/controllers/unread_count_controller.dart';
+import 'package:adehun_mvp/controllers/wallet_data_controller.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:adehun_mvp/domain/models/user_data.dart';
@@ -86,9 +90,11 @@ class AuthController extends _$AuthController {
             phoneNumber: params.phoneNumber,
             fullName: params.fullName,
           );
+      print("data state is $dataState");
 
       if (dataState is DataSuccess && dataState.data != null) {
         await setUser(dataState.data, status: AuthStatus.authenticated);
+        print("It is me");
         appRouter.go('shell');
       } else {
         _setError(dataState.exception.toString());
@@ -125,10 +131,40 @@ class AuthController extends _$AuthController {
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true);
     try {
+      // Clear tokens and local auth flags
       await ref.read(tokenStorageProvider).clearTokens();
       await ref.read(preferencesServiceProvider).setLoggedIn(false);
+
+      // Close websocket services if open so subscriptions stop emitting
+      try {
+        ref.read(walletSocketServiceProvider).close();
+      } catch (_) {}
+      try {
+        ref.read(agreementWebsocketServiceProvider).close();
+      } catch (_) {}
+
+      // Clear locally cached data related to agreements/conditions
+      try {
+        await ref.read(localDataCacheManagerProvider).clearAll();
+      } catch (_) {}
+
+      // Clear stored user data
+      try {
+        await ref.read(preferencesServiceProvider).setUser(null);
+      } catch (_) {}
+
+      // Invalidate long-lived controllers to trigger their dispose handlers
+      try {
+        ref.invalidate(agreementListControllerProvider);
+        ref.invalidate(walletDataControllerProvider);
+        ref.invalidate(unreadCountControllerProvider);
+        ref.invalidate(notificationControllerProvider);
+      } catch (_) {}
+
+      // Sign out external auth providers
       await FirebaseAuth.instance.signOut();
       await GoogleSignIn.instance.signOut();
+
       state = const AuthState(status: AuthStatus.initial);
     } catch (e) {
       _setError('Failed to sign out clean.');

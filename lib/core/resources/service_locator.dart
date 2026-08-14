@@ -157,6 +157,11 @@ WalletWebsocketService walletSocketService(Ref ref) {
   return WalletWebsocketService();
 }
 
+@riverpod
+AgreementWebsocketService agreementWebsocketService(Ref ref) {
+  return AgreementWebsocketService();
+}
+
 // Repositories
 @riverpod
 AuthRepository authRepository(Ref ref) {

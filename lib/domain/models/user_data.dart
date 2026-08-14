@@ -22,4 +22,13 @@ class UserData {
       _$UserDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserDataToJson(this);
+
+  String get initials {
+    if (name == null || name!.isEmpty) return '';
+    final parts = name!.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    return parts.first[0].toUpperCase();
+  }
 }

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:paystack_flutter_sdk/paystack_flutter_sdk.dart';
 
@@ -32,13 +33,11 @@ class PaystackService {
 
     try {
       final response = await _paystack.launch(accessCode);
-      // if (response.status) {
-      log(response.reference);
-      return response.reference;
-      // } else {
-      //   log(response.message);
-      //   return null;
-      // }
+      if (response.status == "success") {
+        return response.reference;
+      } else {
+        return null;
+      }
     } on PlatformException catch (e) {
       log(e.message ?? 'Unknown error launching Paystack checkout');
       return null;

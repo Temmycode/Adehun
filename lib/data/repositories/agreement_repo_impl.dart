@@ -7,6 +7,7 @@ import 'package:adehun_mvp/domain/agreement_repository.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
+import 'package:adehun_mvp/domain/models/agreement_invitation_response.dart';
 import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:flutter/foundation.dart';
 
@@ -88,6 +89,28 @@ class AgreementRepoImpl implements AgreementRepository {
   }
 
   @override
+  Future<DataState<AgreementResponse>> rejectAgreement(
+    String agreementId,
+  ) async {
+    try {
+      final apiResponse = await _agreementApiService.rejectAgreement(
+        agreementId,
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(AcceptAgreementError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
   Future<DataState<AgreementResponse>> getAgreement(String agreementId) async {
     try {
       final apiResponse = await _agreementApiService.getAgreement(agreementId);
@@ -106,13 +129,31 @@ class AgreementRepoImpl implements AgreementRepository {
   }
 
   @override
-  Future<DataState<InvitationResponse>> getAgreementInvitation(
+  Future<DataState<AgreementInvitationResponse>> getAgreementInvitation(
     String agreementId,
   ) async {
     try {
       final apiResponse = await _agreementApiService.getAgreementInvitation(
         agreementId,
       );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(GetAgreementInvitationError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<List<InvitationResponse>>> getInvitedAgreements() async {
+    try {
+      final apiResponse = await _agreementApiService.getInvitedAgreement();
 
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);

@@ -97,7 +97,7 @@ class _AgreementApiService implements AgreementApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/agreements/${agreementId}/',
+            '/agreements/${agreementId}/accept',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -127,7 +127,7 @@ class _AgreementApiService implements AgreementApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/agreements/',
+            '/agreements/${agreementId}/reject',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -176,14 +176,14 @@ class _AgreementApiService implements AgreementApiService {
   }
 
   @override
-  Future<HttpResponse<InvitationResponse>> getAgreementInvitation(
+  Future<HttpResponse<AgreementInvitationResponse>> getAgreementInvitation(
     String agreementId,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<HttpResponse<InvitationResponse>>(
+    final _options = _setStreamType<HttpResponse<AgreementInvitationResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -194,9 +194,42 @@ class _AgreementApiService implements AgreementApiService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late InvitationResponse _value;
+    late AgreementInvitationResponse _value;
     try {
-      _value = InvitationResponse.fromJson(_result.data!);
+      _value = AgreementInvitationResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
+  }
+
+  @override
+  Future<HttpResponse<List<InvitationResponse>>> getInvitedAgreement() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<HttpResponse<List<InvitationResponse>>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/agreements/invited',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<InvitationResponse> _value;
+    try {
+      _value = _result.data!
+          .map(
+            (dynamic i) =>
+                InvitationResponse.fromJson(i as Map<String, dynamic>),
+          )
+          .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

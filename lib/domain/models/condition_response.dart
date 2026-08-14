@@ -1,4 +1,4 @@
-import 'package:adehun_mvp/domain/models/invitation_response.dart';
+import 'package:adehun_mvp/domain/models/agreement_invitation_response.dart';
 import 'package:adehun_mvp/domain/models/participant_response.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -12,7 +12,7 @@ class ConditionResponse {
   final String? status;
   final ParticipantResponse? createdByParticipant;
   final ParticipantResponse? requiredFromParticipant;
-  final InvitationResponse? invitation;
+  final AgreementInvitationResponse? invitation;
   final DateTime? approvedAt;
   final String? rejectedReason;
   final DateTime? createdAt;
