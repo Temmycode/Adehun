@@ -57,15 +57,23 @@ android {
         }
     }
 
+    // Only a release/bundle build needs the keystore; debug builds must not
+    // fail at configuration time because it is absent.
+    val wantsRelease = gradle.startParameter.taskNames.any {
+        it.contains("Release", ignoreCase = true) || it.contains("Bundle", ignoreCase = true)
+    }
+
     buildTypes {
         release {
-            if (!hasReleaseKeystore) {
+            if (wantsRelease && !hasReleaseKeystore) {
                 throw GradleException(
                     "Release signing is not configured: create android/key.properties " +
                         "(see README.md, 'Release signing')."
                 )
             }
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false
