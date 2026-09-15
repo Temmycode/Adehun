@@ -88,6 +88,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.agreementDeclined:
         return null;
       case NotificationType.agreementCompleted:
+      case NotificationType.agreementCancelled:
+      // Escrow and dispute activity both belong to an agreement. Dispute
+      // notifications deliberately do NOT go to '/dispute/:id' — that's the
+      // raise-a-dispute form, not a place to read one.
+      case NotificationType.escrowFunded:
+      case NotificationType.escrowReleased:
+      case NotificationType.escrowRefunded:
+      case NotificationType.disputeRaised:
+      case NotificationType.disputeEvidenceAdded:
+      case NotificationType.disputeUnderReview:
+      case NotificationType.disputeResolved:
         final id = n.agreementId;
         return id == null ? null : '/agreement/$id';
       case NotificationType.conditionAdded:
@@ -96,6 +107,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         if (conditionId != null) return '/condition/$conditionId';
         final agreementId = n.agreementId;
         return agreementId == null ? null : '/agreement/$agreementId';
+      case NotificationType.walletCredited:
+      case NotificationType.withdrawalCompleted:
+      case NotificationType.withdrawalFailed:
+        return '/wallet';
       case NotificationType.general:
         return null;
     }

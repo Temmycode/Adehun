@@ -1,13 +1,18 @@
 import 'package:adehun_mvp/data/interceptors/api_response_interceptor.dart';
 import 'package:adehun_mvp/data/interceptors/auth_interceptor.dart';
+import 'package:adehun_mvp/data/interceptors/idempotency_interceptor.dart';
 import 'package:adehun_mvp/data/local/local_data_cache_manager.dart';
 import 'package:adehun_mvp/data/local/preferences_service.dart';
+import 'package:adehun_mvp/data/repositories/dispute_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/transaction_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/wallet_repo_impl.dart';
+import 'package:adehun_mvp/data/services/cloudinary_upload_service.dart';
+import 'package:adehun_mvp/data/services/dispute_api_service.dart';
 import 'package:adehun_mvp/data/services/paystack_service.dart';
 import 'package:adehun_mvp/data/services/transaction_api_service.dart';
 import 'package:adehun_mvp/data/services/wallet_api_service.dart';
 import 'package:adehun_mvp/data/services/websocket_service.dart';
+import 'package:adehun_mvp/domain/dispute_repository.dart';
 import 'package:adehun_mvp/domain/transaction_repository.dart';
 import 'package:adehun_mvp/domain/wallet_repository.dart';
 import 'package:adehun_mvp/router/app_router.dart';
@@ -97,6 +102,7 @@ Dio dio(Ref ref) {
   final authInterceptor = ref.watch(authInterceptorProvider);
   dio.interceptors.add(ApiResponseInterceptor());
   dio.interceptors.add(authInterceptor);
+  dio.interceptors.add(IdempotencyInterceptor());
   dio.interceptors.add(
     LogInterceptor(
       requestBody: true,
@@ -126,6 +132,19 @@ AgreementApiService agreementService(Ref ref) {
 ConditionApiService conditionService(Ref ref) {
   final dio = ref.watch(dioProvider);
   return ConditionApiService(dio);
+}
+
+@riverpod
+DisputeApiService disputeService(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return DisputeApiService(dio);
+}
+
+/// Deliberately NOT given [dioProvider] — that Dio carries our auth and
+/// logging interceptors, which have no business on a Cloudinary upload.
+@riverpod
+CloudinaryUploadService cloudinaryUploadService(Ref ref) {
+  return CloudinaryUploadService();
 }
 
 @riverpod
@@ -179,6 +198,12 @@ AgreementRepository agreementRepository(Ref ref) {
 ConditionRepository conditionRepository(Ref ref) {
   final conditionService = ref.watch(conditionServiceProvider);
   return ConditionRepoImpl(conditionService);
+}
+
+@riverpod
+DisputeRepository disputeRepository(Ref ref) {
+  final disputeService = ref.watch(disputeServiceProvider);
+  return DisputeRepoImpl(disputeService);
 }
 
 @riverpod

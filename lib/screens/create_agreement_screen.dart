@@ -1,4 +1,5 @@
 import 'package:adehun_mvp/controllers/agreement_controller.dart';
+import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/controllers/fund_wallet_controller.dart';
 import 'package:adehun_mvp/controllers/wallet_data_controller.dart';
 import 'package:adehun_mvp/usecases/params/create_agreement_params.dart';
@@ -84,6 +85,33 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
         ) ??
         0;
 
+    final invite = _inviteController.text.trim();
+
+    // The API wants a real email per condition, so both sides have to resolve
+    // to one. Conditions on yourself use your own account email — sending an
+    // empty string here was rejected with a 422.
+    final myEmail = ref.read(authControllerProvider).userData?.email?.trim();
+    if (myEmail == null || myEmail.isEmpty) {
+      _showMessage("Couldn't read your account email. Please sign in again.");
+      return;
+    }
+
+    // The invite field accepts a phone number, but `required_from_email` only
+    // accepts an email — so a phone invite can't carry conditions for the
+    // other party. Checked before the top-up below so a request that can never
+    // succeed doesn't charge the user first.
+    final inviteIsEmail = _emailRegex.hasMatch(invite);
+    final hasConditionForOther = _conditions.any(
+      (c) => (c['requiredFrom'] as Map<String, dynamic>)['id'] != 'me',
+    );
+    if (hasConditionForOther && !inviteIsEmail) {
+      _showMessage(
+        'Invite the other party by email address — conditions required from '
+        'them need an email, not a phone number.',
+      );
+      return;
+    }
+
     // A depositor has to cover the escrow up front, so top up the shortfall
     // before creating anything.
     if (_role == 'depositor') {
@@ -116,7 +144,7 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
     }
 
     final params = CreateAgreementParams(
-      otherParticipantEmailOrPhone: _inviteController.text.trim(),
+      otherParticipantEmailOrPhone: invite,
       role: _role,
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
@@ -127,7 +155,7 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
         return CreateConditionParams(
           title: c['title'] as String,
           description: c['description'] as String,
-          requiredFromEmail: isMe ? '' : _inviteController.text.trim(),
+          requiredFromEmail: isMe ? myEmail : invite,
         );
       }).toList(),
     );

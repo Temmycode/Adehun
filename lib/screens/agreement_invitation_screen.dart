@@ -188,9 +188,7 @@ class AgreementInvitationScreen extends ConsumerWidget {
                         : () {
                             if (agreement.id == null) return;
 
-                            ref
-                                .read(agreementControllerProvider.notifier)
-                                .acceptAgreement(agreement.id!);
+                            _acceptAndFund(context, ref, agreement.id!);
                           },
                     child: isAccepting
                         ? const SizedBox(
@@ -211,6 +209,56 @@ class AgreementInvitationScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Accepts, then moves the escrow funds in.
+  ///
+  /// The other accept entry point (the agreement detail screen) funds too — a
+  /// depositor accepting from here would otherwise end up with an active but
+  /// empty escrow and no prompt to fill it.
+  ///
+  /// [AgreementController.fundAgreement] no-ops for a beneficiary, so this is
+  /// safe to call regardless of which side the invitee is on.
+  Future<void> _acceptAndFund(
+    BuildContext context,
+    WidgetRef ref,
+    String agreementId,
+  ) async {
+    final notifier = ref.read(agreementControllerProvider.notifier);
+
+    final accepted = await notifier.acceptAgreement(agreementId);
+    if (!context.mounted) return;
+
+    if (!accepted) {
+      _showSnack(context, "Couldn't accept the agreement. Please try again.");
+      return;
+    }
+
+    await notifier.fundAgreement(agreementId);
+    if (!context.mounted) return;
+
+    // Only set when funding was attempted and genuinely failed; a beneficiary
+    // leaves it null.
+    final error = ref.read(agreementControllerProvider).value?.fundError;
+    if (error == null) return;
+
+    _showSnack(context, error);
+    notifier.clearFundError();
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
   }
 
   String _formatAmount(double amount) {

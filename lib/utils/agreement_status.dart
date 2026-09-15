@@ -1,3 +1,11 @@
+/// Normalises `AgreementResponse.status` for display and branching.
+///
+/// The API's `AgreementStatus` enum is exactly: pending, active, disputed,
+/// completed, cancelled, refunded — sent lowercase. [draft] is NOT among them;
+/// the draft branch in the agreement detail screen is unreachable today.
+///
+/// The extra aliases below (PENDING_ACCEPTANCE, IN_PROGRESS, MET, …) are not
+/// values the server sends. They are kept only as defensive mappings.
 class AgreementStatusHelper {
   static const String draft = 'DRAFT';
   static const String pending = 'PENDING';

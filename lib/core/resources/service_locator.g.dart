@@ -409,6 +409,109 @@ final class ConditionServiceProvider
 
 String _$conditionServiceHash() => r'20b08b81aa0e22e06c2ad79ba56bc7cd0848ccf0';
 
+@ProviderFor(disputeService)
+final disputeServiceProvider = DisputeServiceProvider._();
+
+final class DisputeServiceProvider
+    extends
+        $FunctionalProvider<
+          DisputeApiService,
+          DisputeApiService,
+          DisputeApiService
+        >
+    with $Provider<DisputeApiService> {
+  DisputeServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'disputeServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$disputeServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<DisputeApiService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DisputeApiService create(Ref ref) {
+    return disputeService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DisputeApiService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DisputeApiService>(value),
+    );
+  }
+}
+
+String _$disputeServiceHash() => r'68aa54fdf07f63b351887c4884f1a9728b7ceb33';
+
+/// Deliberately NOT given [dioProvider] — that Dio carries our auth and
+/// logging interceptors, which have no business on a Cloudinary upload.
+
+@ProviderFor(cloudinaryUploadService)
+final cloudinaryUploadServiceProvider = CloudinaryUploadServiceProvider._();
+
+/// Deliberately NOT given [dioProvider] — that Dio carries our auth and
+/// logging interceptors, which have no business on a Cloudinary upload.
+
+final class CloudinaryUploadServiceProvider
+    extends
+        $FunctionalProvider<
+          CloudinaryUploadService,
+          CloudinaryUploadService,
+          CloudinaryUploadService
+        >
+    with $Provider<CloudinaryUploadService> {
+  /// Deliberately NOT given [dioProvider] — that Dio carries our auth and
+  /// logging interceptors, which have no business on a Cloudinary upload.
+  CloudinaryUploadServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cloudinaryUploadServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cloudinaryUploadServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<CloudinaryUploadService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CloudinaryUploadService create(Ref ref) {
+    return cloudinaryUploadService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CloudinaryUploadService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CloudinaryUploadService>(value),
+    );
+  }
+}
+
+String _$cloudinaryUploadServiceHash() =>
+    r'b517b7bc75c6b28351e1e75b1e162a311d475cf5';
+
 @ProviderFor(statsService)
 final statsServiceProvider = StatsServiceProvider._();
 
@@ -825,6 +928,53 @@ final class ConditionRepositoryProvider
 
 String _$conditionRepositoryHash() =>
     r'23c2526c0b5063d619d7b9904e2615163b65f849';
+
+@ProviderFor(disputeRepository)
+final disputeRepositoryProvider = DisputeRepositoryProvider._();
+
+final class DisputeRepositoryProvider
+    extends
+        $FunctionalProvider<
+          DisputeRepository,
+          DisputeRepository,
+          DisputeRepository
+        >
+    with $Provider<DisputeRepository> {
+  DisputeRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'disputeRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$disputeRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<DisputeRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DisputeRepository create(Ref ref) {
+    return disputeRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DisputeRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DisputeRepository>(value),
+    );
+  }
+}
+
+String _$disputeRepositoryHash() => r'360135bcbbafdf258a3139d23851d5d6d90df5c2';
 
 @ProviderFor(statsRepository)
 final statsRepositoryProvider = StatsRepositoryProvider._();

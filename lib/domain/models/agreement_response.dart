@@ -23,6 +23,13 @@ class AgreementResponse {
   @JsonKey(defaultValue: false)
   final bool currentUserAccepted;
 
+  /// Whether the depositor's money has been moved into escrow.
+  ///
+  /// The beneficiary cannot be paid until this is true — release runs against
+  /// the escrow balance, not the depositor's wallet.
+  @JsonKey(defaultValue: false)
+  final bool isFunded;
+
   const AgreementResponse({
     this.id,
     this.title,
@@ -35,7 +42,38 @@ class AgreementResponse {
     this.conditionCount = 0,
     this.conditionsMetCount = 0,
     this.currentUserAccepted = false,
+    this.isFunded = false,
   });
+
+  AgreementResponse copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? amount,
+    String? status,
+    Participant? depositor,
+    Participant? beneficiary,
+    DateTime? createdAt,
+    int? conditionCount,
+    int? conditionsMetCount,
+    bool? currentUserAccepted,
+    bool? isFunded,
+  }) {
+    return AgreementResponse(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      status: status ?? this.status,
+      depositor: depositor ?? this.depositor,
+      beneficiary: beneficiary ?? this.beneficiary,
+      createdAt: createdAt ?? this.createdAt,
+      conditionCount: conditionCount ?? this.conditionCount,
+      conditionsMetCount: conditionsMetCount ?? this.conditionsMetCount,
+      currentUserAccepted: currentUserAccepted ?? this.currentUserAccepted,
+      isFunded: isFunded ?? this.isFunded,
+    );
+  }
 
   factory AgreementResponse.fromJson(Map<String, dynamic> json) =>
       _$AgreementResponseFromJson(json);

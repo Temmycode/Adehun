@@ -19,9 +19,9 @@ AssetsResponse _$AssetsResponseFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$AssetsResponseToJson(AssetsResponse instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'uploader': instance.uploader,
+      'uploader': instance.uploader.toJson(),
       'is_approved': instance.isApproved,
-      'file': instance.file,
+      'file': instance.file.toJson(),
     };
 
 UploaderResponse _$UploaderResponseFromJson(Map<String, dynamic> json) =>
@@ -39,7 +39,7 @@ Map<String, dynamic> _$UploaderResponseToJson(UploaderResponse instance) =>
       'agreement_id': instance.agreementId,
       'role': instance.role,
       'status': instance.status,
-      'user': instance.user,
+      'user': instance.user.toJson(),
     };
 
 FileResponse _$FileResponseFromJson(Map<String, dynamic> json) => FileResponse(

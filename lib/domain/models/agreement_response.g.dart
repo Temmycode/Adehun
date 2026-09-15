@@ -25,6 +25,7 @@ AgreementResponse _$AgreementResponseFromJson(Map<String, dynamic> json) =>
       conditionCount: (json['condition_count'] as num?)?.toInt() ?? 0,
       conditionsMetCount: (json['conditions_met_count'] as num?)?.toInt() ?? 0,
       currentUserAccepted: json['current_user_accepted'] as bool? ?? false,
+      isFunded: json['is_funded'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$AgreementResponseToJson(AgreementResponse instance) =>
@@ -40,4 +41,5 @@ Map<String, dynamic> _$AgreementResponseToJson(AgreementResponse instance) =>
       'condition_count': instance.conditionCount,
       'conditions_met_count': instance.conditionsMetCount,
       'current_user_accepted': instance.currentUserAccepted,
+      'is_funded': instance.isFunded,
     };

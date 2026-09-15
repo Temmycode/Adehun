@@ -40,6 +40,16 @@ class AcceptAgreementError extends AppException {
     : super("Couldn't accept the agreement. Please try again.");
 }
 
+class CancelAgreementError extends AppException {
+  const CancelAgreementError()
+    : super("Couldn't cancel the agreement. Please try again.");
+}
+
+class FundAgreementError extends AppException {
+  const FundAgreementError()
+    : super("Couldn't move the funds into escrow. Please try again.");
+}
+
 class GetAgreementError extends AppException {
   const GetAgreementError() : super("Couldn't load that agreement.");
 }
@@ -92,6 +102,20 @@ class RejectConditionAssetError extends AppException {
 
 class GetConditionAssetUploadSignatureError extends AppException {
   const GetConditionAssetUploadSignatureError()
+    : super("Couldn't start the upload. Please try again.");
+}
+
+class RaiseDisputeError extends AppException {
+  const RaiseDisputeError()
+    : super("Couldn't raise the dispute. Please try again.");
+}
+
+class GetDisputesError extends AppException {
+  const GetDisputesError() : super("Couldn't load disputes.");
+}
+
+class GetDisputeUploadSignatureError extends AppException {
+  const GetDisputeUploadSignatureError()
     : super("Couldn't start the upload. Please try again.");
 }
 

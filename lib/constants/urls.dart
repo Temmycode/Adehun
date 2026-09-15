@@ -12,6 +12,8 @@ const String getAllUserAgreementUrl = '/agreements/';
 const String addAgreementUrl = '/agreements/';
 const String getInvitedAgreementUrl = '/agreements/invited';
 const String acceptAgreementUrl = '/agreements/{agreement_id}/accept';
+const String fundAgreementUrl = '/agreements/{agreement_id}/fund';
+const String cancelAgreementUrl = '/agreements/{agreement_id}/cancel';
 const String getAgreementUrl = '/agreements/{agreement_id}/';
 const String getAgreementInvitationUrl =
     '/agreements/{agreement_id}/invitation';
@@ -31,6 +33,12 @@ const String approveConditionAssetUrl =
     '/conditions/{condition_id}/assets/{asset_id}/approve';
 const String rejectConditionAssetUrl =
     '/conditions/{condition_id}/assets/{asset_id}/reject';
+
+/// DISPUTE ENDPOINTS
+const String getDisputeUploadSignatureUrl =
+    '/agreements/{agreement_id}/disputes/upload-signature';
+const String raiseDisputeUrl = '/agreements/{agreement_id}/disputes';
+const String getAgreementDisputesUrl = '/agreements/{agreement_id}/disputes';
 
 /// STATISTICS ENDPOINTS
 const String getUserAgreementsStatsUrl = '/stats/agreements/';
