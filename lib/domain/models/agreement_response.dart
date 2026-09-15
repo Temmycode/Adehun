@@ -88,7 +88,7 @@ class AgreementResponse {
       id: tempId,
       title: params.title,
       description: params.description,
-      amount: params.amount.toString(),
+      amount: params.amount,
       status: "pending",
     );
   }

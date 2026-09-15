@@ -1,14 +1,13 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true />
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Adehun Mvp</string>
+	<string>Adehun</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,11 +25,11 @@
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
-	<true />
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
-		<false />
+		<false/>
 		<key>UISceneConfigurations</key>
 		<dict>
 			<key>UIWindowSceneSessionRoleApplication</key>
@@ -49,7 +48,7 @@
 		</dict>
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true />
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -57,8 +56,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -67,26 +64,58 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Deep links are handled by go_router; the Flutter engine must not
+	     pass them to the platform first. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<!-- Google Sign-In: values must be on one line (plist strings keep
+	     whitespace verbatim, which made the previous scheme unmatchable). -->
 	<key>GIDClientID</key>
-    <string>
-        332730445451-9unpdp0c8dp5sq7qcdsr28km7amhb39f.apps.googleusercontent.com
-    </string>
-    <key>CFBundleURLTypes</key>
-    <array>
+	<string>332730445451-9unpdp0c8dp5sq7qcdsr28km7amhb39f.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>google-sign-in</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.332730445451-9unpdp0c8dp5sq7qcdsr28km7amhb39f</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>adehun-deep-link</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>adehun</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Only the loopback exceptions needed to run against a local API in
+	     the simulator. Production traffic is HTTPS only. -->
+	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>CFBundleTypeRole</key>
-		<string>Editor</string>
-		<key>CFBundleURLSchemes</key>
-		<array>
-			<!-- TODO Replace this value: -->
-			<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
-			<string>
-                com.googleusercontent.apps.332730445451-9unpdp0c8dp5sq7qcdsr28km7amhb39f
-            </string>
-		</array>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+			<key>127.0.0.1</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
-    </array>
-    <!-- End of the Google Sign-in Section -->
-
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Adehun needs access to your photos to upload proof of work and a profile picture.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Adehun uses the camera to capture proof of work and a profile picture.</string>
 </dict>
 </plist>

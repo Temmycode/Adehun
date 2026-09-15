@@ -1,6 +1,9 @@
+import 'package:adehun_mvp/controllers/agreement_controller.dart';
 import 'package:adehun_mvp/controllers/assets_controller.dart';
 import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/controllers/condition_controller.dart';
+import 'package:adehun_mvp/usecases/params/reject_condition_params.dart';
+import 'package:adehun_mvp/utils/agreement_status.dart';
 import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/condition_response.dart';
 import 'package:adehun_mvp/domain/states/condition_state.dart';
@@ -50,6 +53,98 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
   void initState() {
     super.initState();
     getAssets();
+  }
+
+  /// Only the depositor (the payer) signs off on conditions, and only while
+  /// the agreement is active and the condition is still open.
+  bool _canDecide(String status) {
+    final email = ref.read(authControllerProvider).userData?.email;
+    final agreement = ref
+        .read(agreementControllerProvider)
+        .maybeWhen(
+          data: (s) => s.agreements
+              .where((a) => a.id == widget.agreementId)
+              .firstOrNull,
+          orElse: () => null,
+        );
+    if (email == null || agreement == null) return false;
+    final isDepositor = agreement.depositor?.email == email;
+    final isActive = AgreementStatusHelper.isActiveLike(agreement.status);
+    const decidable = {'pending', 'submitted', 'rejected'};
+    return isDepositor && isActive && decidable.contains(status.toLowerCase());
+  }
+
+  Future<void> _approve() async {
+    final notifier = ref.read(conditionControllerProvider.notifier);
+    await notifier.approveCondition(widget.conditionId);
+    if (!mounted) return;
+    final error = ref.read(conditionControllerProvider).errorMessage;
+    if (error != null) {
+      _snack(error, isError: true);
+      notifier.clearError();
+      return;
+    }
+    _snack('Condition approved');
+    // The agreement may have completed (auto-release); refresh the list.
+    ref.read(agreementControllerProvider.notifier).refresh();
+  }
+
+  Future<void> _reject(BuildContext context) async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reject condition'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Tell them what needs to change',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, controller.text.trim()),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+    if (reason == null || reason.length < 3 || !mounted) return;
+
+    final notifier = ref.read(conditionControllerProvider.notifier);
+    await notifier.rejectCondition(
+      RejectConditionParams(
+        conditionId: widget.conditionId,
+        rejectedReason: reason,
+      ),
+    );
+    if (!mounted) return;
+    final error = ref.read(conditionControllerProvider).errorMessage;
+    if (error != null) {
+      _snack(error, isError: true);
+      notifier.clearError();
+      return;
+    }
+    _snack('Condition rejected');
+  }
+
+  void _snack(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? AppColors.error : null,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 
   Future<void> _refreshConditionDetails() async {
@@ -271,14 +366,17 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
                           );
                         }),
 
-                      // Approve/Reject buttons for review
-                      if (status == 'IN_PROGRESS' && assets.isNotEmpty) ...[
+                      // The depositor decides on a condition while the
+                      // agreement is active. The beneficiary only uploads.
+                      if (_canDecide(status)) ...[
                         const SizedBox(height: 24),
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {},
+                                onPressed: conditionState.isRejecting
+                                    ? null
+                                    : () => _reject(context),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.error,
                                   side: const BorderSide(
@@ -295,12 +393,18 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: () {},
+                                onPressed: conditionState.isApproving
+                                    ? null
+                                    : _approve,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.success,
                                 ),
                                 icon: const Icon(Iconsax.tick_circle, size: 18),
-                                label: const Text('Approve'),
+                                label: Text(
+                                  conditionState.isApproving
+                                      ? 'Approving…'
+                                      : 'Approve',
+                                ),
                               ),
                             ),
                           ],

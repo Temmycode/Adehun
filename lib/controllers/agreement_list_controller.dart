@@ -2,19 +2,20 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:adehun_mvp/constants/urls.dart';
+import 'package:adehun_mvp/controllers/dispute_controller.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/core/resources/service_locator.dart';
+import 'package:adehun_mvp/data/services/websocket_service.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:adehun_mvp/domain/states/agreement_state.dart';
-import 'package:adehun_mvp/data/services/websocket_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'agreement_list_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class AgreementListController extends _$AgreementListController {
-  bool _isConnected = false;
   StreamSubscription<Map<String, dynamic>>? _subscription;
+  StreamSubscription<bool>? _connection;
 
   @override
   Future<AgreementState> build() async {
@@ -23,7 +24,7 @@ class AgreementListController extends _$AgreementListController {
 
     final token = await ref.read(tokenStorageProvider).getAccessToken();
     if (token != null) {
-      await _connectSocket(websocketService, token);
+      _connectSocket(websocketService, token);
     }
 
     final dataState = await ref
@@ -44,7 +45,7 @@ class AgreementListController extends _$AgreementListController {
       final dataState = await ref
           .read(agreementRepositoryProvider)
           .getAllUserAgreements();
-    
+
       if (dataState is DataSuccess && dataState.data != null) {
         state = AsyncData(AgreementState(agreements: dataState.data!));
         return;
@@ -56,13 +57,28 @@ class AgreementListController extends _$AgreementListController {
     state = const AsyncData(AgreementState());
   }
 
+  /// Silent refetch used on socket reconnect: no loading flicker.
+  Future<void> _reconcile() async {
+    try {
+      final dataState = await ref
+          .read(agreementRepositoryProvider)
+          .getAllUserAgreements();
+      if (dataState is DataSuccess && dataState.data != null) {
+        final current = state.value ?? const AgreementState();
+        state = AsyncData(current.copyWith(agreements: dataState.data));
+      }
+    } catch (err) {
+      log('Agreement reconcile failed: $err');
+    }
+  }
+
   Future<void> getAgreement(String agreementId) async {
     final websocketService = ref.read(agreementWebsocketServiceProvider);
 
-    if (!_isConnected) {
+    if (!websocketService.isConnected) {
       final token = await ref.read(tokenStorageProvider).getAccessToken();
       if (token == null) return;
-      await _connectSocket(websocketService, token);
+      _connectSocket(websocketService, token);
     }
 
     try {
@@ -70,45 +86,44 @@ class AgreementListController extends _$AgreementListController {
         'type': 'get_agreement',
         'agreement_id': agreementId,
       });
-    } catch (err, stk) {
-      log('Failed to send get_agreement request: $err', stackTrace: stk);
+    } catch (err) {
+      // Socket not up yet; the reconnect handler reconciles over HTTP.
+      log('get_agreement not sent: $err');
     }
   }
 
-  Future<void> _connectSocket(
-    AgreementWebsocketService websocketService,
-    String token,
-  ) async {
-    if (_isConnected) return;
-
-    try {
-      websocketService.connect(_buildWebsocketUrl(agreementWebsocketUrl, token));
-      _isConnected = true;
-      _subscription = websocketService.agreementStream.listen(
-        _handleMessage,
-        onError: (err, stk) {
-          log('Agreement websocket error: $err', stackTrace: stk);
-        },
-        onDone: () {
-          _isConnected = false;
-        },
-      );
-    } catch (err, stk) {
-      _isConnected = false;
-      log('Agreement websocket connect failed: $err', stackTrace: stk);
+  void _connectSocket(AgreementWebsocketService websocketService, String token) {
+    _subscription ??= websocketService.agreementStream.listen(_handleMessage);
+    _connection ??= websocketService.connectionState.listen((up) {
+      if (up) _reconcile();
+    });
+    if (!websocketService.isConnected) {
+      websocketService.connect(websocketUrl(agreementWebsocketUrl, token));
     }
   }
 
   void _handleMessage(Map<String, dynamic> message) {
-    final type = message['type'] as String?;
-    if (type != 'agreement') return;
-
-    final agreementPayload = message['agreement'];
-    if (agreementPayload is! Map<String, dynamic>) return;
-
-    final agreement = AgreementResponse.fromJson(agreementPayload);
-    final currentState = state.value ?? const AgreementState();
-    state = AsyncData(_mergeAgreement(currentState, agreement));
+    switch (message['type']) {
+      case 'agreement':
+        final payload = message['agreement'];
+        if (payload is! Map<String, dynamic>) return;
+        final agreement = AgreementResponse.fromJson(payload);
+        final currentState = state.value ?? const AgreementState();
+        state = AsyncData(_mergeAgreement(currentState, agreement));
+      case 'dispute':
+        // A dispute frame precedes the agreement frame; refresh the dispute
+        // list so an open detail screen shows the new state.
+        final agreementId = message['agreement_id'];
+        if (agreementId is String) {
+          ref.read(disputeControllerProvider.notifier).refresh(agreementId);
+        }
+      case 'error':
+        log('agreement socket error: ${message['message']}');
+      case 'connected':
+        break;
+      default:
+        break;
+    }
   }
 
   AgreementState _mergeAgreement(
@@ -130,17 +145,11 @@ class AgreementListController extends _$AgreementListController {
     );
   }
 
-  String _buildWebsocketUrl(String path, String token) {
-    final socketBase = baseUrl.replaceFirstMapped(
-      RegExp(r'^https?://'),
-      (match) => match.group(0) == 'https://' ? 'wss://' : 'ws://',
-    );
-    return '$socketBase$path?token=$token';
-  }
-
   void _dispose() {
     _subscription?.cancel();
+    _subscription = null;
+    _connection?.cancel();
+    _connection = null;
     ref.read(agreementWebsocketServiceProvider).close();
-    _isConnected = false;
   }
 }

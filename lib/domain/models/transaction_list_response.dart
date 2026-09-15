@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-// Import your existing models (adjust the paths as needed)
 import 'transaction.dart';
 import 'transaction_summary.dart';
 
@@ -12,14 +11,16 @@ class TransactionListResponse {
   final int total;
   final int skip;
   final int limit;
-  final TransactionSummary summary;
+
+  /// Nullable on the wire (`exclude_none` drops it when the server has none).
+  final TransactionSummary? summary;
 
   const TransactionListResponse({
     required this.transactions,
     required this.total,
     required this.skip,
     required this.limit,
-    required this.summary,
+    this.summary,
   });
 
   factory TransactionListResponse.fromJson(Map<String, dynamic> json) =>

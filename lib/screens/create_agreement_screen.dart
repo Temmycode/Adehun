@@ -80,9 +80,7 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
     }
 
     final amount =
-        int.tryParse(
-          _amountController.text.trim().replaceAll(',', '').split('.').first,
-        ) ??
+        double.tryParse(_amountController.text.trim().replaceAll(',', '')) ??
         0;
 
     final invite = _inviteController.text.trim();
@@ -148,7 +146,7 @@ class _CreateAgreementScreenState extends ConsumerState<CreateAgreementScreen> {
       role: _role,
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
-      amount: amount,
+      amount: CreateAgreementParams.formatAmount(amount),
       conditions: _conditions.map((c) {
         final requiredFrom = c['requiredFrom'] as Map<String, dynamic>;
         final isMe = requiredFrom['id'] == 'me';

@@ -8,7 +8,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
-import '../constants/mock_data.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -16,6 +15,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
+    final user = ref.watch(authControllerProvider).userData;
 
     String generateInitials(String username) {
       return username.split(' ').map((name) => name[0]).join('');
@@ -78,96 +78,10 @@ class ProfileScreen extends ConsumerWidget {
                             color: colors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        // Tier badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.warningLight,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Iconsax.star_1,
-                                color: AppColors.accent,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Free Tier',
-                                style: AppTextStyles.labelMedium.copyWith(
-                                  color: AppColors.accentDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   );
                 },
-              ),
-              const SizedBox(height: 16),
-              // Upgrade banner
-              GestureDetector(
-                onTap: () => context.push('/upgrade'),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF3B4BF9), Color(0xFF8B6CF7)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Iconsax.flash_1,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Upgrade to Premium',
-                              style: AppTextStyles.labelLarge.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              'Unlimited agreements & more',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: Colors.white.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(
-                        CupertinoIcons.chevron_forward,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ],
-                  ),
-                ),
               ),
               const SizedBox(height: 24),
               // Settings sections
@@ -177,13 +91,13 @@ class ProfileScreen extends ConsumerWidget {
                   _SettingsItem(
                     icon: Iconsax.user_copy,
                     title: 'Edit Profile',
-                    onTap: () {},
+                    onTap: () => context.push('/edit-profile'),
                   ),
                   _SettingsItem(
                     icon: Iconsax.call_copy,
                     title: 'Phone Number',
-                    trailing: MockData.userPhone,
-                    onTap: () {},
+                    trailing: user?.phoneNumber ?? 'Not set',
+                    onTap: () => context.push('/edit-profile'),
                   ),
                   _SettingsItem(
                     icon: Iconsax.notification_copy,
@@ -198,20 +112,38 @@ class ProfileScreen extends ConsumerWidget {
                 items: [
                   _ThemeSettingsItem(),
                   _SettingsItem(
-                    icon: Iconsax.global_copy,
-                    title: 'Language',
-                    trailing: 'English',
-                    onTap: () {},
+                    icon: Iconsax.bank_copy,
+                    title: 'Bank Accounts',
+                    onTap: () => context.push('/bank-accounts'),
                   ),
                   _SettingsItem(
                     icon: Iconsax.lock_copy,
                     title: 'Privacy & Security',
-                    onTap: () {},
+                    onTap: () => _showInfoSheet(
+                      context,
+                      title: 'Privacy & Security',
+                      body:
+                          'Your session is protected with short-lived tokens '
+                          'stored in the device keychain. Money never moves '
+                          'without a verified payment or your explicit '
+                          'approval, and every escrow movement is recorded '
+                          'in your transaction history.\n\n'
+                          'Sign out on shared devices, and contact support '
+                          'immediately if you notice activity you do not '
+                          'recognise.',
+                    ),
                   ),
                   _SettingsItem(
                     icon: Iconsax.info_circle_copy,
                     title: 'Help & Support',
-                    onTap: () {},
+                    onTap: () => _showInfoSheet(
+                      context,
+                      title: 'Help & Support',
+                      body:
+                          'Email support@adehun.app with your agreement '
+                          'reference and we will get back to you within one '
+                          'business day.',
+                    ),
                   ),
                 ],
               ),
@@ -624,4 +556,42 @@ class _SettingsItem extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showInfoSheet(
+  BuildContext context, {
+  required String title,
+  required String body,
+}) {
+  final colors = context.colors;
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: colors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (sheetContext) => Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTextStyles.h2.copyWith(color: colors.textPrimary)),
+          const SizedBox(height: 12),
+          Text(
+            body,
+            style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(sheetContext),
+              child: const Text('Got it'),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

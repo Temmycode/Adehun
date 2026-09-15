@@ -26,6 +26,10 @@ AgreementCreateResponse _$AgreementCreateResponseFromJson(
   conditions: (json['conditions'] as List<dynamic>?)
       ?.map((e) => ConditionResponse.fromJson(e as Map<String, dynamic>))
       .toList(),
+  conditionCount: (json['condition_count'] as num?)?.toInt() ?? 0,
+  conditionsMetCount: (json['conditions_met_count'] as num?)?.toInt() ?? 0,
+  currentUserAccepted: json['current_user_accepted'] as bool? ?? false,
+  isFunded: json['is_funded'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$AgreementCreateResponseToJson(
@@ -42,4 +46,8 @@ Map<String, dynamic> _$AgreementCreateResponseToJson(
   ),
   'created_at': instance.createdAt?.toIso8601String(),
   'conditions': instance.conditions?.map((e) => e.toJson()).toList(),
+  'condition_count': instance.conditionCount,
+  'conditions_met_count': instance.conditionsMetCount,
+  'current_user_accepted': instance.currentUserAccepted,
+  'is_funded': instance.isFunded,
 };

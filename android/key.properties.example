@@ -1,0 +1,8 @@
+# Copy to android/key.properties (gitignored) and fill in.
+# Create the keystore once:
+#   keytool -genkey -v -keystore ~/adehun-release.jks -keyalg RSA -keysize 2048 \
+#     -validity 10000 -alias adehun
+storeFile=/absolute/path/to/adehun-release.jks
+storePassword=CHANGE_ME
+keyAlias=adehun
+keyPassword=CHANGE_ME

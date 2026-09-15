@@ -12,6 +12,15 @@ String handleApiError(ApiError error) {
     case 'FORBIDDEN':
       return 'You do not have permission to do that.';
 
+    case 'WITHDRAWALS_DISABLED':
+      return 'Withdrawals are not available yet. We will let you know when '
+          'they open.';
+
+    case 'INSUFFICIENT_FUNDS':
+    case 'INSUFFICIENT_ESCROW_BALANCE':
+    case 'BAD_REQUEST':
+      return error.message;
+
     case 'NOT_FOUND':
       return 'The requested item could not be found.';
 

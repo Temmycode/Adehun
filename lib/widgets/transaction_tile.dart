@@ -109,6 +109,12 @@ class TransactionTile extends StatelessWidget {
 
   _TypeVisuals _visualsFor(TransactionType type, AppColorScheme colors) =>
       switch (type) {
+        TransactionType.unknown => (
+          icon: Iconsax.receipt_2_copy,
+          foreground: AppColors.primary,
+          background: colors.surfaceVariant,
+          label: 'Transaction',
+        ),
         TransactionType.deposit => (
           icon: Iconsax.wallet_add_copy,
           foreground: AppColors.success,
@@ -176,6 +182,12 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final (String label, Color fg, Color bg, IconData icon) = switch (status) {
+      TransactionStatus.unknown => (
+        'Unknown',
+        colors.textSecondary,
+        colors.surfaceVariant,
+        Iconsax.info_circle_copy,
+      ),
       TransactionStatus.pending => (
         'Pending',
         AppColors.warning,

@@ -24,4 +24,7 @@ abstract class AuthApiService {
   Future<HttpResponse<LoginResponse>> registerFromInvite(
     @Body() Map<String, dynamic> body,
   );
+
+  @POST(logoutUrl)
+  Future<HttpResponse<dynamic>> logout(@Body() Map<String, dynamic> body);
 }

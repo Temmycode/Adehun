@@ -7,10 +7,10 @@ part of 'wallet_data.dart';
 // **************************************************************************
 
 WalletData _$WalletDataFromJson(Map<String, dynamic> json) => WalletData(
-  type: json['type'] as String,
-  availableBalance: (json['available_balance'] as num?)?.toDouble() ?? 0.0,
-  escrowBalance: (json['escrow_balance'] as num?)?.toDouble() ?? 0.0,
-  totalBalance: (json['total_balance'] as num?)?.toDouble() ?? 0.0,
+  type: json['type'] as String? ?? 'WALLET_STATE',
+  availableBalance: _toDouble(json['available_balance']),
+  escrowBalance: _toDouble(json['escrow_balance']),
+  totalBalance: _toDouble(json['total_balance']),
   currency: json['currency'] as String? ?? 'NGN',
 );
 

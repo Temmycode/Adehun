@@ -42,7 +42,7 @@ class AgreementRepoImpl implements AgreementRepository {
     required String role,
     required String title,
     required String description,
-    required int amount,
+    required String amount,
     required List<Map<String, dynamic>> conditions,
   }) async {
     try {

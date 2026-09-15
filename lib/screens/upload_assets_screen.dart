@@ -24,11 +24,13 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
   final List<FileResponse> _selectedFiles = [];
 
   Future<void> _pickFiles() async {
-    // Mock file selection
-    FilePickerResult? result = await FilePicker.pickFiles(allowMultiple: true);
+    final result = await FilePicker.pickFiles(allowMultiple: true);
 
     if (result == null) {
-      // ! Show snackbar
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('No files selected')));
       return;
     }
 
@@ -39,9 +41,20 @@ class _UploadAssetsScreenState extends State<UploadAssetsScreen> {
   }
 
   Future<void> _uploadAssetFiles(WidgetRef ref) async {
-    await ref
+    final ok = await ref
         .read(assetsControllerProvider.notifier)
         .uploadConditionAssets(widget.conditionId, _selectedFiles);
+    if (!mounted) return;
+    if (ok) {
+      context.pop();
+      return;
+    }
+    final error = ref.read(assetsControllerProvider).errorMessage;
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(error)));
+    }
   }
 
   @override

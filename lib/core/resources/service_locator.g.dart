@@ -232,7 +232,7 @@ final class AuthInterceptorProvider
   }
 }
 
-String _$authInterceptorHash() => r'2d07d74c3e4f4be4ecb6388aebd9613c836025a3';
+String _$authInterceptorHash() => r'847bd05fa0fec1275f94f3cefa4e79efee48d660';
 
 @ProviderFor(dio)
 final dioProvider = DioProvider._();
@@ -272,7 +272,7 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$dioHash() => r'f833d811aa70b91a760afcee952f90edcaf7e4b2';
+String _$dioHash() => r'ddeb2d8ea639614f99d891b88114da594d330850';
 
 @ProviderFor(authService)
 final authServiceProvider = AuthServiceProvider._();
@@ -695,6 +695,143 @@ final class TransactionServiceProvider
 
 String _$transactionServiceHash() =>
     r'3964539ad1fda6aea369a2cc0d607e5069c4da08';
+
+@ProviderFor(bankAccountApiService)
+final bankAccountApiServiceProvider = BankAccountApiServiceProvider._();
+
+final class BankAccountApiServiceProvider
+    extends
+        $FunctionalProvider<
+          BankAccountApiService,
+          BankAccountApiService,
+          BankAccountApiService
+        >
+    with $Provider<BankAccountApiService> {
+  BankAccountApiServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'bankAccountApiServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$bankAccountApiServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<BankAccountApiService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BankAccountApiService create(Ref ref) {
+    return bankAccountApiService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BankAccountApiService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BankAccountApiService>(value),
+    );
+  }
+}
+
+String _$bankAccountApiServiceHash() =>
+    r'99539c308504ec0e55938fc30aa4b3291abb1e02';
+
+@ProviderFor(userApiService)
+final userApiServiceProvider = UserApiServiceProvider._();
+
+final class UserApiServiceProvider
+    extends $FunctionalProvider<UserApiService, UserApiService, UserApiService>
+    with $Provider<UserApiService> {
+  UserApiServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userApiServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userApiServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<UserApiService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  UserApiService create(Ref ref) {
+    return userApiService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UserApiService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UserApiService>(value),
+    );
+  }
+}
+
+String _$userApiServiceHash() => r'cf6cedf087c9ee4ee08d4042aea792a19681d878';
+
+@ProviderFor(invitationApiService)
+final invitationApiServiceProvider = InvitationApiServiceProvider._();
+
+final class InvitationApiServiceProvider
+    extends
+        $FunctionalProvider<
+          InvitationApiService,
+          InvitationApiService,
+          InvitationApiService
+        >
+    with $Provider<InvitationApiService> {
+  InvitationApiServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'invitationApiServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$invitationApiServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<InvitationApiService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  InvitationApiService create(Ref ref) {
+    return invitationApiService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(InvitationApiService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<InvitationApiService>(value),
+    );
+  }
+}
+
+String _$invitationApiServiceHash() =>
+    r'fe1fee518a45a1e23f039c07e84e38ce1bac704e';
 
 @ProviderFor(walletSocketService)
 final walletSocketServiceProvider = WalletSocketServiceProvider._();
@@ -1159,6 +1296,95 @@ final class TransactionRepositoryProvider
 
 String _$transactionRepositoryHash() =>
     r'7b2b592c6edfc129e5e77bc81dba8e888617757f';
+
+@ProviderFor(bankAccountRepository)
+final bankAccountRepositoryProvider = BankAccountRepositoryProvider._();
+
+final class BankAccountRepositoryProvider
+    extends
+        $FunctionalProvider<
+          BankAccountRepository,
+          BankAccountRepository,
+          BankAccountRepository
+        >
+    with $Provider<BankAccountRepository> {
+  BankAccountRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'bankAccountRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$bankAccountRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<BankAccountRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BankAccountRepository create(Ref ref) {
+    return bankAccountRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BankAccountRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BankAccountRepository>(value),
+    );
+  }
+}
+
+String _$bankAccountRepositoryHash() =>
+    r'208ce35ca28639fc90bb2ee4158c87b5c7dac3b8';
+
+@ProviderFor(userRepository)
+final userRepositoryProvider = UserRepositoryProvider._();
+
+final class UserRepositoryProvider
+    extends $FunctionalProvider<UserRepository, UserRepository, UserRepository>
+    with $Provider<UserRepository> {
+  UserRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<UserRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  UserRepository create(Ref ref) {
+    return userRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UserRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UserRepository>(value),
+    );
+  }
+}
+
+String _$userRepositoryHash() => r'413494363755590574ea330011aa293affa17123';
 
 @ProviderFor(localDataCacheManager)
 final localDataCacheManagerProvider = LocalDataCacheManagerProvider._();

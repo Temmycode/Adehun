@@ -4,7 +4,6 @@ import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/upload_signature_response.dart';
 import 'package:adehun_mvp/domain/states/asset_state.dart';
-import 'package:adehun_mvp/router/app_router.dart';
 import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -69,11 +68,12 @@ class AssetsController extends _$AssetsController {
     return sigDataState.data!;
   }
 
-  Future<void> uploadConditionAssets(
+  /// Returns true when the upload was persisted so the screen can pop.
+  Future<bool> uploadConditionAssets(
     String conditionId,
     List<FileResponse> files,
   ) async {
-    if (state.isAdding) return;
+    if (state.isAdding) return false;
     state = state.copyWith(isAdding: true, errorMessage: () => null);
 
     try {
@@ -104,7 +104,7 @@ class AssetsController extends _$AssetsController {
           assets: _withAssets(conditionId, merged),
           isAdding: false,
         );
-        appRouter.pop();
+        return true;
       } else {
         state = state.copyWith(
           isAdding: false,
@@ -116,13 +116,16 @@ class AssetsController extends _$AssetsController {
         isAdding: false,
         errorMessage: () => 'Could not start the upload. Please try again.',
       );
+      return false;
     } catch (err, stk) {
       debugPrint("Error adding files: $err\n$stk");
       state = state.copyWith(
         isAdding: false,
         errorMessage: () => 'Failed to upload assets',
       );
+      return false;
     }
+    return false;
   }
 
   void clearError() => state = state.copyWith(errorMessage: () => null);

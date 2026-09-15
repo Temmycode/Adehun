@@ -219,7 +219,7 @@ class _AgreementApiService implements AgreementApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/agreements/${agreementId}/',
+            '/agreements/${agreementId}',
             queryParameters: queryParameters,
             data: _data,
           )

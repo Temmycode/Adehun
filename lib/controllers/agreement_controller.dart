@@ -38,7 +38,7 @@ class AgreementController extends _$AgreementController {
           .getAllUserAgreements();
 
       if (dataState is DataSuccess && dataState.data != null) {
-        return initialState.copyWith(agreements: dataState.data!);
+        return initialState.copyWith(agreements: dataState.data);
       }
 
       return initialState;
@@ -58,7 +58,7 @@ class AgreementController extends _$AgreementController {
           .getAllUserAgreements();
 
       if (dataState is DataSuccess && dataState.data != null) {
-        return currentState.copyWith(agreements: dataState.data!);
+        return currentState.copyWith(agreements: dataState.data);
       }
 
       return state.value!;
@@ -125,7 +125,7 @@ class AgreementController extends _$AgreementController {
         for (final condition in created.conditions ?? []) {
           conditionController.addNewCondition(created.id!, condition);
         }
-        appRouter.push('/success/agreement-created');
+        appRouter.push('/success/agreement-created?agreementId=${created.id}');
       } else {
         rollback(tempId);
         state = AsyncData(currentState.copyWith(isCreating: false));

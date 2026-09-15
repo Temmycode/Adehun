@@ -26,8 +26,15 @@ class MainShell extends ConsumerWidget {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final colors = context.colors;
-    // INFO: Invitation network call
-    final invitations = ref.watch(invitedAgreementsProvider);
+    // Pending invitations show as a badge on the Agreements tab.
+    final pendingInvites = ref
+        .watch(invitedAgreementsProvider)
+        .maybeWhen(
+          data: (list) => list
+              .where((inv) => (inv.status).toLowerCase() == 'pending')
+              .length,
+          orElse: () => 0,
+        );
 
     // Scale nav bar dimensions based on screen width
     final fabSize = (screenWidth * 0.145).clamp(48.0, 58.0);
@@ -100,6 +107,7 @@ class MainShell extends ConsumerWidget {
                           icon: Iconsax.document_text_copy,
                           activeIcon: Iconsax.document_text,
                           isActive: index == 3,
+                          badgeCount: pendingInvites,
                           onTap: () => context.go('/agreements'),
                         ),
                         _NavItem(
@@ -155,12 +163,14 @@ class _NavItem extends StatelessWidget {
   final IconData activeIcon;
   final bool isActive;
   final VoidCallback onTap;
+  final int badgeCount;
 
   const _NavItem({
     required this.icon,
     required this.activeIcon,
     required this.isActive,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   @override
@@ -176,10 +186,38 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              color: isActive ? AppColors.primary : colors.textTertiary,
-              size: 24,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  isActive ? activeIcon : icon,
+                  color: isActive ? AppColors.primary : colors.textTertiary,
+                  size: 24,
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -6,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        badgeCount > 9 ? '9+' : '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 4),
             // Dot indicator

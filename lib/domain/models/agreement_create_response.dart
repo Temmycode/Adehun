@@ -5,6 +5,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'agreement_create_response.g.dart';
 
+/// `AgreementCreateResponse` extends `AgreementResponse` on the server, so it
+/// carries the same derived fields plus the created conditions.
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class AgreementCreateResponse {
   final String? id;
@@ -18,6 +20,14 @@ class AgreementCreateResponse {
   final Participant? beneficiary;
   final DateTime? createdAt;
   final List<ConditionResponse>? conditions;
+  @JsonKey(defaultValue: 0)
+  final int conditionCount;
+  @JsonKey(defaultValue: 0)
+  final int conditionsMetCount;
+  @JsonKey(defaultValue: false)
+  final bool currentUserAccepted;
+  @JsonKey(defaultValue: false)
+  final bool isFunded;
 
   const AgreementCreateResponse({
     this.id,
@@ -29,6 +39,10 @@ class AgreementCreateResponse {
     this.beneficiary,
     this.createdAt,
     this.conditions,
+    this.conditionCount = 0,
+    this.conditionsMetCount = 0,
+    this.currentUserAccepted = false,
+    this.isFunded = false,
   });
 
   factory AgreementCreateResponse.fromJson(Map<String, dynamic> json) =>
@@ -45,6 +59,10 @@ class AgreementCreateResponse {
     depositor: depositor,
     beneficiary: beneficiary,
     createdAt: createdAt,
+    conditionCount: conditions?.length ?? conditionCount,
+    conditionsMetCount: conditionsMetCount,
+    currentUserAccepted: currentUserAccepted,
+    isFunded: isFunded,
   );
 
   static Participant? _participantFromJson(Map<String, dynamic>? json) =>

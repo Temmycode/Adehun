@@ -8,6 +8,7 @@ import 'package:adehun_mvp/domain/models/condition_response.dart';
 import 'package:adehun_mvp/domain/models/dispute_response.dart';
 import 'package:adehun_mvp/domain/models/participant.dart';
 import 'package:adehun_mvp/domain/states/agreement_state.dart';
+import 'package:adehun_mvp/usecases/params/add_condition_params.dart';
 import 'package:adehun_mvp/utils/random_functions.dart';
 import 'package:adehun_mvp/widgets/dispute_status_pill.dart';
 import 'package:adehun_mvp/widgets/profile_image.dart';
@@ -969,31 +970,48 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (titleCtrl.text.trim().isEmpty) return;
-                            if (selectedParticipantId == null) return;
-
-                            // final selectedParticipant = participants.firstWhere(
-                            //   (p) => p?.id == selectedParticipantId,
-                            // );
-
-                            // setState(() {
-                            //   _localConditions.add({
-                            //     'id': 'c_new_${_localConditions.length + 1}',
-                            //     'title': titleCtrl.text.trim(),
-                            //     'description': descCtrl.text.trim(),
-                            //     'status': 'PENDING',
-                            //     'requiredFrom': selectedParticipant,
-                            //     'addedBy': {
-                            //       'id': 'me',
-                            //       'name': MockData.userName,
-                            //       'initials': MockData.userInitials,
-                            //     },
-                            //     'assets': <Map<String, dynamic>>[],
-                            //   });
-                            // });
+                          onPressed: () async {
+                            final title = titleCtrl.text.trim();
+                            final description = descCtrl.text.trim();
+                            if (title.isEmpty || selectedParticipantId == null) {
+                              return;
+                            }
+                            final selected = participants
+                                .where((p) => p?.id == selectedParticipantId)
+                                .firstOrNull;
+                            final email = selected?.email;
+                            if (email == null || email.isEmpty) {
+                              _showSnack(
+                                "Couldn't resolve who this condition is for.",
+                              );
+                              return;
+                            }
 
                             Navigator.pop(builderContext);
+                            final notifier = ref.read(
+                              conditionControllerProvider.notifier,
+                            );
+                            await notifier.addConditionToAgreement(
+                              widget.agreementId,
+                              AddConditionParams(
+                                agreementId: widget.agreementId,
+                                title: title,
+                                description: description.isEmpty
+                                    ? title
+                                    : description,
+                                requiredFromEmail: email,
+                              ),
+                            );
+                            if (!mounted) return;
+                            final error = ref
+                                .read(conditionControllerProvider)
+                                .errorMessage;
+                            if (error != null) {
+                              _showSnack(error);
+                              notifier.clearError();
+                            } else {
+                              _showSnack('Condition added', success: true);
+                            }
                           },
                           child: const Text('Add Condition'),
                         ),
@@ -1019,14 +1037,6 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
       agreementControllerProvider.select((s) => s.value?.isCancelling ?? false),
     );
     switch (AgreementStatusHelper.normalize(status)) {
-      case AgreementStatusHelper.draft:
-        return SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {},
-            child: const Text('Send Invitation'),
-          ),
-        );
       case AgreementStatusHelper.pending:
         return Column(
           children: [

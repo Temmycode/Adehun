@@ -149,6 +149,52 @@ class FundWalletError extends AppException {
     : super("Couldn't start the payment. Please try again.");
 }
 
+class GetWalletError extends AppException {
+  const GetWalletError() : super("Couldn't load your wallet balance.");
+}
+
+class WithdrawError extends AppException {
+  const WithdrawError()
+    : super("Couldn't start the withdrawal. Please try again.");
+}
+
+class GetBanksError extends AppException {
+  const GetBanksError() : super("Couldn't load the list of banks.");
+}
+
+class ResolveBankAccountError extends AppException {
+  const ResolveBankAccountError()
+    : super("Couldn't verify that account. Check the number and bank.");
+}
+
+class GetBankAccountsError extends AppException {
+  const GetBankAccountsError() : super("Couldn't load your bank accounts.");
+}
+
+class AddBankAccountError extends AppException {
+  const AddBankAccountError()
+    : super("Couldn't save that bank account. Please try again.");
+}
+
+class UpdateBankAccountError extends AppException {
+  const UpdateBankAccountError()
+    : super("Couldn't update that bank account. Please try again.");
+}
+
+class GetProfileError extends AppException {
+  const GetProfileError() : super("Couldn't load your profile.");
+}
+
+class UpdateProfileError extends AppException {
+  const UpdateProfileError()
+    : super("Couldn't save your profile. Please try again.");
+}
+
+class InvitationLookupError extends AppException {
+  const InvitationLookupError()
+    : super('This invitation is invalid or has expired.');
+}
+
 class TransactionNotFoundError extends AppException {
   const TransactionNotFoundError()
     : super("That transaction couldn't be found.");

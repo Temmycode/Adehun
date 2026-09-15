@@ -2,9 +2,13 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'transaction.g.dart';
 
-/// Maps directly to the backend's snake_case values
+/// Maps directly to the backend's snake_case values.
+///
+/// Every enum carries an `unknown` member used as the `unknownEnumValue`
+/// fallback: a new ledger type on the server must never crash the whole
+/// transactions list.
 @JsonEnum(fieldRename: FieldRename.snake)
-enum TransactionDirection { credit, debit }
+enum TransactionDirection { credit, debit, unknown }
 
 /// Maps Python's LedgerEntryType(StrEnum)
 @JsonEnum(fieldRename: FieldRename.snake)
@@ -18,18 +22,22 @@ enum TransactionType {
   withdrawalReversal,
   adjustmentCredit,
   adjustmentDebit,
+  unknown,
 }
 
 /// Maps Python's LedgerEntryStatus(StrEnum)
 @JsonEnum(fieldRename: FieldRename.snake)
-enum TransactionStatus { pending, completed, reversed }
+enum TransactionStatus { pending, completed, reversed, unknown }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Transaction {
   final String id;
   final String reference;
+  @JsonKey(unknownEnumValue: TransactionType.unknown)
   final TransactionType type;
+  @JsonKey(unknownEnumValue: TransactionDirection.unknown)
   final TransactionDirection direction;
+  @JsonKey(unknownEnumValue: TransactionStatus.unknown)
   final TransactionStatus status;
 
   final String amount;

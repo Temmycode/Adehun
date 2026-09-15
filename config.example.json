@@ -1,4 +1,5 @@
 {
-    "GOOGLE_SERVER_CLIENT_ID":"...",
-    "PAYSTACK_PUBLIC_KEY": "..."
+    "GOOGLE_SERVER_CLIENT_ID": "<web client id>.apps.googleusercontent.com",
+    "PAYSTACK_PUBLIC_KEY": "pk_test_...",
+    "API_BASE_URL": "https://adehun-api.onrender.com"
 }

@@ -34,7 +34,7 @@ final class AgreementControllerProvider
 }
 
 String _$agreementControllerHash() =>
-    r'e59e46f092b05056b5a54003f5a564326f1c1cd4';
+    r'e4ab5bb34fa76421785fefd59155050aa97535b0';
 
 abstract class _$AgreementController extends $AsyncNotifier<AgreementState> {
   FutureOr<AgreementState> build();
