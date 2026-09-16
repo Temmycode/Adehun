@@ -284,6 +284,17 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     return _isDepositor ? a.beneficiary : a.depositor;
   }
 
+  bool _counterpartKnown() {
+    final p = _counterpart();
+    if (p?.name?.trim().isNotEmpty ?? false) return true;
+    if (p?.email?.trim().isNotEmpty ?? false) return true;
+    final invite = ref
+        .read(agreementControllerProvider)
+        .value
+        ?.invitations[_id];
+    return invite?.email?.trim().isNotEmpty ?? false;
+  }
+
   String _counterpartName() {
     final p = _counterpart();
     final name = p?.name?.trim();
@@ -453,6 +464,7 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                   agreement: agreement,
                   counterpart: _counterpart(),
                   counterpartName: counterpartName,
+                  counterpartKnown: _counterpartKnown(),
                   isDepositor: isDepositor,
                   isParty: isParty,
                 ).entrance(context, 0),

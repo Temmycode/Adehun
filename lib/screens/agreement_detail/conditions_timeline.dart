@@ -40,7 +40,9 @@ class ConditionsTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final met = conditions.where((c) => ConditionStatusHelper.isMet(c.status)).length;
+    final met = conditions
+        .where((c) => ConditionStatusHelper.isMet(c.status))
+        .length;
     final total = conditions.length;
 
     return Column(
@@ -58,7 +60,9 @@ class ConditionsTimeline extends StatelessWidget {
               Text(
                 '$met of $total approved',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: met == total ? AppColors.success : colors.textSecondary,
+                  color: met == total
+                      ? AppColors.success
+                      : colors.textSecondary,
                 ),
               ),
           ],
@@ -145,16 +149,21 @@ class _TimelineRow extends StatelessWidget {
     final markerColor = met
         ? AppColors.success
         : rejected
-            ? AppColors.error
-            : submitted
-                ? AppColors.gold
-                : colors.cardBorder;
+        ? AppColors.error
+        : submitted
+        ? AppColors.gold
+        : colors.cardBorder;
 
     final who = condition.requiredFromParticipant?.user;
-    final whoIsMe = who?.email != null &&
+    final whoIsMe =
+        who?.email != null &&
         currentUserEmail != null &&
         who!.email!.toLowerCase() == currentUserEmail!.toLowerCase();
-    final whoName = whoIsMe ? 'you' : (who?.name?.trim().isNotEmpty == true ? who!.name!.trim() : 'the other party');
+    final whoName = whoIsMe
+        ? 'you'
+        : (who?.name?.trim().isNotEmpty == true
+              ? who!.name!.trim()
+              : 'the other party');
 
     return IntrinsicHeight(
       child: Row(
@@ -174,7 +183,11 @@ class _TimelineRow extends StatelessWidget {
                   ),
                   alignment: Alignment.center,
                   child: met
-                      ? const Icon(Iconsax.tick_circle, size: 16, color: Colors.white)
+                      ? const Icon(
+                          Iconsax.tick_circle,
+                          size: 16,
+                          color: Colors.white,
+                        )
                       : Text(
                           '${index + 1}',
                           style: AppTextStyles.labelSmall.copyWith(

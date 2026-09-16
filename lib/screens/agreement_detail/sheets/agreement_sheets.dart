@@ -108,7 +108,10 @@ class _ConfirmBody extends StatelessWidget {
           child: Icon(icon, color: iconColor, size: 26),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text(title, style: AppTextStyles.h2.copyWith(color: colors.textPrimary)),
+        Text(
+          title,
+          style: AppTextStyles.h2.copyWith(color: colors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           message,
@@ -142,33 +145,30 @@ class _OptionTile extends StatelessWidget {
     final colors = context.colors;
     final (icon, label, color) = switch (action) {
       AgreementAction.raiseDispute => (
-          Iconsax.warning_2_copy,
-          'Raise a dispute',
-          AppColors.error,
-        ),
+        Iconsax.warning_2_copy,
+        'Raise a dispute',
+        AppColors.error,
+      ),
       AgreementAction.cancel => (
-          Iconsax.close_circle_copy,
-          'Cancel agreement',
-          AppColors.error,
-        ),
+        Iconsax.close_circle_copy,
+        'Cancel agreement',
+        AppColors.error,
+      ),
       AgreementAction.agree => (
-          Iconsax.tick_circle_copy,
-          'Agree',
-          colors.textPrimary,
-        ),
+        Iconsax.tick_circle_copy,
+        'Agree',
+        colors.textPrimary,
+      ),
       AgreementAction.fund => (
-          Iconsax.wallet_add_copy,
-          'Fund escrow',
-          colors.textPrimary,
-        ),
+        Iconsax.wallet_add_copy,
+        'Fund escrow',
+        colors.textPrimary,
+      ),
     };
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       leading: Icon(icon, color: color),
-      title: Text(
-        label,
-        style: AppTextStyles.bodyLarge.copyWith(color: color),
-      ),
+      title: Text(label, style: AppTextStyles.bodyLarge.copyWith(color: color)),
       onTap: onTap,
     );
   }

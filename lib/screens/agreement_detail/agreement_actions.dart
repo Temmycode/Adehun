@@ -61,7 +61,10 @@ AgreementActions resolveAgreementActions({
   }
 }
 
-String agreementActionLabel(AgreementAction action, {required bool isDepositor}) {
+String agreementActionLabel(
+  AgreementAction action, {
+  required bool isDepositor,
+}) {
   return switch (action) {
     AgreementAction.agree =>
       isDepositor ? 'Agree & fund escrow' : 'Agree & activate',

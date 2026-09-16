@@ -18,6 +18,10 @@ class AgreementSummaryHeader extends StatelessWidget {
   final AgreementResponse agreement;
   final Participant? counterpart;
   final String counterpartName;
+
+  /// False when the other side has not joined yet, so the role line drops the
+  /// placeholder name instead of overflowing with "the other party".
+  final bool counterpartKnown;
   final bool isDepositor;
   final bool isParty;
 
@@ -26,6 +30,7 @@ class AgreementSummaryHeader extends StatelessWidget {
     required this.agreement,
     required this.counterpart,
     required this.counterpartName,
+    required this.counterpartKnown,
     required this.isDepositor,
     required this.isParty,
   });
@@ -106,6 +111,8 @@ class AgreementSummaryHeader extends StatelessWidget {
                     child: Text(
                       !isParty
                           ? 'Between the two parties'
+                          : !counterpartKnown
+                          ? (isDepositor ? 'You pay' : 'You get paid')
                           : isDepositor
                           ? 'You pay $counterpartName'
                           : '$counterpartName pays you',

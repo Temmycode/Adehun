@@ -33,13 +33,13 @@ class FundingOverlay extends StatelessWidget {
     final (label, subline) = switch (stage) {
       EscrowFundingStage.toppingUp => ('Opening secure checkout…', null),
       EscrowFundingStage.awaitingSettlement => (
-          'Confirming your payment…',
-          'This can take up to 30 seconds.',
-        ),
+        'Confirming your payment…',
+        'This can take up to 30 seconds.',
+      ),
       EscrowFundingStage.movingToEscrow => (
-          'Moving ${formatMoney(amount)} into escrow…',
-          null,
-        ),
+        'Moving ${formatMoney(amount)} into escrow…',
+        null,
+      ),
       EscrowFundingStage.idle => ('Activating agreement…', null),
     };
 

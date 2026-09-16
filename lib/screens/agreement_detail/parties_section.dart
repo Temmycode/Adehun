@@ -34,7 +34,11 @@ class PartiesSection extends StatelessWidget {
     return AppCard(
       child: Column(
         children: [
-          if (loading)
+          // Only skeleton a row we actually have nothing for. The agreement
+          // already carries whichever party has joined, and hiding that behind
+          // a global "invitation loading" flag flashes a skeleton over data
+          // that is right there.
+          if (loading && depositor == null)
             const PartyRowSkeleton()
           else
             _PartyRow(
@@ -62,7 +66,7 @@ class PartiesSection extends StatelessWidget {
               ],
             ),
           ),
-          if (loading)
+          if (loading && beneficiary == null)
             const PartyRowSkeleton()
           else
             _PartyRow(

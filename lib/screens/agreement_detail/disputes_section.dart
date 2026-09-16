@@ -108,7 +108,11 @@ class _DisputeCard extends StatelessWidget {
               ),
               if (evidenceCount > 0) ...[
                 const SizedBox(width: AppSpacing.sm),
-                Icon(Iconsax.paperclip_copy, size: 14, color: colors.textTertiary),
+                Icon(
+                  Iconsax.paperclip_copy,
+                  size: 14,
+                  color: colors.textTertiary,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '$evidenceCount file${evidenceCount != 1 ? 's' : ''}',
