@@ -36,9 +36,9 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   // Navigation bar
   final Color navBarBackground;
-  final Color navBarShadow;
 
-  /// The single soft shadow colour used by floating elements.
+  /// The single soft shadow colour used by floating elements (nav bar, FAB,
+  /// hero cards).
   final Color shadow;
 
   const AppColorScheme({
@@ -66,7 +66,6 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     required this.goldLight,
     required this.accentLight,
     required this.navBarBackground,
-    required this.navBarShadow,
     required this.shadow,
   });
 
@@ -96,7 +95,6 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     goldLight: Color(0xFFFBF0DC),
     accentLight: Color(0xFFFBE3DC),
     navBarBackground: Colors.white,
-    navBarShadow: Color(0x0F1E1B16),
     shadow: Color(0x0F1E1B16),
   );
 
@@ -126,7 +124,6 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     goldLight: Color(0xFF3A2C14),
     accentLight: Color(0xFF3D2620),
     navBarBackground: Color(0xFF1E1B16),
-    navBarShadow: Color(0x59000000),
     shadow: Color(0x59000000),
   );
 
@@ -156,7 +153,6 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     Color? goldLight,
     Color? accentLight,
     Color? navBarBackground,
-    Color? navBarShadow,
     Color? shadow,
   }) {
     return AppColorScheme(
@@ -184,7 +180,6 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
       goldLight: goldLight ?? this.goldLight,
       accentLight: accentLight ?? this.accentLight,
       navBarBackground: navBarBackground ?? this.navBarBackground,
-      navBarShadow: navBarShadow ?? this.navBarShadow,
       shadow: shadow ?? this.shadow,
     );
   }
@@ -221,7 +216,6 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
       goldLight: Color.lerp(goldLight, other.goldLight, t)!,
       accentLight: Color.lerp(accentLight, other.accentLight, t)!,
       navBarBackground: Color.lerp(navBarBackground, other.navBarBackground, t)!,
-      navBarShadow: Color.lerp(navBarShadow, other.navBarShadow, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
     );
   }

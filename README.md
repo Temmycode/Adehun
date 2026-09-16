@@ -47,6 +47,9 @@ flutter test
 
 ```
 screens/       UI (ConsumerWidgets)
+widgets/       the shared component kit (see Design system)
+theme/         palette, type scale, spacing/radius/motion tokens
+shell/         the tab bar and its layout insets
 controllers/   @riverpod notifiers holding immutable state classes
 domain/        repository interfaces, models, states
 data/          Retrofit services, repository impls, interceptors, storage
@@ -61,6 +64,62 @@ router/        go_router config, redirect guard, AuthRouteNotifier
   websocket, which reconnects with backoff and refetches on app resume.
 - Money on the wire is a decimal string with two places; the websocket sends
   floats. `WalletData` parses both.
+
+## Design system
+
+Warm and friendly: Adehun Green on cream in light mode, warm charcoal in dark,
+with a clay accent for anything that wants attention and gold for anything
+waiting on someone.
+
+| File | Holds |
+|---|---|
+| `theme/app_colors.dart` | Brand and functional colours that do not change with the theme |
+| `theme/app_color_scheme.dart` | Everything that does, as a `ThemeExtension`. Read it with `context.colors`, never a raw hex |
+| `theme/app_tokens.dart` | `AppSpacing`, `AppRadius`, `AppShadows`, `AppMotion`, `kMinTapTarget` |
+| `theme/app_text_styles.dart` | The type scale. Nunito headings, DM Sans body, tabular figures for money |
+| `theme/app_theme.dart` | One `_build(Brightness)` producing `AppTheme.light` and `AppTheme.dark` |
+| `theme/app_motion.dart` | `widget.entrance(context, index)` for staggered list entrances |
+
+Fonts are bundled in `assets/fonts/` with the filenames google_fonts expects,
+and `main.dart` sets `allowRuntimeFetching = false`, so nothing is fetched at
+runtime. Adding a weight means adding the matching TTF.
+
+### Component kit
+
+Build screens out of `widgets/` rather than raw Material:
+
+- **Chrome** `AppTopBar`, `AppBackButton`, `AppIconButton`, `BottomActionBar`
+- **Surfaces** `AppCard`, `InfoBanner`, `SectionHeader`, `ListStatePlaceholder`
+- **Controls** `PrimaryButton`, `SecondaryButton`, `TertiaryButton`, `AppChip`,
+  `LabeledField`, `AmountField`, `StepIndicator`
+- **Content** `MoneyText`, `StatusPill` (with `.agreement`, `.condition`,
+  `.dispute`, `.transaction` factories), `AvatarInitials`, `AgreementCard`,
+  `TransactionTile`, `NotificationTile`, `WalletCard`
+- **Overlays** `showAppBottomSheet`, `showAppToast`, `ConfettiBurst`
+
+Rules that keep it coherent:
+
+- One primary action per screen, in a `BottomActionBar`. Everything else is
+  secondary, tertiary or in an overflow sheet.
+- Errors and empty states go through `ListStatePlaceholder`; transient feedback
+  goes through `showAppToast`. No bare `SnackBar`, `showDialog` or
+  `showModalBottomSheet`.
+- Money renders through `MoneyText` so amounts line up in lists.
+- Icon-only controls are at least `kMinTapTarget` and carry a semantics label.
+- Decorative motion is gated on `AppMotion.reduced(context)`.
+- Text on the clay accent is `textPrimary`, never white; white only passes on
+  `accentDark`. Gold is for fills and icons, `goldDark` for text on gold.
+
+### Adding a screen
+
+Scaffold with `colors.background`, an `AppTopBar`, content padded with
+`AppInsets.screen`, and a `BottomActionBar` if it has a primary action. Tab
+screens instead end their scroll view with `SizedBox(height: context.navBottomPadding)`
+so the last row clears the floating nav.
+
+Any widget with a matching skeleton in `widgets/skeletons.dart` must be edited
+alongside it: the skeletons deliberately mirror real padding, radii and gaps so
+the layout does not jump when data lands.
 
 ## Deep links
 
