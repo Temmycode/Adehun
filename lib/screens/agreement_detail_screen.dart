@@ -320,7 +320,7 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: AppColors.walletGradient,
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(

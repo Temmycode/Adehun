@@ -65,9 +65,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.walletGradient,
-        ),
+        color: AppColors.primary,
         child: Center(
           child: AnimatedBuilder(
             animation: _controller,

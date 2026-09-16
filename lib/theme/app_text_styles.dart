@@ -1,36 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Type scale. Nunito for headings (warm, rounded), DM Sans for everything
+/// else, with tabular figures on money so amounts line up in lists.
+///
+/// Fonts are bundled under `assets/fonts/`; google_fonts picks them up by
+/// filename, so nothing is fetched at runtime.
 class AppTextStyles {
   AppTextStyles._();
 
-  // Plus Jakarta Sans — headings & display
-  static TextStyle get _headingStyle => GoogleFonts.plusJakartaSans();
+  static TextStyle get _headingStyle => GoogleFonts.nunito();
 
-  // Lato — body text, labels, buttons
-  static TextStyle get _bodyStyle => GoogleFonts.lato();
+  static TextStyle get _bodyStyle => GoogleFonts.dmSans();
 
-  // Open Sans — numbers, amounts, currency
-  static TextStyle get _numberStyle => GoogleFonts.openSans();
+  static TextStyle get _numberStyle => GoogleFonts.dmSans(
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
 
   // Display
   static TextStyle displayLarge = _headingStyle.copyWith(
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: FontWeight.w800,
-    height: 1.2,
+    height: 1.15,
+    letterSpacing: -0.5,
   );
 
   static TextStyle displayMedium = _headingStyle.copyWith(
     fontSize: 28,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     height: 1.2,
+    letterSpacing: -0.5,
   );
 
   // Headings
   static TextStyle h1 = _headingStyle.copyWith(
     fontSize: 24,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     height: 1.3,
+    letterSpacing: -0.3,
   );
 
   static TextStyle h2 = _headingStyle.copyWith(
@@ -40,12 +47,12 @@ class AppTextStyles {
   );
 
   static TextStyle h3 = _headingStyle.copyWith(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
+    fontSize: 17,
+    fontWeight: FontWeight.w700,
     height: 1.3,
   );
 
-  // Body (Lato)
+  // Body
   static TextStyle bodyLarge = _bodyStyle.copyWith(
     fontSize: 16,
     fontWeight: FontWeight.w500,
@@ -64,7 +71,7 @@ class AppTextStyles {
     height: 1.5,
   );
 
-  // Labels (Lato)
+  // Labels
   static TextStyle labelLarge = _bodyStyle.copyWith(
     fontSize: 14,
     fontWeight: FontWeight.w600,
@@ -78,12 +85,12 @@ class AppTextStyles {
   );
 
   static TextStyle labelSmall = _bodyStyle.copyWith(
-    fontSize: 10,
-    fontWeight: FontWeight.w500,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
     height: 1.4,
   );
 
-  // Button (Lato)
+  // Buttons
   static TextStyle buttonLarge = _bodyStyle.copyWith(
     fontSize: 16,
     fontWeight: FontWeight.w700,
@@ -96,11 +103,19 @@ class AppTextStyles {
     height: 1.2,
   );
 
-  // Amount/Currency (Open Sans)
+  // Money
+  static TextStyle amountHero = _numberStyle.copyWith(
+    fontSize: 44,
+    fontWeight: FontWeight.w800,
+    height: 1.1,
+    letterSpacing: -1,
+  );
+
   static TextStyle amountLarge = _numberStyle.copyWith(
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: FontWeight.w800,
     height: 1.2,
+    letterSpacing: -0.5,
   );
 
   static TextStyle amountMedium = _numberStyle.copyWith(
@@ -109,7 +124,6 @@ class AppTextStyles {
     height: 1.2,
   );
 
-  // Small numeric text (Open Sans) — for stat cards, badges, counts
   static TextStyle numberSmall = _numberStyle.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w600,

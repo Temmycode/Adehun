@@ -31,10 +31,15 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
   final Color errorLight;
   final Color warningLight;
   final Color infoLight;
+  final Color goldLight;
+  final Color accentLight;
 
   // Navigation bar
   final Color navBarBackground;
   final Color navBarShadow;
+
+  /// The single soft shadow colour used by floating elements.
+  final Color shadow;
 
   const AppColorScheme({
     required this.background,
@@ -58,62 +63,71 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     required this.errorLight,
     required this.warningLight,
     required this.infoLight,
+    required this.goldLight,
+    required this.accentLight,
     required this.navBarBackground,
     required this.navBarShadow,
+    required this.shadow,
   });
 
-  // ── Light palette ──
+  // ── Light palette (warm cream) ──
   static const light = AppColorScheme(
-    background: Color(0xFFF8F9FD),
+    background: Color(0xFFFBF8F3),
     surface: Colors.white,
-    surfaceVariant: Color(0xFFF2F3F7),
-    cardBorder: Color(0xFFE8E9EF),
-    primarySurface: Color(0xFFEEF0FF),
-    textPrimary: Color(0xFF1A1D2E),
-    textSecondary: Color(0xFF6B7089),
-    textTertiary: Color(0xFF9B9FB5),
-    statusDraftBg: Color(0xFFF0F0F4),
-    statusPendingBg: Color(0xFFFFF3E0),
-    statusActiveBg: Color(0xFFEEF0FF),
-    statusInProgressBg: Color(0xFFE8EEFF),
-    statusConditionsMetBg: Color(0xFFE8F5E9),
-    statusCompletedBg: Color(0xFFE8F5E9),
-    statusDisputedBg: Color(0xFFFFEBEE),
-    statusCancelledBg: Color(0xFFF5F5F5),
-    statusRefundedBg: Color(0xFFEFEBE9),
-    successLight: Color(0xFFE8F5E9),
-    errorLight: Color(0xFFFFEBEE),
-    warningLight: Color(0xFFFFF3E0),
-    infoLight: Color(0xFFE8EEFF),
+    surfaceVariant: Color(0xFFF3EEE6),
+    cardBorder: Color(0xFFEBE4D9),
+    primarySurface: Color(0xFFE6F3EE),
+    textPrimary: Color(0xFF1E1B16),
+    textSecondary: Color(0xFF6B655B),
+    textTertiary: Color(0xFFA39C90),
+    statusDraftBg: Color(0xFFF3EEE6),
+    statusPendingBg: Color(0xFFFBF0DC),
+    statusActiveBg: Color(0xFFE6F3EE),
+    statusInProgressBg: Color(0xFFE5EFFA),
+    statusConditionsMetBg: Color(0xFFE3F5EC),
+    statusCompletedBg: Color(0xFFE3F5EC),
+    statusDisputedBg: Color(0xFFFCE8E5),
+    statusCancelledBg: Color(0xFFF3EEE6),
+    statusRefundedBg: Color(0xFFF2E7DF),
+    successLight: Color(0xFFE3F5EC),
+    errorLight: Color(0xFFFCE8E5),
+    warningLight: Color(0xFFFBF0DC),
+    infoLight: Color(0xFFE5EFFA),
+    goldLight: Color(0xFFFBF0DC),
+    accentLight: Color(0xFFFBE3DC),
     navBarBackground: Colors.white,
-    navBarShadow: Color(0x14000000),
+    navBarShadow: Color(0x0F1E1B16),
+    shadow: Color(0x0F1E1B16),
   );
 
-  // ── Dark palette (deep navy) ──
+  // ── Dark palette (warm charcoal) ──
   static const dark = AppColorScheme(
-    background: Color(0xFF0F1324),
-    surface: Color(0xFF171B2E),
-    surfaceVariant: Color(0xFF1E2338),
-    cardBorder: Color(0xFF282D42),
-    primarySurface: Color(0xFF1C2045),
-    textPrimary: Color(0xFFE8EAEF),
-    textSecondary: Color(0xFF8B90A7),
-    textTertiary: Color(0xFF5C6180),
-    statusDraftBg: Color(0xFF252838),
-    statusPendingBg: Color(0xFF332818),
-    statusActiveBg: Color(0xFF1C2045),
-    statusInProgressBg: Color(0xFF1C2540),
-    statusConditionsMetBg: Color(0xFF1A2E1E),
-    statusCompletedBg: Color(0xFF1A2E1E),
-    statusDisputedBg: Color(0xFF2E1A1C),
-    statusCancelledBg: Color(0xFF252838),
-    statusRefundedBg: Color(0xFF2A2420),
-    successLight: Color(0xFF1A2E1E),
-    errorLight: Color(0xFF2E1A1C),
-    warningLight: Color(0xFF332818),
-    infoLight: Color(0xFF1C2540),
-    navBarBackground: Color(0xFF171B2E),
-    navBarShadow: Color(0x29000000),
+    background: Color(0xFF15130F),
+    surface: Color(0xFF1E1B16),
+    surfaceVariant: Color(0xFF2A2620),
+    cardBorder: Color(0xFF35302A),
+    primarySurface: Color(0xFF14372B),
+    textPrimary: Color(0xFFF4EFE7),
+    textSecondary: Color(0xFFA8A094),
+    textTertiary: Color(0xFF6E6759),
+    statusDraftBg: Color(0xFF2A2620),
+    statusPendingBg: Color(0xFF3A2C14),
+    statusActiveBg: Color(0xFF14372B),
+    statusInProgressBg: Color(0xFF1A2A3D),
+    statusConditionsMetBg: Color(0xFF173626),
+    statusCompletedBg: Color(0xFF173626),
+    statusDisputedBg: Color(0xFF3B1F1C),
+    statusCancelledBg: Color(0xFF2A2620),
+    statusRefundedBg: Color(0xFF2E241E),
+    successLight: Color(0xFF173626),
+    errorLight: Color(0xFF3B1F1C),
+    warningLight: Color(0xFF3A2C14),
+    infoLight: Color(0xFF1A2A3D),
+    goldLight: Color(0xFF3A2C14),
+    accentLight: Color(0xFF3D2620),
+    navBarBackground: Color(0xFF1E1B16),
+    navBarShadow: Color(0x59000000),
+    shadow: Color(0x59000000),
   );
 
   @override
@@ -139,8 +153,11 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     Color? errorLight,
     Color? warningLight,
     Color? infoLight,
+    Color? goldLight,
+    Color? accentLight,
     Color? navBarBackground,
     Color? navBarShadow,
+    Color? shadow,
   }) {
     return AppColorScheme(
       background: background ?? this.background,
@@ -164,8 +181,11 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
       errorLight: errorLight ?? this.errorLight,
       warningLight: warningLight ?? this.warningLight,
       infoLight: infoLight ?? this.infoLight,
+      goldLight: goldLight ?? this.goldLight,
+      accentLight: accentLight ?? this.accentLight,
       navBarBackground: navBarBackground ?? this.navBarBackground,
       navBarShadow: navBarShadow ?? this.navBarShadow,
+      shadow: shadow ?? this.shadow,
     );
   }
 
@@ -184,18 +204,25 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
       statusDraftBg: Color.lerp(statusDraftBg, other.statusDraftBg, t)!,
       statusPendingBg: Color.lerp(statusPendingBg, other.statusPendingBg, t)!,
       statusActiveBg: Color.lerp(statusActiveBg, other.statusActiveBg, t)!,
-      statusInProgressBg: Color.lerp(statusInProgressBg, other.statusInProgressBg, t)!,
-      statusConditionsMetBg: Color.lerp(statusConditionsMetBg, other.statusConditionsMetBg, t)!,
-      statusCompletedBg: Color.lerp(statusCompletedBg, other.statusCompletedBg, t)!,
+      statusInProgressBg:
+          Color.lerp(statusInProgressBg, other.statusInProgressBg, t)!,
+      statusConditionsMetBg:
+          Color.lerp(statusConditionsMetBg, other.statusConditionsMetBg, t)!,
+      statusCompletedBg:
+          Color.lerp(statusCompletedBg, other.statusCompletedBg, t)!,
       statusDisputedBg: Color.lerp(statusDisputedBg, other.statusDisputedBg, t)!,
-      statusCancelledBg: Color.lerp(statusCancelledBg, other.statusCancelledBg, t)!,
+      statusCancelledBg:
+          Color.lerp(statusCancelledBg, other.statusCancelledBg, t)!,
       statusRefundedBg: Color.lerp(statusRefundedBg, other.statusRefundedBg, t)!,
       successLight: Color.lerp(successLight, other.successLight, t)!,
       errorLight: Color.lerp(errorLight, other.errorLight, t)!,
       warningLight: Color.lerp(warningLight, other.warningLight, t)!,
       infoLight: Color.lerp(infoLight, other.infoLight, t)!,
+      goldLight: Color.lerp(goldLight, other.goldLight, t)!,
+      accentLight: Color.lerp(accentLight, other.accentLight, t)!,
       navBarBackground: Color.lerp(navBarBackground, other.navBarBackground, t)!,
       navBarShadow: Color.lerp(navBarShadow, other.navBarShadow, t)!,
+      shadow: Color.lerp(shadow, other.shadow, t)!,
     );
   }
 }

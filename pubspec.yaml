@@ -31,6 +31,8 @@ dependencies:
   paystack_flutter_sdk: ^0.0.1-alpha.2
   web_socket_channel: ^3.0.3
   cached_network_image: ^3.4.1
+  flutter_animate: ^4.5.2
+  gap: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -50,3 +52,4 @@ flutter:
     - assets/illustrations/
     - assets/icons/
     - assets/images/
+    - assets/fonts/

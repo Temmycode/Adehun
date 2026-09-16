@@ -4,9 +4,11 @@ import 'package:adehun_mvp/router/auth_route_notifier.dart';
 import 'package:adehun_mvp/theme/theme_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
@@ -15,6 +17,7 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _registerBundledFonts();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeDependencies();
   final prefs = await SharedPreferences.getInstance();
@@ -38,6 +41,22 @@ Future<void> main() async {
   );
 }
 
+/// Nunito and DM Sans ship in `assets/fonts/`; google_fonts finds them by
+/// filename, so runtime fetching is turned off and the OFL texts are added to
+/// the licence page.
+void _registerBundledFonts() {
+  GoogleFonts.config.allowRuntimeFetching = false;
+  LicenseRegistry.addLicense(() async* {
+    for (final entry in const {
+      'assets/fonts/OFL-Nunito.txt': 'Nunito',
+      'assets/fonts/OFL-DMSans.txt': 'DM Sans',
+    }.entries) {
+      final text = await rootBundle.loadString(entry.key);
+      yield LicenseEntryWithLineBreaks([entry.value], text);
+    }
+  });
+}
+
 class AdehunApp extends ConsumerWidget {
   const AdehunApp({super.key});
 
@@ -48,8 +67,8 @@ class AdehunApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Adehun',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       themeMode: theme,
       routerConfig: appRouter,
     );
