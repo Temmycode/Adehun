@@ -504,7 +504,7 @@ class ConditionDetailSkeleton extends StatelessWidget {
           // "Required from" card
           _SkeletonCard(
             padding: const EdgeInsets.all(14),
-            radius: 12,
+            radius: 16,
             child: Row(
               children: const [
                 SkeletonCircle(diameter: 36),
@@ -549,7 +549,7 @@ class AssetCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = _SkeletonCard(
       padding: const EdgeInsets.all(14),
-      radius: 12,
+      radius: 16,
       child: Row(
         children: [
           const SkeletonBox(width: 48, height: 48, radius: 10),

@@ -5,14 +5,23 @@ import 'package:adehun_mvp/controllers/dispute_controller.dart';
 import 'package:adehun_mvp/core/utils/format_file_size.dart';
 import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_card.dart';
+import '../widgets/app_chip.dart';
+import '../widgets/app_toast.dart';
+import '../widgets/app_top_bar.dart';
+import '../widgets/bottom_action_bar.dart';
+import '../widgets/info_banner.dart';
+import '../widgets/labeled_field.dart';
 
 /// The API rejects anything outside this range with a 422, so the form
 /// enforces it rather than letting the user discover it the hard way.
@@ -30,73 +39,54 @@ class DisputeScreen extends ConsumerStatefulWidget {
 
 class _DisputeScreenState extends ConsumerState<DisputeScreen> {
   final _descriptionController = TextEditingController();
-  DisputeCategory _selectedCategory = DisputeCategory.qualityIssues;
-  final List<FileResponse> _selectedFiles = [];
-
-  /// Errors stay hidden until the first submit attempt, so the field doesn't
-  /// scold the user before they have typed anything.
+  DisputeCategory _category = DisputeCategory.qualityIssues;
+  final List<FileResponse> _files = [];
   bool _submitAttempted = false;
 
-  int get _descriptionLength => _descriptionController.text.trim().length;
+  int get _length => _descriptionController.text.trim().length;
 
-  bool get _isDescriptionValid =>
-      _descriptionLength >= _minDescriptionLength &&
-      _descriptionLength <= _maxDescriptionLength;
+  bool get _isValid =>
+      _length >= _minDescriptionLength && _length <= _maxDescriptionLength;
 
   @override
   void initState() {
     super.initState();
-    // Keeps the counter and the submit button's enabled state in step with
-    // what's typed.
-    _descriptionController.addListener(_onDescriptionChanged);
+    _descriptionController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _descriptionController.removeListener(_onDescriptionChanged);
     _descriptionController.dispose();
     super.dispose();
   }
 
-  void _onDescriptionChanged() => setState(() {});
-
   Future<void> _pickFiles() async {
     final result = await FilePicker.pickFiles(allowMultiple: true);
     if (result == null) return;
-
-    setState(() {
-      _selectedFiles.addAll(result.files.map(FileResponse.fromFile));
-    });
+    setState(() => _files.addAll(result.files.map(FileResponse.fromFile)));
   }
 
   Future<void> _submit() async {
     setState(() => _submitAttempted = true);
-    if (!_isDescriptionValid) return;
+    if (!_isValid) return;
 
-    final raised = await ref
-        .read(disputeControllerProvider.notifier)
-        .raiseDispute(
+    final raised = await ref.read(disputeControllerProvider.notifier).raiseDispute(
           agreementId: widget.agreementId,
-          category: _selectedCategory,
+          category: _category,
           description: _descriptionController.text.trim(),
-          files: _selectedFiles,
+          files: _files,
         );
-
-    if (!mounted) return;
-    // On failure we stay put so the user can retry; the error snackbar is wired
-    // up in build() via ref.listen.
-    if (!raised) return;
+    if (!mounted || !raised) return;
 
     // Raising a dispute freezes the agreement server-side, so pull the fresh
     // status before returning to the detail screen.
     await ref.read(agreementControllerProvider.notifier).refresh();
-
     if (!mounted) return;
     context.pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Dispute submitted. Our team will review it.'),
-      ),
+    showAppToast(
+      context,
+      'Dispute submitted. Our team will review it.',
+      kind: ToastKind.success,
     );
   }
 
@@ -105,202 +95,118 @@ class _DisputeScreenState extends ConsumerState<DisputeScreen> {
     final colors = context.colors;
     final disputeState = ref.watch(disputeControllerProvider);
 
-    // Surface errors as a snackbar exactly once per new error value.
     ref.listen(disputeControllerProvider, (previous, next) {
       if (next.errorMessage != null &&
           next.errorMessage != previous?.errorMessage) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+        showAppToast(context, next.errorMessage!, kind: ToastKind.error);
       }
     });
 
+    final tooShort = _submitAttempted && !_isValid;
+
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        title: Text('Raise Dispute', style: AppTextStyles.h3),
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.back),
-          onPressed: () => context.pop(),
+      appBar: const AppTopBar(title: 'Raise a dispute'),
+      bottomNavigationBar: BottomActionBar(
+        primary: PrimaryButton(
+          label: 'Submit dispute',
+          tone: ButtonTone.danger,
+          loading: disputeState.isRaising,
+          onPressed: disputeState.isRaising ? null : _submit,
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
+          AppSpacing.sm,
+          AppSpacing.gutter,
+          AppSpacing.xxl,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
-            // Warning banner
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: colors.warningLight,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Iconsax.info_circle_copy,
-                    color: AppColors.accent,
-                    size: 22,
+            const InfoBanner(
+              tone: BannerTone.warning,
+              title: 'What happens when you raise a dispute',
+              message:
+                  'The agreement freezes and the money stays locked until our team reviews it and decides. Try to sort it out with the other party first if you can.',
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              "What's the problem?",
+              style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                for (final category in DisputeCategory.selectable)
+                  AppChip(
+                    label: category.label,
+                    selected: _category == category,
+                    onTap: () => setState(() => _category = category),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Disputes should be a last resort. Please try to resolve issues directly with the other party first.',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.accentDark,
-                      ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            LabeledField(
+              label: 'Tell us what happened',
+              hint: 'What went wrong, and what you expected instead',
+              helper: tooShort
+                  ? null
+                  : '$_length / $_maxDescriptionLength · at least $_minDescriptionLength characters',
+              controller: _descriptionController,
+              maxLines: 6,
+              maxLength: _maxDescriptionLength,
+              textCapitalization: TextCapitalization.sentences,
+              autovalidateMode: AutovalidateMode.always,
+              validator: (_) => tooShort
+                  ? 'Please describe the issue in at least $_minDescriptionLength characters'
+                  : null,
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              'Evidence (optional)',
+              style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppCard(
+              onTap: _pickFiles,
+              color: colors.surfaceVariant,
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+              child: Column(
+                children: [
+                  Icon(Iconsax.paperclip_copy, color: colors.textSecondary, size: 26),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    _files.isEmpty ? 'Attach screenshots or files' : 'Attach more',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Chats, receipts, photos of what was delivered',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 24),
-            Text('Dispute Category', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: DisputeCategory.selectable.map((category) {
-                return _CategoryChip(
-                  category: category,
-                  selected: _selectedCategory,
-                  onTap: () => setState(() => _selectedCategory = category),
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 24),
-            Text('Describe the Issue', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 5,
-              // Gives a hard cap plus the built-in "n/2000" counter.
-              maxLength: _maxDescriptionLength,
-              decoration: InputDecoration(
-                hintText: 'Explain what went wrong and what you expected...',
-                helperText: 'At least $_minDescriptionLength characters',
-                errorText: _submitAttempted && !_isDescriptionValid
-                    ? 'Please describe the issue in at least $_minDescriptionLength characters'
-                    : null,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            Text('Supporting Evidence', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickFiles,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: colors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: colors.cardBorder),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Iconsax.paperclip_copy,
-                      color: colors.textTertiary,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tap to attach files',
-                      style: AppTextStyles.labelMedium.copyWith(
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Attached files
-            if (_selectedFiles.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              ..._selectedFiles.asMap().entries.map((entry) {
-                final index = entry.key;
-                final file = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: colors.cardBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          file.type == AssetType.image
-                              ? Iconsax.gallery_copy
-                              : Iconsax.document_copy,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(file.name, style: AppTextStyles.labelMedium),
-                              Text(
-                                formatFileSize(file.size.toInt()),
-                                style: AppTextStyles.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedFiles.removeAt(index);
-                            });
-                          },
-                          child: Icon(
-                            CupertinoIcons.xmark,
-                            color: colors.textTertiary,
-                            size: 18,
-                          ),
-                        ),
-                      ],
-                    ),
+            if (_files.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.md),
+              for (var i = 0; i < _files.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: FileRow(
+                    file: _files[i],
+                    onRemove: () => setState(() => _files.removeAt(i)),
                   ),
-                );
-              }),
-            ],
-
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: disputeState.isRaising || !_isDescriptionValid
-                    ? null
-                    : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
                 ),
-                child: disputeState.isRaising
-                    ? const CircularProgressIndicator(
-                        backgroundColor: Colors.white,
-                      )
-                    : const Text('Submit Dispute'),
-              ),
-            ),
-            const SizedBox(height: 32),
+            ],
           ],
         ),
       ),
@@ -308,38 +214,75 @@ class _DisputeScreenState extends ConsumerState<DisputeScreen> {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  final DisputeCategory category;
-  final DisputeCategory selected;
-  final VoidCallback onTap;
+/// A picked file with its size and a remove control. Shared with upload.
+class FileRow extends StatelessWidget {
+  final FileResponse file;
+  final VoidCallback? onRemove;
 
-  const _CategoryChip({
-    required this.category,
-    required this.selected,
-    required this.onTap,
-  });
+  const FileRow({super.key, required this.file, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isSelected = category == selected;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : colors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : colors.cardBorder,
+    final isImage = file.type == AssetType.image;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      radius: AppRadius.md,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isImage ? colors.primarySurface : colors.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppRadius.xs + 2),
+            ),
+            child: Icon(
+              isImage ? Iconsax.gallery_copy : Iconsax.document_copy,
+              color: isImage ? AppColors.primary : colors.textSecondary,
+              size: 20,
+            ),
           ),
-        ),
-        child: Text(
-          category.label,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: isSelected ? Colors.white : colors.textSecondary,
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  file.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+                Text(
+                  formatFileSize(file.size.toInt()),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          if (onRemove != null)
+            Semantics(
+              button: true,
+              label: 'Remove file',
+              child: InkWell(
+                onTap: onRemove,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  child: Icon(
+                    Iconsax.close_circle_copy,
+                    color: colors.textTertiary,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

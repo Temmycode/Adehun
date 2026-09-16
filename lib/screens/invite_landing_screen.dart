@@ -9,9 +9,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../theme/app_color_scheme.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_card.dart';
+import '../widgets/skeletons.dart';
+import 'splash_screen.dart' show AdehunMark;
 
 /// Target of `adehun://open/invite?token=…` and `https://<api>/invite?token=…`.
 ///
@@ -47,9 +53,8 @@ class _InviteLandingScreenState extends ConsumerState<InviteLandingScreen> {
       return;
     }
     try {
-      final response = await ref
-          .read(invitationApiServiceProvider)
-          .lookup(widget.token);
+      final response =
+          await ref.read(invitationApiServiceProvider).lookup(widget.token);
       if (!mounted) return;
       if (response.response.statusCode == HttpStatus.ok) {
         setState(() {
@@ -90,72 +95,162 @@ class _InviteLandingScreenState extends ConsumerState<InviteLandingScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final lookup = _lookup;
+    final hasSession = authRouteNotifier.hasSession;
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Center(
-            child: _loading
-                ? const CircularProgressIndicator()
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _error == null ? Iconsax.sms_tracking : Iconsax.warning_2,
-                        size: 64,
-                        color: _error == null ? AppColors.primary : AppColors.error,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        _error == null
-                            ? '${lookup!.inviterName} invited you'
-                            : 'Invitation unavailable',
-                        style: AppTextStyles.h2,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _error ??
-                            'You have been invited to "${lookup!.agreementTitle}" '
-                                'as the ${lookup.role}.',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: colors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (_error == null && lookup!.emailHint.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          'Sent to ${lookup.emailHint}',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: colors.textTertiary,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _error == null
-                              ? _continue
-                              : () => context.go(
-                                  authRouteNotifier.hasSession ? '/home' : '/auth',
-                                ),
-                          child: Text(
-                            _error == null
-                                ? (authRouteNotifier.hasSession
-                                      ? 'View invitation'
-                                      : 'Sign in to continue')
-                                : 'Continue',
-                          ),
-                        ),
-                      ),
-                    ],
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            AppSpacing.lg,
+            AppSpacing.gutter,
+            AppSpacing.xxl,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const AdehunMark(size: 36, onPrimary: false),
+                  const SizedBox(width: AppSpacing.md),
+                  Text(
+                    'Adehun',
+                    style: AppTextStyles.h2.copyWith(color: colors.textPrimary),
                   ),
+                ],
+              ),
+              const Spacer(),
+              AnimatedSwitcher(
+                duration: AppMotion.normal,
+                child: _loading
+                    ? const _LoadingCard(key: ValueKey('loading'))
+                    : _error != null
+                        ? _ErrorCard(key: const ValueKey('error'), message: _error!)
+                        : _InviteCard(key: const ValueKey('invite'), lookup: lookup!)
+                            .entrance(context, 0),
+              ),
+              const Spacer(),
+              if (!_loading)
+                PrimaryButton(
+                  label: _error == null
+                      ? (hasSession ? 'View invitation' : 'Sign in to continue')
+                      : 'Continue',
+                  onPressed: _error == null
+                      ? _continue
+                      : () => context.go(hasSession ? '/home' : '/auth'),
+                ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LoadingCard extends StatelessWidget {
+  const _LoadingCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppCard(
+      padding: EdgeInsets.all(AppSpacing.xxl),
+      child: Shimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SkeletonCircle(diameter: 56),
+            SizedBox(height: AppSpacing.lg),
+            SkeletonLine(widthFactor: 0.6, height: 18),
+            SizedBox(height: AppSpacing.sm),
+            SkeletonLine(widthFactor: 0.9, height: 12),
+            SizedBox(height: 6),
+            SkeletonLine(widthFactor: 0.5, height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InviteCard extends StatelessWidget {
+  final InviteLookup lookup;
+
+  const _InviteCard({super.key, required this.lookup});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: colors.primarySurface,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: const Icon(Iconsax.sms_tracking, color: AppColors.primary, size: 28),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            '${lookup.inviterName} invited you',
+            style: AppTextStyles.h2.copyWith(color: colors.textPrimary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'You have been invited to "${lookup.agreementTitle}" as the ${lookup.role}.',
+            style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
+          ),
+          if (lookup.emailHint.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Sent to ${lookup.emailHint}',
+              style: AppTextStyles.bodySmall.copyWith(color: colors.textTertiary),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorCard extends StatelessWidget {
+  final String message;
+
+  const _ErrorCard({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: colors.errorLight,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: const Icon(Iconsax.warning_2, color: AppColors.error, size: 28),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Invitation unavailable',
+            style: AppTextStyles.h2.copyWith(color: colors.textPrimary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            message,
+            style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
+          ),
+        ],
       ),
     );
   }

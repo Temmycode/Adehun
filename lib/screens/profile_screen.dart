@@ -1,14 +1,22 @@
 import 'package:adehun_mvp/controllers/auth_controller.dart';
-import 'package:adehun_mvp/theme/theme_controller.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:adehun_mvp/shell/app_nav_bar.dart';
+import 'package:adehun_mvp/theme/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_bottom_sheet.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_card.dart';
+import '../widgets/app_chip.dart';
+import '../widgets/app_top_bar.dart';
+import '../widgets/avatar_initials.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -18,159 +26,144 @@ class ProfileScreen extends ConsumerWidget {
     final colors = context.colors;
     final user = ref.watch(authControllerProvider).userData;
 
-    String generateInitials(String username) {
-      return username.split(' ').map((name) => name[0]).join('');
-    }
-
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            AppSpacing.md,
+            AppSpacing.gutter,
+            0,
+          ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
-              // Header
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Profile',
-                  style: AppTextStyles.h1.copyWith(color: colors.textPrimary),
-                ),
+              Text(
+                'Profile',
+                style: AppTextStyles.h1.copyWith(color: colors.textPrimary),
               ),
-              const SizedBox(height: 28),
-              // Profile card
-              Consumer(
-                builder: (context, ref, _) {
-                  final authState = ref.watch(authControllerProvider);
-                  final user = authState.userData;
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: colors.cardBorder),
+              const SizedBox(height: AppSpacing.xl),
+              AppCard(
+                child: Row(
+                  children: [
+                    AvatarInitials(
+                      name: user?.name,
+                      imageUrl: user?.profilePictureUrl,
+                      size: 64,
                     ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: colors.primarySurface,
-                          child: Text(
-                            generateInitials(user?.name ?? 'User'),
-                            style: AppTextStyles.h1.copyWith(
-                              color: AppColors.primary,
-                              fontSize: 28,
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.name?.trim().isNotEmpty == true
+                                ? user!.name!
+                                : 'Your name',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.h2.copyWith(
+                              color: colors.textPrimary,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          user?.name ?? 'User',
-                          style: AppTextStyles.h2.copyWith(
-                            color: colors.textPrimary,
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.email ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: colors.textSecondary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user?.email ?? 'example@example.com',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              // Settings sections
-              _SettingsSection(
+                    AppIconButton(
+                      icon: Iconsax.edit_2_copy,
+                      semanticLabel: 'Edit profile',
+                      onPressed: () => context.push('/edit-profile'),
+                    ),
+                  ],
+                ),
+              ).entrance(context, 0),
+              const SizedBox(height: AppSpacing.xxl),
+              _Section(
                 title: 'Account',
-                items: [
-                  _SettingsItem(
+                children: [
+                  _Row(
                     icon: Iconsax.user_copy,
-                    title: 'Edit Profile',
+                    title: 'Edit profile',
                     onTap: () => context.push('/edit-profile'),
                   ),
-                  _SettingsItem(
+                  _Row(
                     icon: Iconsax.call_copy,
-                    title: 'Phone Number',
+                    title: 'Phone number',
                     trailing: user?.phoneNumber ?? 'Not set',
                     onTap: () => context.push('/edit-profile'),
                   ),
-                  _SettingsItem(
+                  _Row(
+                    icon: Iconsax.bank_copy,
+                    title: 'Bank accounts',
+                    onTap: () => context.push('/bank-accounts'),
+                  ),
+                  _Row(
                     icon: Iconsax.notification_copy,
                     title: 'Notifications',
                     onTap: () => context.push('/notifications'),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              _SettingsSection(
-                title: 'Preferences',
-                items: [
-                  _ThemeSettingsItem(),
-                  _SettingsItem(
-                    icon: Iconsax.bank_copy,
-                    title: 'Bank Accounts',
-                    onTap: () => context.push('/bank-accounts'),
-                  ),
-                  _SettingsItem(
-                    icon: Iconsax.lock_copy,
-                    title: 'Privacy & Security',
+              ).entrance(context, 1),
+              const SizedBox(height: AppSpacing.lg),
+              _Section(
+                title: 'Appearance',
+                children: const [_ThemePicker()],
+              ).entrance(context, 2),
+              const SizedBox(height: AppSpacing.lg),
+              _Section(
+                title: 'Support',
+                children: [
+                  _Row(
+                    icon: Iconsax.shield_tick_copy,
+                    title: 'Privacy & security',
                     onTap: () => _showInfoSheet(
                       context,
-                      title: 'Privacy & Security',
+                      title: 'Privacy & security',
                       body:
-                          'Your session is protected with short-lived tokens '
-                          'stored in the device keychain. Money never moves '
-                          'without a verified payment or your explicit '
-                          'approval, and every escrow movement is recorded '
-                          'in your transaction history.\n\n'
-                          'Sign out on shared devices, and contact support '
-                          'immediately if you notice activity you do not '
-                          'recognise.',
+                          'Your session is protected with short-lived tokens stored in the device keychain. Money never moves without a verified payment or your explicit approval, and every escrow movement is recorded in your activity.\n\nSign out on shared devices, and contact support immediately if you notice activity you do not recognise.',
                     ),
                   ),
-                  _SettingsItem(
-                    icon: Iconsax.info_circle_copy,
-                    title: 'Help & Support',
+                  _Row(
+                    icon: Iconsax.message_question_copy,
+                    title: 'Help & support',
                     onTap: () => _showInfoSheet(
                       context,
-                      title: 'Help & Support',
+                      title: 'Help & support',
                       body:
-                          'Email support@adehun.app with your agreement '
-                          'reference and we will get back to you within one '
-                          'business day.',
+                          'Email support@adehun.app with your agreement reference and we will get back to you within one business day.',
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              // Sign out
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.cardBorder),
-                ),
-                child: _SettingsItem(
+              ).entrance(context, 3),
+              const SizedBox(height: AppSpacing.lg),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: _Row(
                   icon: Iconsax.logout_copy,
-                  title: 'Sign Out',
-                  iconColor: AppColors.error,
-                  titleColor: AppColors.error,
-                  showArrow: false,
+                  title: 'Sign out',
+                  tint: AppColors.error,
+                  showChevron: false,
                   onTap: () => _showSignOutSheet(context, ref),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Adehun v1.0.0',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: colors.textTertiary,
+              ).entrance(context, 4),
+              const SizedBox(height: AppSpacing.lg),
+              Center(
+                child: Text(
+                  'Adehun v1.0.0',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
                 ),
               ),
               SizedBox(height: context.navBottomPadding),
@@ -183,137 +176,110 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 void _showSignOutSheet(BuildContext context, WidgetRef ref) {
-  final colors = context.colors;
-
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: colors.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
+  showAppBottomSheet(
+    context,
     builder: (sheetContext) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.cardBorder,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Icon(Iconsax.logout_copy, color: AppColors.error, size: 40),
-              const SizedBox(height: 16),
-              Text(
-                'Sign Out',
-                style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Are you sure you want to sign out?',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(sheetContext),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: BorderSide(color: colors.cardBorder),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: AppTextStyles.buttonLarge.copyWith(
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(sheetContext);
-                        await ref.read(authControllerProvider.notifier).signOut();
-                        if (context.mounted) {
-                          context.go('/auth');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Sign Out',
-                        style: AppTextStyles.buttonLarge.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      final colors = sheetContext.colors;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: colors.errorLight,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: const Icon(Iconsax.logout, color: AppColors.error, size: 26),
           ),
-        ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Sign out?',
+            style: AppTextStyles.h2.copyWith(color: colors.textPrimary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Your agreements and wallet stay exactly as they are. Sign back in any time with Google.',
+            style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          PrimaryButton(
+            label: 'Sign out',
+            tone: ButtonTone.danger,
+            onPressed: () async {
+              Navigator.pop(sheetContext);
+              await ref.read(authControllerProvider.notifier).signOut();
+              if (context.mounted) context.go('/auth');
+            },
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          TertiaryButton(
+            label: 'Stay signed in',
+            expand: true,
+            onPressed: () => Navigator.pop(sheetContext),
+          ),
+        ],
       );
     },
   );
 }
 
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final List<Widget> items;
+void _showInfoSheet(
+  BuildContext context, {
+  required String title,
+  required String body,
+}) {
+  showAppBottomSheet(
+    context,
+    title: title,
+    builder: (sheetContext) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          body,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: sheetContext.colors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxl),
+        PrimaryButton(
+          label: 'Got it',
+          onPressed: () => Navigator.pop(sheetContext),
+        ),
+      ],
+    ),
+  );
+}
 
-  const _SettingsSection({required this.title, required this.items});
+class _Section extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _Section({required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
             title,
-            style: AppTextStyles.labelMedium.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: AppTextStyles.labelMedium.copyWith(color: colors.textSecondary),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: colors.cardBorder),
-          ),
+        AppCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
-              for (var i = 0; i < items.length; i++) ...[
-                items[i],
-                if (i < items.length - 1)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Divider(height: 1, color: colors.cardBorder),
-                  ),
+              for (var i = 0; i < children.length; i++) ...[
+                children[i],
+                if (i < children.length - 1)
+                  Divider(height: 1, indent: 52, color: colors.cardBorder),
               ],
             ],
           ),
@@ -323,217 +289,42 @@ class _SettingsSection extends StatelessWidget {
   }
 }
 
-class _ThemeSettingsItem extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
-    final mode = ref.watch(themeControllerProvider);
-    final label = switch (mode) {
-      ThemeMode.light => 'Light',
-      ThemeMode.dark => 'Dark',
-      ThemeMode.system => 'System',
-    };
-
-    return GestureDetector(
-      onTap: () => _showThemePicker(context, ref),
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(
-              context.isDarkMode ? Iconsax.moon_copy : Iconsax.sun_1_copy,
-              color: colors.textSecondary,
-              size: 22,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                'Appearance',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: colors.textPrimary,
-                ),
-              ),
-            ),
-            Text(
-              label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              CupertinoIcons.chevron_forward,
-              size: 14,
-              color: colors.textTertiary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showThemePicker(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
-    final themeNotifier = ref.read(themeControllerProvider.notifier);
-    final currentMode = ref.read(themeControllerProvider);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: colors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colors.cardBorder,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Appearance',
-                  style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
-                ),
-                const SizedBox(height: 20),
-                _ThemeOption(
-                  icon: Iconsax.sun_1_copy,
-                  title: 'Light',
-                  isSelected: currentMode == ThemeMode.light,
-                  onTap: () {
-                    themeNotifier.setThemeMode(ThemeMode.light);
-                    Navigator.pop(context);
-                  },
-                ),
-                const SizedBox(height: 8),
-                _ThemeOption(
-                  icon: Iconsax.moon_copy,
-                  title: 'Dark',
-                  isSelected: currentMode == ThemeMode.dark,
-                  onTap: () {
-                    themeNotifier.setThemeMode(ThemeMode.dark);
-                    Navigator.pop(context);
-                  },
-                ),
-                const SizedBox(height: 8),
-                _ThemeOption(
-                  icon: Iconsax.monitor_copy,
-                  title: 'System',
-                  isSelected: currentMode == ThemeMode.system,
-                  onTap: () {
-                    themeNotifier.setThemeMode(ThemeMode.system);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _ThemeOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ThemeOption({
-    required this.icon,
-    required this.title,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.primarySurface : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : colors.cardBorder,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primary : colors.textSecondary,
-              size: 22,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                title,
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: isSelected ? AppColors.primary : colors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-              ),
-            ),
-            if (isSelected)
-              Icon(Iconsax.tick_circle, color: AppColors.primary, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsItem extends StatelessWidget {
+class _Row extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? trailing;
-  final Color? iconColor;
-  final Color? titleColor;
-  final bool showArrow;
+  final Color? tint;
+  final bool showChevron;
   final VoidCallback onTap;
 
-  const _SettingsItem({
+  const _Row({
     required this.icon,
     required this.title,
-    this.trailing,
-    this.iconColor,
-    this.titleColor,
-    this.showArrow = true,
     required this.onTap,
+    this.trailing,
+    this.tint,
+    this.showChevron = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         child: Row(
           children: [
-            Icon(icon, color: iconColor ?? colors.textSecondary, size: 22),
-            const SizedBox(width: 14),
+            Icon(icon, color: tint ?? colors.textSecondary, size: 22),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 title,
                 style: AppTextStyles.bodyLarge.copyWith(
-                  color: titleColor ?? colors.textPrimary,
+                  color: tint ?? colors.textPrimary,
                 ),
               ),
             ),
@@ -544,11 +335,11 @@ class _SettingsItem extends StatelessWidget {
                   color: colors.textSecondary,
                 ),
               ),
-            if (showArrow) ...[
-              const SizedBox(width: 8),
+            if (showChevron) ...[
+              const SizedBox(width: AppSpacing.sm),
               Icon(
-                CupertinoIcons.chevron_forward,
-                size: 14,
+                Iconsax.arrow_right_3_copy,
+                size: 16,
                 color: colors.textTertiary,
               ),
             ],
@@ -559,40 +350,34 @@ class _SettingsItem extends StatelessWidget {
   }
 }
 
-void _showInfoSheet(
-  BuildContext context, {
-  required String title,
-  required String body,
-}) {
-  final colors = context.colors;
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: colors.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (sheetContext) => Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+class _ThemePicker extends ConsumerWidget {
+  const _ThemePicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeControllerProvider);
+    final notifier = ref.read(themeControllerProvider.notifier);
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
         children: [
-          Text(title, style: AppTextStyles.h2.copyWith(color: colors.textPrimary)),
-          const SizedBox(height: 12),
-          Text(
-            body,
-            style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Got it'),
+          for (final (m, icon, label) in const [
+            (ThemeMode.light, Iconsax.sun_1_copy, 'Light'),
+            (ThemeMode.dark, Iconsax.moon_copy, 'Dark'),
+            (ThemeMode.system, Iconsax.monitor_copy, 'Auto'),
+          ]) ...[
+            Expanded(
+              child: AppChip(
+                label: label,
+                icon: icon,
+                selected: mode == m,
+                onTap: () => notifier.setThemeMode(m),
+              ),
             ),
-          ),
+            if (m != ThemeMode.system) const SizedBox(width: AppSpacing.sm),
+          ],
         ],
       ),
-    ),
-  );
+    );
+  }
 }
