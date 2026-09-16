@@ -44,10 +44,19 @@ class AgreementDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
+  /// Whether *this* screen kicked off the accept/fund that is in flight.
+  ///
+  /// `isAccepting` and `fundingStage` live on one shared, keep-alive state
+  /// object, so reading them raw puts the blocking overlay over every
+  /// agreement the user opens, not just the one being funded.
+  bool _actingHere = false;
+
   String get _id => widget.agreementId;
 
   AgreementResponse? get _agreement {
-    return ref.watch(agreementControllerProvider).maybeWhen(
+    return ref
+        .watch(agreementControllerProvider)
+        .maybeWhen(
           data: (state) => state.agreements
               .where((agreement) => agreement.id == _id)
               .firstOrNull,
@@ -60,7 +69,9 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.wait([
-        ref.read(conditionControllerProvider.notifier).getAgreementConditions(_id),
+        ref
+            .read(conditionControllerProvider.notifier)
+            .getAgreementConditions(_id),
         _loadInvitation(),
         // Unconditional rather than gated on a DISPUTED status: the agreement
         // may still be loading here, and resolved disputes are worth showing
@@ -71,10 +82,9 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
   }
 
   Future<void> _loadInvitation() async {
-    final cached = ref.read(agreementControllerProvider).maybeWhen(
-          data: (state) => state.invitations[_id],
-          orElse: () => null,
-        );
+    final cached = ref
+        .read(agreementControllerProvider)
+        .maybeWhen(data: (state) => state.invitations[_id], orElse: () => null);
     if (cached == null) {
       await ref
           .read(agreementControllerProvider.notifier)
@@ -118,26 +128,47 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     );
     if (!confirmed || !mounted) return;
 
-    final accepted =
-        await ref.read(agreementControllerProvider.notifier).acceptAgreement(_id);
-    if (!mounted) return;
+    setState(() => _actingHere = true);
+    try {
+      final accepted = await ref
+          .read(agreementControllerProvider.notifier)
+          .acceptAgreement(_id);
+      if (!mounted) return;
 
-    if (!accepted) {
-      _toast("Couldn't activate the agreement. Please try again.");
-      return;
+      if (!accepted) {
+        _toast("Couldn't activate the agreement. Please try again.");
+        return;
+      }
+      if (!isDepositor) {
+        _toast('Agreement activated.', success: true);
+        return;
+      }
+      // Accepting debits the depositor; funding can still fail after a
+      // successful accept, which the Fund escrow action then recovers from.
+      await _fundEscrow(alreadyActivated: true, keepFlag: true);
+    } finally {
+      if (mounted) setState(() => _actingHere = false);
     }
-    if (!isDepositor) {
-      _toast('Agreement activated.', success: true);
-      return;
-    }
-    // Accepting debits the depositor; funding can still fail after a
-    // successful accept, which the Fund escrow action then recovers from.
-    await _fundEscrow(alreadyActivated: true);
   }
 
-  Future<void> _fundEscrow({bool alreadyActivated = false}) async {
-    final funded =
-        await ref.read(agreementControllerProvider.notifier).fundAgreement(_id);
+  Future<void> _fundEscrow({
+    bool alreadyActivated = false,
+    bool keepFlag = false,
+  }) async {
+    if (!keepFlag) {
+      setState(() => _actingHere = true);
+    }
+    try {
+      await _doFund(alreadyActivated);
+    } finally {
+      if (!keepFlag && mounted) setState(() => _actingHere = false);
+    }
+  }
+
+  Future<void> _doFund(bool alreadyActivated) async {
+    final funded = await ref
+        .read(agreementControllerProvider.notifier)
+        .fundAgreement(_id);
     if (!mounted) return;
 
     if (funded) {
@@ -161,8 +192,9 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     final confirmed = await showCancelConfirmationSheet(context);
     if (!confirmed || !mounted) return;
 
-    final cancelled =
-        await ref.read(agreementControllerProvider.notifier).cancelAgreement(_id);
+    final cancelled = await ref
+        .read(agreementControllerProvider.notifier)
+        .cancelAgreement(_id);
     if (!mounted) return;
 
     if (cancelled) {
@@ -212,9 +244,10 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     final draft = await showConditionEditorSheet(context, parties: parties);
     if (draft == null || !mounted) return;
 
-    final selected = [agreement.depositor, agreement.beneficiary]
-        .where((p) => p?.id == draft.partyId)
-        .firstOrNull;
+    final selected = [
+      agreement.depositor,
+      agreement.beneficiary,
+    ].where((p) => p?.id == draft.partyId).firstOrNull;
     final email = selected?.email;
     if (email == null || email.isEmpty) {
       _toast("Couldn't resolve who this condition is for.");
@@ -227,7 +260,9 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
       AddConditionParams(
         agreementId: _id,
         title: draft.title,
-        description: draft.description.isEmpty ? draft.title : draft.description,
+        description: draft.description.isEmpty
+            ? draft.title
+            : draft.description,
         requiredFromEmail: email,
       ),
     );
@@ -252,8 +287,13 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
   String _counterpartName() {
     final p = _counterpart();
     final name = p?.name?.trim();
-    if (name != null && name.isNotEmpty) return name.split(RegExp(r'\s+')).first;
-    final invite = ref.read(agreementControllerProvider).value?.invitations[_id];
+    if (name != null && name.isNotEmpty) {
+      return name.split(RegExp(r'\s+')).first;
+    }
+    final invite = ref
+        .read(agreementControllerProvider)
+        .value
+        ?.invitations[_id];
     final email = p?.email ?? invite?.email;
     if (email != null && email.isNotEmpty) return email.split('@').first;
     return 'the other party';
@@ -278,7 +318,8 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
             ? const Center(child: CircularProgressIndicator())
             : ListStatePlaceholder.error(
                 heading: "Couldn't find this agreement",
-                detail: 'It may have been removed, or your list is out of date.',
+                detail:
+                    'It may have been removed, or your list is out of date.',
                 retryLabel: 'Refresh',
                 onRetry: _refresh,
               ),
@@ -287,7 +328,8 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
 
     final status = AgreementStatusHelper.normalize(agreement.status);
     final isDepositor = _isDepositor;
-    final isParty = isDepositor ||
+    final isParty =
+        isDepositor ||
         (agreement.beneficiary?.email != null &&
             agreement.beneficiary!.email == me.email);
     final amount = double.tryParse(agreement.amount ?? '') ?? 0;
@@ -296,15 +338,22 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     final conditions = conditionState.conditionsFor(_id);
     final conditionsLoading = conditionState.isLoading && conditions.isEmpty;
     final disputes = ref.watch(disputeControllerProvider).disputesFor(_id);
-    final hasLiveDispute =
-        ref.watch(disputeControllerProvider).hasLiveDispute(_id);
+    final hasLiveDispute = ref
+        .watch(disputeControllerProvider)
+        .hasLiveDispute(_id);
 
     final invitation = agreementAsync.value?.invitations[_id];
     final invitationLoading = agreementAsync.value?.invitationLoading ?? false;
     final isCancelling = agreementAsync.value?.isCancelling ?? false;
     final isFunding = agreementAsync.value?.isFundingAgreement(_id) ?? false;
-    final isAccepting = agreementAsync.value?.isAccepting ?? false;
-    final stage = agreementAsync.value?.fundingStage ?? EscrowFundingStage.idle;
+    // Both of these are global to the controller, so they only count when this
+    // screen is the one doing the work. Otherwise the blocking overlay lands
+    // on whatever agreement the user happens to open next.
+    final isAccepting =
+        _actingHere && (agreementAsync.value?.isAccepting ?? false);
+    final stage = isFunding
+        ? (agreementAsync.value?.fundingStage ?? EscrowFundingStage.idle)
+        : EscrowFundingStage.idle;
 
     final actions = resolveAgreementActions(
       status: status,
@@ -316,7 +365,9 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     );
     final canAdd = AgreementStatusHelper.canAddConditions(status);
     final counterpartName = _counterpartName();
-    final met = conditions.where((c) => ConditionStatusHelper.isMet(c.status)).length;
+    final met = conditions
+        .where((c) => ConditionStatusHelper.isMet(c.status))
+        .length;
 
     final nextStep = nextStepFor(
       status: status,
@@ -432,14 +483,15 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                     '/condition/${condition.id}?agreementId=$_id',
                   ),
                 ).entrance(context, 3),
-                DisputesSection(
-                  disputes: disputes,
-                  currentUserEmail: me.email,
-                ),
+                DisputesSection(disputes: disputes, currentUserEmail: me.email),
               ],
             ),
           ),
-          FundingOverlay(isAccepting: isAccepting, stage: stage, amount: amount),
+          FundingOverlay(
+            isAccepting: isAccepting,
+            stage: stage,
+            amount: amount,
+          ),
         ],
       ),
     );
