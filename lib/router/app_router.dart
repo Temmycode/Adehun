@@ -11,12 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../screens/agreement_detail_screen.dart';
+import '../screens/agreement_detail/agreement_detail_screen.dart';
 import '../screens/agreement_invitation_screen.dart';
 import '../screens/agreements_list_screen.dart';
 import '../screens/auth_screen.dart';
 import '../screens/condition_detail_screen.dart';
-import '../screens/create_agreement_screen.dart';
+import '../screens/create_agreement/create_agreement_screen.dart';
 import '../screens/dispute_screen.dart';
 import '../screens/fund_wallet_screen.dart';
 import '../screens/home_screen.dart';

@@ -8,6 +8,7 @@ import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_tokens.dart';
 import '../utils/agreement_status.dart';
+import '../utils/condition_status.dart';
 
 enum StatusPillSize { sm, md }
 
@@ -73,6 +74,19 @@ class StatusPill extends StatelessWidget {
   }) {
     return StatusPill._resolved(
       (colors) => _transactionLook(status, colors),
+      key: key,
+      size: size,
+    );
+  }
+
+  /// Condition status, normalised through [ConditionStatusHelper].
+  factory StatusPill.condition(
+    String? status, {
+    Key? key,
+    StatusPillSize size = StatusPillSize.sm,
+  }) {
+    return StatusPill._resolved(
+      (colors) => _conditionLook(status, colors),
       key: key,
       size: size,
     );
@@ -189,6 +203,35 @@ class StatusPill extends StatelessWidget {
           fg: colors.textSecondary,
           bg: colors.surfaceVariant,
           icon: Iconsax.info_circle_copy,
+        ),
+    };
+  }
+
+  static _PillLook _conditionLook(String? status, AppColorScheme colors) {
+    return switch (ConditionStatusHelper.normalize(status)) {
+      ConditionStatusHelper.approved => (
+          label: 'Approved',
+          fg: AppColors.success,
+          bg: colors.successLight,
+          icon: Iconsax.tick_circle,
+        ),
+      ConditionStatusHelper.submitted => (
+          label: 'Awaiting review',
+          fg: AppColors.goldDark,
+          bg: colors.goldLight,
+          icon: Iconsax.timer_1_copy,
+        ),
+      ConditionStatusHelper.rejected => (
+          label: 'Rejected',
+          fg: AppColors.error,
+          bg: colors.errorLight,
+          icon: Iconsax.close_circle_copy,
+        ),
+      _ => (
+          label: 'Pending',
+          fg: colors.textSecondary,
+          bg: colors.surfaceVariant,
+          icon: Iconsax.record_circle_copy,
         ),
     };
   }

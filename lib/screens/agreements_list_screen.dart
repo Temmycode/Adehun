@@ -5,238 +5,199 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_color_scheme.dart';
-import '../widgets/agreement_card.dart';
-import '../widgets/skeletons.dart';
-import '../utils/agreement_status.dart';
 
-class AgreementsListScreen extends StatefulWidget {
+import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../utils/agreement_status.dart';
+import '../widgets/agreement_card.dart';
+import '../widgets/app_chip.dart';
+import '../widgets/app_top_bar.dart';
+import '../widgets/list_state_placeholder.dart';
+import '../widgets/skeletons.dart';
+
+enum _Filter {
+  all('All'),
+  active('Active'),
+  pending('Pending'),
+  completed('Completed'),
+  disputed('Disputed'),
+  refunded('Refunded');
+
+  final String label;
+  const _Filter(this.label);
+
+  bool matches(AgreementResponse a) => switch (this) {
+        all => true,
+        active => AgreementStatusHelper.isActiveLike(a.status),
+        pending => AgreementStatusHelper.isPendingLike(a.status),
+        completed => AgreementStatusHelper.isCompletedLike(a.status),
+        disputed => AgreementStatusHelper.isDisputedLike(a.status),
+        refunded => AgreementStatusHelper.isRefundedLike(a.status),
+      };
+}
+
+class AgreementsListScreen extends ConsumerStatefulWidget {
   const AgreementsListScreen({super.key});
 
   @override
-  State<AgreementsListScreen> createState() => _AgreementsListScreenState();
+  ConsumerState<AgreementsListScreen> createState() =>
+      _AgreementsListScreenState();
 }
 
-class _AgreementsListScreenState extends State<AgreementsListScreen> {
-  String _selectedFilter = 'All';
-  final List<String> _filters = [
-    'All',
-    'Active',
-    'Pending',
-    'Completed',
-    'Disputed',
-    'Refunded',
-  ];
-
-  List<AgreementResponse> _filteredAgreements(
-    List<AgreementResponse> agreements,
-  ) {
-    if (_selectedFilter == 'All') return agreements;
-    return agreements.where((a) {
-      final status = AgreementStatusHelper.normalize(a.status);
-      switch (_selectedFilter) {
-        case 'Active':
-          return AgreementStatusHelper.isActiveLike(status);
-        case 'Pending':
-          return AgreementStatusHelper.isPendingLike(status);
-        case 'Completed':
-          return AgreementStatusHelper.isCompletedLike(status);
-        case 'Disputed':
-          return AgreementStatusHelper.isDisputedLike(status);
-        case 'Refunded':
-          return AgreementStatusHelper.isRefundedLike(status);
-        default:
-          return true;
-      }
-    }).toList();
-  }
+class _AgreementsListScreenState extends ConsumerState<AgreementsListScreen> {
+  _Filter _filter = _Filter.all;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final state = ref.watch(agreementControllerProvider);
+    final all = state.value?.agreements ?? const <AgreementResponse>[];
+    final visible = all.where(_filter.matches).toList();
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Agreements', style: AppTextStyles.h1),
-                    GestureDetector(
-                      onTap: () => context.push('/create-agreement'),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Iconsax.add,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Filter chips
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 8),
-                child: SizedBox(
-                  height: 38,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _filters.length,
-                    itemBuilder: (context, index) {
-                      final filter = _filters[index];
-                      final isSelected = filter == _selectedFilter;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedFilter = filter),
-                          child: Container(
-                            alignment: .center,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: colors.surface,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : colors.cardBorder,
-                              ),
-                            ),
-                            child: Text(
-                              filter,
-                              style: AppTextStyles.labelMedium.copyWith(
-                                color: colors.textSecondary,
-                              ),
-                            ),
+        bottom: false,
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () => ref.refresh(agreementControllerProvider.future),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    AppSpacing.md,
+                    AppSpacing.gutter,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Agreements',
+                          style: AppTextStyles.h1.copyWith(
+                            color: colors.textPrimary,
                           ),
                         ),
-                      );
-                    },
+                      ),
+                      AppIconButton(
+                        icon: Iconsax.add,
+                        semanticLabel: 'Create agreement',
+                        onPressed: () => context.push('/create-agreement'),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-
-            Consumer(
-              builder: (context, ref, _) {
-                final agreementState = ref.watch(agreementControllerProvider);
-
-                return agreementState.when(
-                  data: (stateData) {
-                    final agreements = _filteredAgreements(
-                      stateData.agreements,
-                    );
-
-                    if (agreements.isEmpty) {
-                      return SliverFillRemaining(child: _EmptyState());
-                    } else {
-                      return SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            final agreement = agreements[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: AgreementCard(
-                                agreement: agreement,
-                                onTap: () {
-                                  context.push('/agreement/${agreement.id}');
-                                },
-                              ),
-                            );
-                          }, childCount: agreements.length),
-                        ),
-                      );
-                    }
-                  },
-                  loading: () => const SliverPadding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    sliver: SliverToBoxAdapter(child: AgreementListSkeleton()),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: AppSpacing.lg,
+                    bottom: AppSpacing.sm,
                   ),
-                  error: (err, stk) => SliverToBoxAdapter(
-                    child: Text(
-                      'An error occurred $err',
-                      style: TextTheme.of(
-                        context,
-                      ).bodyMedium?.copyWith(color: Colors.red),
+                  child: SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: AppInsets.screen,
+                      itemCount: _Filter.values.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(width: AppSpacing.sm),
+                      itemBuilder: (context, index) {
+                        final filter = _Filter.values[index];
+                        final count = filter == _Filter.all
+                            ? all.length
+                            : all.where(filter.matches).length;
+                        return AppChip(
+                          label: filter.label,
+                          selected: filter == _filter,
+                          count: state.hasValue ? count : null,
+                          onTap: () => setState(() => _filter = filter),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
-            ),
-
-            // Agreements list
-            SliverToBoxAdapter(
-              child: SizedBox(height: context.navBottomPadding),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: colors.primarySurface,
-                borderRadius: BorderRadius.circular(28),
+                ),
               ),
-              child: const Icon(
-                Iconsax.document_text_copy,
-                color: AppColors.primary,
-                size: 44,
+              state.when(
+                data: (_) {
+                  if (visible.isEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: all.isEmpty
+                          ? ListStatePlaceholder(
+                              icon: Iconsax.document_text_copy,
+                              illustrationAsset:
+                                  'assets/illustrations/onboarding_release.svg',
+                              title: 'No agreements yet',
+                              message:
+                                  'Create one to hold money safely until the work is done.',
+                              actionLabel: 'Create an agreement',
+                              primaryAction: true,
+                              onAction: () => context.push('/create-agreement'),
+                            )
+                          : ListStatePlaceholder(
+                              icon: Iconsax.filter_copy,
+                              title: 'Nothing ${_filter.label.toLowerCase()}',
+                              message:
+                                  'No agreements match this filter right now.',
+                              actionLabel: 'Show all',
+                              onAction: () =>
+                                  setState(() => _filter = _Filter.all),
+                            ),
+                    );
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      AppSpacing.sm,
+                      AppSpacing.gutter,
+                      0,
+                    ),
+                    sliver: SliverList.separated(
+                      itemCount: visible.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.md),
+                      itemBuilder: (context, index) {
+                        final agreement = visible[index];
+                        return AgreementCard(
+                          key: ValueKey(agreement.id),
+                          agreement: agreement,
+                          onTap: () =>
+                              context.push('/agreement/${agreement.id}'),
+                        ).entrance(context, index);
+                      },
+                    ),
+                  );
+                },
+                loading: () => const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    AppSpacing.sm,
+                    AppSpacing.gutter,
+                    0,
+                  ),
+                  sliver: SliverToBoxAdapter(child: AgreementListSkeleton()),
+                ),
+                error: (err, _) => SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ListStatePlaceholder.error(
+                    heading: "Couldn't load your agreements",
+                    detail: 'Check your connection and try again.',
+                    onRetry: () => ref.invalidate(agreementControllerProvider),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text('No Agreements Yet', style: AppTextStyles.h3),
-            const SizedBox(height: 8),
-            Text(
-              'Create your first escrow agreement\nto get started',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textSecondary,
+              SliverToBoxAdapter(
+                child: SizedBox(height: context.navBottomPadding),
               ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => context.push('/create-agreement'),
-              icon: const Icon(Iconsax.add, size: 20),
-              label: const Text('Create Agreement'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -408,50 +408,49 @@ class PartyRowSkeleton extends StatelessWidget {
 // Conditions
 // ---------------------------------------------------------------------------
 
-/// Mirrors `_ConditionCard` on the agreement detail screen.
-class ConditionCardSkeleton extends StatelessWidget {
+/// Mirrors one `ConditionsTimeline` row: a 28px marker, 12px gap, then a
+/// 12px-padded card holding a title line and a "needs X" line with a pill.
+class ConditionTimelineSkeleton extends StatelessWidget {
   final bool shimmer;
   final double titleWidthFactor;
 
-  /// The real card only renders the "Required from" pill when the condition has
-  /// an assignee, so the skeleton varies it too.
-  final bool showAssignee;
-
-  const ConditionCardSkeleton({
+  const ConditionTimelineSkeleton({
     super.key,
     this.shimmer = true,
     this.titleWidthFactor = 0.6,
-    this.showAssignee = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final card = _SkeletonCard(
-      padding: const EdgeInsets.all(14),
-      radius: 12,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const SkeletonBox(width: 36, height: 36, radius: 10),
-              const SizedBox(width: 12),
-              Expanded(child: SkeletonLine(widthFactor: titleWidthFactor)),
-              const SizedBox(width: 8),
-              const SkeletonBox(width: 56, height: 20, radius: 10),
-              const SizedBox(width: 8),
-              const SkeletonBox(width: 8, height: 14, radius: 3),
-            ],
+    final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SkeletonCircle(diameter: 28),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _SkeletonCard(
+            padding: const EdgeInsets.all(12),
+            radius: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonLine(widthFactor: titleWidthFactor, height: 14),
+                const SizedBox(height: 8),
+                Row(
+                  children: const [
+                    SkeletonBox(width: 96, height: 10),
+                    Spacer(),
+                    SkeletonBox(width: 72, height: 22, radius: 11),
+                  ],
+                ),
+              ],
+            ),
           ),
-          if (showAssignee) ...[
-            const SizedBox(height: 10),
-            const SkeletonBox(width: 150, height: 24, radius: 8),
-          ],
-        ],
-      ),
+        ),
+      ],
     );
 
-    return shimmer ? Shimmer(child: card) : card;
+    return shimmer ? Shimmer(child: row) : row;
   }
 }
 
@@ -469,12 +468,10 @@ class ConditionListSkeleton extends StatelessWidget {
         children: [
           for (var i = 0; i < count; i++)
             Padding(
-              padding: EdgeInsets.only(bottom: i == count - 1 ? 0 : 10),
-              child: ConditionCardSkeleton(
+              padding: EdgeInsets.only(bottom: i == count - 1 ? 0 : 12),
+              child: ConditionTimelineSkeleton(
                 shimmer: false,
                 titleWidthFactor: _widthFactors[i % _widthFactors.length],
-                // Mixed, because the real list is mixed.
-                showAssignee: i.isEven,
               ),
             ),
         ],
