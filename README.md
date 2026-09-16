@@ -76,13 +76,31 @@ waiting on someone.
 | `theme/app_colors.dart` | Brand and functional colours that do not change with the theme |
 | `theme/app_color_scheme.dart` | Everything that does, as a `ThemeExtension`. Read it with `context.colors`, never a raw hex |
 | `theme/app_tokens.dart` | `AppSpacing`, `AppRadius`, `AppShadows`, `AppMotion`, `kMinTapTarget` |
+| `theme/app_gradients.dart` | The brand gradients and the glows layered over them |
 | `theme/app_text_styles.dart` | The type scale. Nunito headings, DM Sans body, tabular figures for money |
 | `theme/app_theme.dart` | One `_build(Brightness)` producing `AppTheme.light` and `AppTheme.dark` |
 | `theme/app_motion.dart` | `widget.entrance(context, index)` for staggered list entrances |
 
 Fonts are bundled in `assets/fonts/` with the filenames google_fonts expects,
 and `main.dart` sets `allowRuntimeFetching = false`, so nothing is fetched at
-runtime. Adding a weight means adding the matching TTF.
+runtime. Adding a weight means adding the matching TTF. Always request a weight
+explicitly (`GoogleFonts.nunito(fontWeight: ...)`); the bare call resolves the
+w400 file first and throws if that weight is not bundled.
+
+### Depth
+
+Flat fills everywhere is what makes an interface look unfinished, so the app
+keeps a deliberate decorative layer:
+
+- **`MeshSurface`** is a gradient plus radial glows, and is what every rich
+  surface uses: the wallet card, the escrow amount card, the splash field. The
+  glows stay inside the green family. Clay over green mixes to olive, which is
+  the muddy corner a naive mesh gradient gives you.
+- **`OrbitingBlobs`** is the app's one piece of ambient motion: three soft
+  spheres drifting around a shared centre, on auth and behind the splash
+  wordmark. It scales in on first build and turns slowly after.
+- **`AppShadows.floating`** is two layers, a tight contact shadow and a wide
+  ambient one. A single flat blur reads as pasted on.
 
 ### Component kit
 
