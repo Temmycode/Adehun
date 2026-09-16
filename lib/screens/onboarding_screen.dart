@@ -1,62 +1,64 @@
-import 'dart:math' as math;
-
 import 'package:adehun_mvp/core/resources/service_locator.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_buttons.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<_OnboardingPage> _pages = [
+  static const _pages = [
     _OnboardingPage(
-      illustration: 'assets/illustrations/illustration 1.svg',
-      title: 'Secure Escrow\nMade Simple',
-      subtitle:
-          'Adehun holds funds safely until both parties are satisfied. No more trust issues with online transactions.',
-      accentWord: 'Escrow',
+      illustration: 'assets/illustrations/onboarding_safe.svg',
+      title: 'Your money is held safely',
+      accentWord: 'safely',
+      body:
+          'Pay into Adehun, not the other person. We hold the money until the work is done and you say so.',
     ),
     _OnboardingPage(
-      illustration: 'assets/illustrations/illustration 2.svg',
-      title: 'Protection For\nBoth Parties',
-      subtitle:
-          'Whether you\'re paying for a service or delivering one, Adehun ensures fair deals with clear conditions.',
-      accentWord: 'Both',
+      illustration: 'assets/illustrations/onboarding_protected.svg',
+      title: 'Both sides are protected',
+      accentWord: 'protected',
+      body:
+          'Agree on clear conditions up front. The seller knows the money is there. The buyer only releases it when the conditions are met.',
     ),
     _OnboardingPage(
-      illustration: 'assets/illustrations/illustration 3.svg',
-      title: 'Ready To Start\nSecure Deals?',
-      subtitle:
-          'Create agreements, set conditions, and let Adehun handle the trust. Your money, your terms.',
-      accentWord: 'Secure',
+      illustration: 'assets/illustrations/onboarding_release.svg',
+      title: "Release when you're happy",
+      accentWord: 'happy',
+      body:
+          "Tick off each condition as it's delivered. When everything checks out, release the funds in one tap.",
     ),
   ];
 
-  void _nextPage(WidgetRef ref) {
-    if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _completeOnboarding(ref);
+  bool get _isLast => _currentPage == _pages.length - 1;
+
+  void _next() {
+    if (_isLast) {
+      _finish();
+      return;
     }
+    _pageController.nextPage(
+      duration: AppMotion.slow,
+      curve: AppMotion.curve,
+    );
   }
 
-  void _completeOnboarding(WidgetRef ref) {
+  void _finish() {
     ref.read(preferencesServiceProvider).setFirstLaunch(false);
     context.go('/auth');
   }
@@ -75,156 +77,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
-            Consumer(
-              builder: (context, ref, _) {
-                return Align(
-                  alignment: Alignment.topRight,
+            SizedBox(
+              height: 48,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: AnimatedOpacity(
+                  duration: AppMotion.fast,
+                  opacity: _isLast ? 0 : 1,
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: TextButton(
-                      onPressed: () => _completeOnboarding(ref),
-                      child: Text(
-                        'Skip',
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: colors.textSecondary,
-                        ),
-                      ),
+                    padding: const EdgeInsets.only(right: AppSpacing.md),
+                    child: TertiaryButton(
+                      label: 'Skip',
+                      onPressed: _isLast ? null : _finish,
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
-
-            // Page content
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                itemBuilder: (context, index) {
-                  final page = _pages[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final illustrationSize = (constraints.maxWidth * 0.7)
-                            .clamp(180.0, 280.0);
-                        return Column(
-                          children: [
-                            const Spacer(flex: 1),
-                            // Illustration — free-floating with soft shadow
-                            Container(
-                              height: illustrationSize,
-                              width: index != 1
-                                  ? double.maxFinite
-                                  : illustrationSize,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.08,
-                                    ),
-                                    blurRadius: 40,
-                                    offset: const Offset(0, 12),
-                                    spreadRadius: 0,
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: SvgPicture.asset(
-                                  page.illustration,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const Spacer(flex: 1),
-                            // Title with accent
-                            _buildTitle(page.title, page.accentWord),
-                            const SizedBox(height: 16),
-                            // Subtitle
-                            Text(
-                              page.subtitle,
-                              textAlign: TextAlign.center,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: colors.textSecondary,
-                                height: 1.6,
-                              ),
-                            ),
-                            const Spacer(flex: 2),
-                          ],
-                        );
-                      },
-                    ),
-                  );
-                },
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                itemBuilder: (context, index) => _SlideView(page: _pages[index]),
               ),
             ),
-
-            // Bottom section: dots + button
             Padding(
-              padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                AppSpacing.sm,
+                AppSpacing.gutter,
+                AppSpacing.lg,
+              ),
+              child: Column(
                 children: [
-                  // Page dots
-                  Row(
-                    children: List.generate(
-                      _pages.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.only(right: 8),
-                        width: index == _currentPage ? 28 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: index == _currentPage
-                              ? AppColors.primary
-                              : AppColors.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
+                  _Dots(count: _pages.length, current: _currentPage),
+                  const SizedBox(height: AppSpacing.xl),
+                  PrimaryButton(
+                    label: _isLast ? 'Get started' : 'Next',
+                    onPressed: _next,
                   ),
-                  // Next button with circular progress
-                  Consumer(
-                    builder: (context, ref, _) {
-                      return GestureDetector(
-                        onTap: () => _nextPage(ref),
-                        child: SizedBox(
-                          width: 64,
-                          height: 64,
-                          child: CustomPaint(
-                            painter: _CircularProgressPainter(
-                              progress: (_currentPage + 1) / _pages.length,
-                              trackColor: AppColors.primary.withValues(
-                                alpha: 0.15,
-                              ),
-                              progressColor: AppColors.primary,
-                              strokeWidth: 3,
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 52,
-                                height: 52,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primary,
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.arrow_right,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  const SizedBox(height: AppSpacing.xs),
+                  TertiaryButton(
+                    label: 'I already have an account',
+                    expand: true,
+                    onPressed: _finish,
                   ),
                 ],
               ),
@@ -234,25 +131,107 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+}
 
-  Widget _buildTitle(String title, String accentWord) {
+class _SlideView extends StatelessWidget {
+  final _OnboardingPage page;
+
+  const _SlideView({required this.page});
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
+    return Padding(
+      padding: AppInsets.screen,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final artHeight = (constraints.maxHeight * 0.42).clamp(180.0, 300.0);
+          return Column(
+            children: [
+              const Spacer(),
+              Container(
+                height: artHeight,
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: colors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppRadius.xl + 8),
+                ),
+                child: SvgPicture.asset(page.illustration, fit: BoxFit.contain),
+              ),
+              const SizedBox(height: AppSpacing.xxxl),
+              _AccentTitle(title: page.title, accentWord: page.accentWord),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                page.body,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const Spacer(flex: 2),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AccentTitle extends StatelessWidget {
+  final String title;
+  final String accentWord;
+
+  const _AccentTitle({required this.title, required this.accentWord});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final style = AppTextStyles.displayMedium.copyWith(color: colors.textPrimary);
     final parts = title.split(accentWord);
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: AppTextStyles.displayMedium.copyWith(color: colors.textPrimary),
+    return Text.rich(
+      TextSpan(
+        style: style,
         children: [
           if (parts.isNotEmpty) TextSpan(text: parts[0]),
           TextSpan(
             text: accentWord,
-            style: AppTextStyles.displayMedium.copyWith(
-              color: AppColors.accent,
-            ),
+            style: style.copyWith(color: AppColors.primary),
           ),
           if (parts.length > 1) TextSpan(text: parts[1]),
         ],
       ),
+      textAlign: TextAlign.center,
+    );
+  }
+}
+
+class _Dots extends StatelessWidget {
+  final int count;
+  final int current;
+
+  const _Dots({required this.count, required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        final active = index == current;
+        return AnimatedContainer(
+          duration: AppMotion.normal,
+          curve: AppMotion.curve,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: active ? 24 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: active ? AppColors.primary : colors.cardBorder,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
     );
   }
 }
@@ -260,64 +239,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class _OnboardingPage {
   final String illustration;
   final String title;
-  final String subtitle;
   final String accentWord;
+  final String body;
 
-  _OnboardingPage({
+  const _OnboardingPage({
     required this.illustration,
     required this.title,
-    required this.subtitle,
     required this.accentWord,
+    required this.body,
   });
-}
-
-class _CircularProgressPainter extends CustomPainter {
-  final double progress;
-  final Color trackColor;
-  final Color progressColor;
-  final double strokeWidth;
-
-  _CircularProgressPainter({
-    required this.progress,
-    required this.trackColor,
-    required this.progressColor,
-    required this.strokeWidth,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    // Track
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Progress arc
-    final progressPaint = Paint()
-      ..color = progressColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    const startAngle = -math.pi / 2;
-    final sweepAngle = 2 * math.pi * progress;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepAngle,
-      false,
-      progressPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_CircularProgressPainter oldDelegate) =>
-      oldDelegate.progress != progress;
 }

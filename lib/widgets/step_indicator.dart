@@ -14,7 +14,7 @@ class StepIndicator extends StatelessWidget {
     super.key,
     required this.current,
     required this.labels,
-  }) : assert(labels.length > 0);
+  });
 
   @override
   Widget build(BuildContext context) {

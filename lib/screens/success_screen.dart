@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/confetti_burst.dart';
 
 class SuccessScreen extends StatefulWidget {
   final String type;
@@ -18,39 +24,16 @@ class SuccessScreen extends StatefulWidget {
   State<SuccessScreen> createState() => _SuccessScreenState();
 }
 
-class _SuccessScreenState extends State<SuccessScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
+class _SuccessScreenState extends State<SuccessScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
-    _controller.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      HapticFeedback.mediumImpact();
+    });
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _navigate(BuildContext context, String route) {
+  void _navigate(String route) {
     const shellRoots = {'/home', '/wallet', '/agreements', '/profile'};
     if (shellRoots.contains(route)) {
       context.go(route);
@@ -65,214 +48,149 @@ class _SuccessScreenState extends State<SuccessScreen>
       : '/agreement/${widget.agreementId}';
 
   _SuccessConfig get _config {
-    switch (widget.type) {
-      case 'agreement-created':
-        return _SuccessConfig(
-          illustration: 'assets/illustrations/illustration 4.svg',
-          title: 'Agreement Created!',
-          subtitle:
-              'Your escrow agreement has been created successfully. The other party will receive an invitation to accept.',
-          primaryAction: 'View Agreement',
+    return switch (widget.type) {
+      'agreement-created' => _SuccessConfig(
+          icon: Iconsax.send_2,
+          tone: AppColors.primary,
+          title: 'Agreement sent',
+          body:
+              "We've invited the other party. Once they accept, you can fund escrow and get things moving.",
+          primaryAction: 'View agreement',
           primaryRoute: _agreementRoute,
-          secondaryAction: 'Back to Home',
+          secondaryAction: 'Back to home',
           secondaryRoute: '/home',
-          accentColor: AppColors.primary,
-        );
-      case 'funds-deposited':
-        return _SuccessConfig(
-          illustration: 'assets/illustrations/illustration 5.svg',
-          title: 'Funds Deposited!',
-          subtitle:
-              'Your wallet has been funded successfully. You can now use these funds for escrow agreements.',
-          primaryAction: 'View Wallet',
+        ),
+      'funds-deposited' => const _SuccessConfig(
+          icon: Iconsax.wallet_add,
+          tone: AppColors.success,
+          title: 'Wallet topped up',
+          body:
+              'Your money is in your Adehun wallet, ready to lock into an agreement whenever you are.',
+          primaryAction: 'View wallet',
           primaryRoute: '/wallet',
-          secondaryAction: 'Back to Home',
+          secondaryAction: 'Back to home',
           secondaryRoute: '/home',
-          accentColor: AppColors.success,
-        );
-      case 'conditions-met':
-        return _SuccessConfig(
-          illustration: 'assets/illustrations/illustration 6.svg',
-          title: 'Conditions Met!',
-          subtitle:
-              'All conditions have been approved. The funds are ready to be released to the beneficiary.',
-          primaryAction: 'View Agreement',
+        ),
+      'conditions-met' => _SuccessConfig(
+          icon: Iconsax.tick_circle,
+          tone: AppColors.success,
+          title: 'All conditions met',
+          body:
+              "Everything's been approved. The funds are ready to be released to the beneficiary.",
+          primaryAction: 'View agreement',
           primaryRoute: _agreementRoute,
-          secondaryAction: 'Back to Home',
+          secondaryAction: 'Back to home',
           secondaryRoute: '/home',
-          accentColor: AppColors.success,
-        );
-      case 'funds-released':
-        return _SuccessConfig(
-          illustration: 'assets/illustrations/illustration 6.svg',
-          title: 'Funds Released!',
-          subtitle:
-              'The escrow funds have been released successfully. The agreement is now complete. Great deal!',
-          primaryAction: 'Back to Home',
+        ),
+      'funds-released' => const _SuccessConfig(
+          icon: Iconsax.medal_star,
+          tone: AppColors.success,
+          title: 'Funds released',
+          body:
+              "The money is on its way to the beneficiary and the agreement is complete. Nicely done.",
+          primaryAction: 'Back to home',
           primaryRoute: '/home',
-          secondaryAction: 'View Agreements',
+          secondaryAction: 'View agreements',
           secondaryRoute: '/agreements',
-          accentColor: AppColors.success,
-        );
-      default:
-        return _SuccessConfig(
-          illustration: 'assets/illustrations/illustration 4.svg',
-          title: 'Success!',
-          subtitle: 'The action was completed successfully.',
+        ),
+      _ => const _SuccessConfig(
+          icon: Iconsax.tick_circle,
+          tone: AppColors.primary,
+          title: 'Done',
+          body: 'That went through successfully.',
           primaryAction: 'Continue',
           primaryRoute: '/home',
-          secondaryAction: null,
-          secondaryRoute: null,
-          accentColor: AppColors.primary,
-        );
-    }
+        ),
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final config = _config;
+    final reduced = AppMotion.reduced(context);
+
+    Widget hero = Container(
+      width: 132,
+      height: 132,
+      decoration: BoxDecoration(
+        color: config.tone.withValues(alpha: context.isDarkMode ? 0.22 : 0.12),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Container(
+          width: 96,
+          height: 96,
+          decoration: BoxDecoration(
+            color: config.tone,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: config.tone.withValues(alpha: 0.35),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Icon(config.icon, color: Colors.white, size: 48),
+        ),
+      ),
+    );
+
+    if (!reduced) {
+      hero = hero.animate().scale(
+            begin: const Offset(0.4, 0.4),
+            end: const Offset(1, 1),
+            duration: 700.ms,
+            curve: Curves.elasticOut,
+          );
+    }
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Opacity(opacity: _fadeAnimation.value, child: child);
-            },
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
-                // Animated success icon
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: child,
-                    );
-                  },
-                  child: SizedBox(
-                    height: 260,
-                    width: 260,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer ripple ring
-                        Container(
-                          width: 260,
-                          height: 260,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: config.accentColor.withValues(alpha: 0.06),
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                        // Middle ripple ring
-                        Container(
-                          width: 220,
-                          height: 220,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: config.accentColor.withValues(alpha: 0.10),
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                        // Inner soft glow
-                        Container(
-                          width: 180,
-                          height: 180,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: config.accentColor.withValues(alpha: 0.05),
-                          ),
-                        ),
-                        // Illustration
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(22),
-                          child: SvgPicture.asset(
-                            config.illustration,
-                            width: 160,
-                            height: 160,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        // Checkmark badge
-                        Positioned(
-                          bottom: 16,
-                          right: 30,
-                          child: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: config.accentColor,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: config.accentColor.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Iconsax.tick_circle,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            AppSpacing.lg,
+            AppSpacing.gutter,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
+              ConfettiBurst(child: hero),
+              const SizedBox(height: AppSpacing.xxxl),
+              Text(
+                config.title,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.displayMedium.copyWith(
+                  color: colors.textPrimary,
                 ),
-                const SizedBox(height: 32),
-                Text(
-                  config.title,
-                  style: AppTextStyles.displayMedium,
-                  textAlign: TextAlign.center,
+              ).entrance(context, 3),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                config.body,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w400,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  config.subtitle,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: colors.textSecondary,
-                    height: 1.6,
-                  ),
-                  textAlign: TextAlign.center,
+              ).entrance(context, 4),
+              const Spacer(flex: 3),
+              PrimaryButton(
+                label: config.primaryAction,
+                onPressed: () => _navigate(config.primaryRoute),
+              ),
+              if (config.secondaryAction != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                TertiaryButton(
+                  label: config.secondaryAction!,
+                  expand: true,
+                  onPressed: () => _navigate(config.secondaryRoute!),
                 ),
-                const Spacer(flex: 2),
-                // Primary action
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _navigate(context, config.primaryRoute),
-                    child: Text(config.primaryAction),
-                  ),
-                ),
-                if (config.secondaryAction != null) ...[
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () =>
-                          _navigate(context, config.secondaryRoute!),
-                      child: Text(config.secondaryAction!),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 32),
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -281,23 +199,23 @@ class _SuccessScreenState extends State<SuccessScreen>
 }
 
 class _SuccessConfig {
-  final String illustration;
+  final IconData icon;
+  final Color tone;
   final String title;
-  final String subtitle;
+  final String body;
   final String primaryAction;
   final String primaryRoute;
   final String? secondaryAction;
   final String? secondaryRoute;
-  final Color accentColor;
 
-  _SuccessConfig({
-    required this.illustration,
+  const _SuccessConfig({
+    required this.icon,
+    required this.tone,
     required this.title,
-    required this.subtitle,
+    required this.body,
     required this.primaryAction,
     required this.primaryRoute,
-    required this.secondaryAction,
-    required this.secondaryRoute,
-    required this.accentColor,
+    this.secondaryAction,
+    this.secondaryRoute,
   });
 }
