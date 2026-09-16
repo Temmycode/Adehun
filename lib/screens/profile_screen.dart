@@ -1,6 +1,7 @@
 import 'package:adehun_mvp/controllers/auth_controller.dart';
 import 'package:adehun_mvp/theme/theme_controller.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:adehun_mvp/shell/app_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -172,7 +173,7 @@ class ProfileScreen extends ConsumerWidget {
                   color: colors.textTertiary,
                 ),
               ),
-              const SizedBox(height: 100),
+              SizedBox(height: context.navBottomPadding),
             ],
           ),
         ),

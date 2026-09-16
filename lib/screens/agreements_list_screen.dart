@@ -1,5 +1,6 @@
 import 'package:adehun_mvp/controllers/agreement_controller.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
+import 'package:adehun_mvp/shell/app_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -186,7 +187,9 @@ class _AgreementsListScreenState extends State<AgreementsListScreen> {
             ),
 
             // Agreements list
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            SliverToBoxAdapter(
+              child: SizedBox(height: context.navBottomPadding),
+            ),
           ],
         ),
       ),

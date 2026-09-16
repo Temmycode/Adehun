@@ -1,6 +1,7 @@
 import 'package:adehun_mvp/controllers/transaction_controller.dart';
 import 'package:adehun_mvp/controllers/wallet_card_balance_notifier.dart';
 import 'package:adehun_mvp/controllers/wallet_data_controller.dart';
+import 'package:adehun_mvp/shell/app_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -176,7 +177,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                   ),
                 ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              SliverToBoxAdapter(
+                child: SizedBox(height: context.navBottomPadding),
+              ),
             ],
           ),
         ),

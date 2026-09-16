@@ -17,7 +17,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/skeletons.dart';
-import '../widgets/status_badge.dart';
+import '../widgets/status_pill.dart';
 
 class ConditionDetailScreen extends ConsumerStatefulWidget {
   final String conditionId;
@@ -203,7 +203,7 @@ class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              StatusBadge(status: status),
+              StatusPill.agreement(status),
               const SizedBox(height: 12),
               Text(condition.title ?? "No title", style: AppTextStyles.h1),
               const SizedBox(height: 8),
@@ -474,7 +474,7 @@ class _AssetCard extends StatelessWidget {
               ],
             ),
           ),
-          StatusBadge(status: status, compact: true),
+          StatusPill.agreement(status, size: StatusPillSize.sm),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import '../domain/models/transaction.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
+import 'status_pill.dart';
 
 typedef _TypeVisuals = ({
   IconData icon,
@@ -84,7 +85,7 @@ class TransactionTile extends StatelessWidget {
                       ),
                       if (isPending || isReversed) ...[
                         const SizedBox(width: 6),
-                        _StatusPill(status: transaction.status),
+                        StatusPill.transaction(transaction.status),
                       ],
                     ],
                   ),
@@ -173,55 +174,3 @@ class TransactionTile extends StatelessWidget {
       };
 }
 
-class _StatusPill extends StatelessWidget {
-  final TransactionStatus status;
-
-  const _StatusPill({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final (String label, Color fg, Color bg, IconData icon) = switch (status) {
-      TransactionStatus.unknown => (
-        'Unknown',
-        colors.textSecondary,
-        colors.surfaceVariant,
-        Iconsax.info_circle_copy,
-      ),
-      TransactionStatus.pending => (
-        'Pending',
-        AppColors.warning,
-        colors.warningLight,
-        Iconsax.timer_1_copy,
-      ),
-      TransactionStatus.reversed => (
-        'Reversed',
-        colors.textSecondary,
-        colors.surfaceVariant,
-        Iconsax.rotate_left_copy,
-      ),
-      TransactionStatus.completed => (
-        'Completed',
-        AppColors.success,
-        colors.successLight,
-        Iconsax.tick_circle_copy,
-      ),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 9, color: fg),
-          const SizedBox(width: 3),
-          Text(label, style: AppTextStyles.labelSmall.copyWith(color: fg)),
-        ],
-      ),
-    );
-  }
-}

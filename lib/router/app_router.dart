@@ -5,8 +5,11 @@ import 'package:adehun_mvp/screens/bank_accounts_screen.dart';
 import 'package:adehun_mvp/screens/edit_profile_screen.dart';
 import 'package:adehun_mvp/screens/invite_landing_screen.dart';
 import 'package:adehun_mvp/screens/withdraw_screen.dart';
+import 'package:adehun_mvp/widgets/app_top_bar.dart';
+import 'package:adehun_mvp/widgets/list_state_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../screens/agreement_detail_screen.dart';
 import '../screens/agreement_invitation_screen.dart';
@@ -53,12 +56,14 @@ final GoRouter appRouter = GoRouter(
     return target;
   },
   errorBuilder: (context, state) => Scaffold(
-    appBar: AppBar(title: const Text('Page not found')),
-    body: Center(
-      child: TextButton(
-        onPressed: () => context.go('/home'),
-        child: const Text('Back to home'),
-      ),
+    appBar: const AppTopBar(title: 'Page not found', showBack: false),
+    body: ListStatePlaceholder(
+      icon: Iconsax.search_normal_copy,
+      title: "We couldn't find that page",
+      message: 'The link may be old or mistyped.',
+      actionLabel: 'Back to home',
+      primaryAction: true,
+      onAction: () => context.go('/home'),
     ),
   ),
   routes: [

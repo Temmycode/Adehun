@@ -10,7 +10,7 @@ import 'package:adehun_mvp/domain/models/participant.dart';
 import 'package:adehun_mvp/domain/states/agreement_state.dart';
 import 'package:adehun_mvp/usecases/params/add_condition_params.dart';
 import 'package:adehun_mvp/utils/random_functions.dart';
-import 'package:adehun_mvp/widgets/dispute_status_pill.dart';
+import 'package:adehun_mvp/widgets/status_pill.dart';
 import 'package:adehun_mvp/widgets/profile_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/skeletons.dart';
-import '../widgets/status_badge.dart';
 import '../utils/agreement_status.dart';
 
 class AgreementDetailScreen extends ConsumerStatefulWidget {
@@ -300,7 +299,7 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
                 children: [
                   const SizedBox(height: 8),
                   // Status & Title
-                  StatusBadge(status: status),
+                  StatusPill.agreement(status),
                   const SizedBox(height: 12),
                   Text(
                     agreement?.title ?? "No title",
@@ -1476,7 +1475,7 @@ class _DisputeCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              DisputeStatusPill(status: dispute.status, compact: true),
+              StatusPill.dispute(dispute.status, size: StatusPillSize.sm),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1698,7 +1697,7 @@ class _ConditionCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                StatusBadge(status: status, compact: true),
+                StatusPill.agreement(status, size: StatusPillSize.sm),
                 const SizedBox(width: 4),
                 Icon(
                   CupertinoIcons.chevron_forward,

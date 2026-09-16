@@ -291,36 +291,38 @@ class AgreementCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = _SkeletonCard(
       padding: const EdgeInsets.all(16),
-      radius: 16,
+      radius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title + status badge
+          // Avatar + title/role + status pill
           Row(
             children: [
-              Expanded(child: SkeletonLine(widthFactor: titleWidthFactor)),
+              const SkeletonCircle(diameter: 44),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonLine(widthFactor: titleWidthFactor, height: 14),
+                    const SizedBox(height: 6),
+                    const SkeletonBox(width: 120, height: 10),
+                  ],
+                ),
+              ),
               const SizedBox(width: 8),
-              const SkeletonBox(width: 56, height: 20, radius: 10),
+              const SkeletonBox(width: 64, height: 22, radius: 11),
             ],
           ),
           const SizedBox(height: 14),
-          // Amount + party avatars
+          // Amount + conditions progress
           Row(
             children: const [
-              SkeletonBox(width: 110, height: 18),
+              SkeletonBox(width: 110, height: 22),
               Spacer(),
-              SkeletonCircle(diameter: 28),
+              SkeletonBox(width: 84, height: 10),
               SizedBox(width: 8),
-              SkeletonCircle(diameter: 28),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // Conditions progress
-          Row(
-            children: const [
-              SkeletonBox(width: 90, height: 10),
-              Spacer(),
-              SkeletonBox(width: 48, height: 4, radius: 2),
+              SkeletonBox(width: 48, height: 5, radius: 3),
             ],
           ),
         ],
