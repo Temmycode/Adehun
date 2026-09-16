@@ -19,8 +19,9 @@ abstract final class AppSpacing {
 
 /// Common edge insets built from the spacing scale.
 abstract final class AppInsets {
-  static const EdgeInsets screen =
-      EdgeInsets.symmetric(horizontal: AppSpacing.gutter);
+  static const EdgeInsets screen = EdgeInsets.symmetric(
+    horizontal: AppSpacing.gutter,
+  );
   static const EdgeInsets card = EdgeInsets.all(AppSpacing.lg);
   static const EdgeInsets sheet = EdgeInsets.fromLTRB(
     AppSpacing.gutter,
@@ -47,14 +48,24 @@ abstract final class AppRadius {
       const BorderRadius.vertical(top: Radius.circular(xl));
 }
 
-/// The one soft shadow, for floating elements only (nav bar, FAB, hero card).
+/// Elevation, for floating elements only (nav bar, FAB, hero cards).
 abstract final class AppShadows {
+  /// Two layers, not one: a tight contact shadow that seats the element on
+  /// the page, and a wide ambient one that gives it height. A single flat
+  /// blur is what makes a surface look pasted on rather than lifted.
   static List<BoxShadow> floating(BuildContext context, {Color? tint}) {
+    final base = tint ?? context.colors.shadow;
     return [
       BoxShadow(
-        color: tint ?? context.colors.shadow,
-        blurRadius: 24,
-        offset: const Offset(0, 8),
+        color: base.withValues(alpha: base.a * 0.55),
+        blurRadius: 6,
+        offset: const Offset(0, 2),
+      ),
+      BoxShadow(
+        color: base,
+        blurRadius: 28,
+        offset: const Offset(0, 12),
+        spreadRadius: -4,
       ),
     ];
   }

@@ -32,26 +32,30 @@ abstract final class AppGradients {
     colors: [Color(0xFFFDF6EC), Color(0xFFF6EEE2)],
   );
 
-  /// The glows layered over [brand]. Clay top-right, gold bottom-left: enough
-  /// hue shift that the surface reads as lit rather than tinted.
+  /// The glows layered over [brand].
+  ///
+  /// Kept inside the green family on purpose. Clay over green mixes to olive,
+  /// which is exactly the muddy corner a naive mesh gradient produces. A
+  /// bright emerald lifts one corner, a deep pine drops the opposite one, and
+  /// gold gets a whisper at the bottom for warmth.
   static const List<MeshGlow> brandGlows = [
     MeshGlow(
-      center: Alignment(0.95, -0.85),
-      color: AppColors.accent,
+      center: Alignment(0.92, -0.82),
+      color: Color(0xFF3FD69E),
+      radius: 0.9,
+      opacity: 0.34,
+    ),
+    MeshGlow(
+      center: Alignment(-0.9, 0.95),
+      color: Color(0xFF04382A),
       radius: 0.95,
-      opacity: 0.38,
+      opacity: 0.42,
     ),
     MeshGlow(
-      center: Alignment(-0.85, 1.0),
+      center: Alignment(0.25, 1.0),
       color: AppColors.gold,
-      radius: 0.85,
-      opacity: 0.22,
-    ),
-    MeshGlow(
-      center: Alignment(-0.4, -1.0),
-      color: Color(0xFF4FD6A0),
-      radius: 0.7,
-      opacity: 0.20,
+      radius: 0.62,
+      opacity: 0.13,
     ),
   ];
 }

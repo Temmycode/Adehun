@@ -49,7 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     _howItWorksDismissed =
         ref.read(sharedPreferencesProvider).getBool(_howItWorksDismissedKey) ??
-            false;
+        false;
   }
 
   Future<void> _refresh() async {
@@ -74,8 +74,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final unread = ref.watch(unreadCountControllerProvider).value ?? 0;
     final agreements = ref.watch(agreementControllerProvider);
     final attention = ref.watch(attentionItemsProvider);
-    final attentionLoading = agreements.isLoading ||
-        ref.watch(invitedAgreementsProvider).isLoading;
+    final attentionLoading =
+        agreements.isLoading || ref.watch(invitedAgreementsProvider).isLoading;
 
     final allAgreements = agreements.value?.agreements ?? const [];
     final active = allAgreements
@@ -114,20 +114,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              _greeting(),
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: colors.textSecondary,
+                            // With no name yet, the greeting carries the line
+                            // on its own rather than sitting above a "there".
+                            if (_firstName(user?.name) case final name?) ...[
+                              Text(
+                                _greeting(),
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: colors.textSecondary,
+                                ),
                               ),
-                            ),
-                            Text(
-                              _firstName(user?.name),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.h2.copyWith(
-                                color: colors.textPrimary,
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.h2.copyWith(
+                                  color: colors.textPrimary,
+                                ),
                               ),
-                            ),
+                            ] else
+                              Text(
+                                _greeting(),
+                                style: AppTextStyles.h2.copyWith(
+                                  color: colors.textPrimary,
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -283,7 +293,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         final agreement = active[index];
                         return AgreementCard(
                           agreement: agreement,
-                          onTap: () => context.push('/agreement/${agreement.id}'),
+                          onTap: () =>
+                              context.push('/agreement/${agreement.id}'),
                         ).entrance(context, index + 2);
                       },
                     ),
@@ -328,9 +339,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return 'Good evening';
   }
 
-  static String _firstName(String? name) {
+  /// Null when we do not know the user's name yet, so the caller can fall
+  /// back rather than greeting them as "there".
+  static String? _firstName(String? name) {
     final trimmed = (name ?? '').trim();
-    if (trimmed.isEmpty) return 'there';
+    if (trimmed.isEmpty) return null;
     return trimmed.split(RegExp(r'\s+')).first;
   }
 }
@@ -341,9 +354,7 @@ class _AttentionSection extends StatelessWidget {
 
   const _AttentionSection({required this.items}) : loading = false;
 
-  const _AttentionSection.loading()
-      : items = const [],
-        loading = true;
+  const _AttentionSection.loading() : items = const [], loading = true;
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +454,9 @@ class _QuickAction extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelMedium.copyWith(color: colors.textPrimary),
+            style: AppTextStyles.labelMedium.copyWith(
+              color: colors.textPrimary,
+            ),
           ),
         ],
       ),
