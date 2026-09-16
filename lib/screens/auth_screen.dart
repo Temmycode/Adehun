@@ -26,7 +26,10 @@ class AuthScreen extends ConsumerWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final artHeight = (constraints.maxHeight * 0.26).clamp(140.0, 220.0);
+            final artHeight = (constraints.maxHeight * 0.26).clamp(
+              140.0,
+              220.0,
+            );
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.gutter,
@@ -36,71 +39,78 @@ class AuthScreen extends ConsumerWidget {
               ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - AppSpacing.lg - AppSpacing.xxl,
+                  minHeight:
+                      constraints.maxHeight - AppSpacing.lg - AppSpacing.xxl,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        const AdehunMark(size: 36, onPrimary: false),
-                        const SizedBox(width: AppSpacing.md),
-                        Text(
-                          'Adehun',
-                          style: AppTextStyles.h2.copyWith(
-                            color: colors.textPrimary,
+                // The Spacer below needs a bounded height, which a scroll view
+                // does not provide on its own.
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const AdehunMark(size: 36, onPrimary: false),
+                          const SizedBox(width: AppSpacing.md),
+                          Text(
+                            'Adehun',
+                            style: AppTextStyles.h2.copyWith(
+                              color: colors.textPrimary,
+                            ),
                           ),
+                        ],
+                      ).entrance(context, 0),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      Container(
+                        height: artHeight,
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: colors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(AppRadius.xl + 8),
                         ),
-                      ],
-                    ).entrance(context, 0),
-                    const SizedBox(height: AppSpacing.xxxl),
-                    Container(
-                      height: artHeight,
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceVariant,
-                        borderRadius: BorderRadius.circular(AppRadius.xl + 8),
+                        child: SvgPicture.asset(
+                          'assets/illustrations/onboarding_safe.svg',
+                          fit: BoxFit.contain,
+                        ),
+                      ).entrance(context, 1),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      Text(
+                        'Welcome to Adehun',
+                        style: AppTextStyles.displayMedium.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ).entrance(context, 2),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Sign in with Google to create or join an agreement in under a minute.',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ).entrance(context, 3),
+                      const SizedBox(height: AppSpacing.xxl),
+                      const _TrustStrip().entrance(context, 4),
+                      const Spacer(),
+                      const SizedBox(height: AppSpacing.xxl),
+                      _GoogleSignInButton(
+                        loading: isLoading,
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          ref
+                              .read(authControllerProvider.notifier)
+                              .googleSignIn();
+                        },
+                      ).entrance(context, 5),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'By continuing you agree to our Terms of Service and Privacy Policy.',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textTertiary,
+                        ),
                       ),
-                      child: SvgPicture.asset(
-                        'assets/illustrations/onboarding_safe.svg',
-                        fit: BoxFit.contain,
-                      ),
-                    ).entrance(context, 1),
-                    const SizedBox(height: AppSpacing.xxxl),
-                    Text(
-                      'Welcome to Adehun',
-                      style: AppTextStyles.displayMedium.copyWith(
-                        color: colors.textPrimary,
-                      ),
-                    ).entrance(context, 2),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Sign in with Google to create or join an agreement in under a minute.',
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ).entrance(context, 3),
-                    const SizedBox(height: AppSpacing.xxl),
-                    const _TrustStrip().entrance(context, 4),
-                    const Spacer(),
-                    const SizedBox(height: AppSpacing.xxl),
-                    _GoogleSignInButton(
-                      loading: isLoading,
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        ref.read(authControllerProvider.notifier).googleSignIn();
-                      },
-                    ).entrance(context, 5),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      'By continuing you agree to our Terms of Service and Privacy Policy.',
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: colors.textTertiary,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -189,7 +199,11 @@ class _GoogleSignInButton extends StatelessWidget {
                   key: const ValueKey('label'),
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset('assets/icons/google.png', width: 22, height: 22),
+                    Image.asset(
+                      'assets/icons/google.png',
+                      width: 22,
+                      height: 22,
+                    ),
                     const SizedBox(width: AppSpacing.md),
                     Text(
                       'Continue with Google',
