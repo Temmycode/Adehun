@@ -6,8 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_gradients.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/mesh_surface.dart';
+import '../widgets/orbiting_blobs.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -75,8 +78,48 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: SizedBox.expand(child: Center(child: mark)),
+      body: MeshSurface(
+        gradient: AppGradients.brandDeep,
+        child: SizedBox.expand(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // The same blobs that carry the auth screen, dimmed right down
+              // so the wordmark still leads.
+              Opacity(
+                opacity: 0.5,
+                child: OrbitingBlobs(
+                  size: MediaQuery.sizeOf(context).width * 1.1,
+                  blobs: const [
+                    BlobSpec(
+                      size: 0.34,
+                      color: Color(0xFF2E8B6E),
+                      orbit: 0.34,
+                      phase: 0,
+                      blur: 40,
+                    ),
+                    BlobSpec(
+                      size: 0.27,
+                      color: AppColors.accent,
+                      orbit: 0.30,
+                      phase: 0.5,
+                      blur: 46,
+                    ),
+                    BlobSpec(
+                      size: 0.22,
+                      color: AppColors.gold,
+                      orbit: 0.26,
+                      phase: 0.3,
+                      blur: 50,
+                    ),
+                  ],
+                ),
+              ),
+              mark,
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

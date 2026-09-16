@@ -8,7 +8,7 @@ import '../../theme/app_color_scheme.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_tokens.dart';
 import '../../utils/agreement_status.dart';
-import '../../widgets/app_card.dart';
+import '../../widgets/mesh_surface.dart';
 import '../../widgets/avatar_initials.dart';
 import '../../widgets/money_text.dart';
 import '../../widgets/status_pill.dart';
@@ -36,15 +36,16 @@ class AgreementSummaryHeader extends StatelessWidget {
     final status = AgreementStatusHelper.normalize(agreement.status);
     final description = agreement.description?.trim();
     final funded = agreement.isFunded;
-    final settled = status == AgreementStatusHelper.completed ||
+    final settled =
+        status == AgreementStatusHelper.completed ||
         status == AgreementStatusHelper.refunded ||
         status == AgreementStatusHelper.cancelled;
 
     final (fundIcon, fundLabel, fundColor) = settled
         ? (Iconsax.tick_circle_copy, 'Settled', colors.textSecondary)
         : funded
-            ? (Iconsax.lock, 'Held in escrow', AppColors.success)
-            : (Iconsax.unlock_copy, 'Not funded yet', AppColors.goldDark);
+        ? (Iconsax.lock, 'Held in escrow', AppColors.success)
+        : (Iconsax.unlock_copy, 'Not funded yet', AppColors.goldDark);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,10 +66,13 @@ class AgreementSummaryHeader extends StatelessWidget {
           ),
         ],
         const SizedBox(height: AppSpacing.xl),
-        AppCard(
-          color: AppColors.primary,
-          bordered: false,
+        MeshSurface(
+          borderRadius: AppRadius.card,
           padding: const EdgeInsets.all(AppSpacing.xl),
+          boxShadow: AppShadows.floating(
+            context,
+            tint: AppColors.primaryDark.withValues(alpha: 0.28),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -103,8 +107,8 @@ class AgreementSummaryHeader extends StatelessWidget {
                       !isParty
                           ? 'Between the two parties'
                           : isDepositor
-                              ? 'You pay $counterpartName'
-                              : '$counterpartName pays you',
+                          ? 'You pay $counterpartName'
+                          : '$counterpartName pays you',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.labelLarge.copyWith(
@@ -130,8 +134,8 @@ class AgreementSummaryHeader extends StatelessWidget {
                           color: fundColor == AppColors.success
                               ? const Color(0xFF8FD3B8)
                               : fundColor == AppColors.goldDark
-                                  ? const Color(0xFFF0C878)
-                                  : Colors.white70,
+                              ? const Color(0xFFF0C878)
+                              : Colors.white70,
                         ),
                         const SizedBox(width: 4),
                         Text(

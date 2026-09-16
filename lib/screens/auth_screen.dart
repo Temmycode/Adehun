@@ -3,7 +3,6 @@ import 'package:adehun_mvp/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../theme/app_colors.dart';
@@ -11,6 +10,7 @@ import '../theme/app_color_scheme.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/orbiting_blobs.dart';
 import 'splash_screen.dart' show AdehunMark;
 
 class AuthScreen extends ConsumerWidget {
@@ -26,92 +26,68 @@ class AuthScreen extends ConsumerWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final artHeight = (constraints.maxHeight * 0.26).clamp(
-              140.0,
-              220.0,
-            );
-            return SingleChildScrollView(
+            // The blobs are the hero, so they get whatever room is going
+            // spare once the copy and the button have taken theirs.
+            final field = (constraints.maxHeight * 0.34).clamp(220.0, 320.0);
+
+            return Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.gutter,
                 AppSpacing.lg,
                 AppSpacing.gutter,
-                AppSpacing.xxl,
+                AppSpacing.lg,
               ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      constraints.maxHeight - AppSpacing.lg - AppSpacing.xxl,
-                ),
-                // The Spacer below needs a bounded height, which a scroll view
-                // does not provide on its own.
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          const AdehunMark(size: 36, onPrimary: false),
-                          const SizedBox(width: AppSpacing.md),
-                          Text(
-                            'Adehun',
-                            style: AppTextStyles.h2.copyWith(
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ).entrance(context, 0),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      Container(
-                        height: artHeight,
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        decoration: BoxDecoration(
-                          color: AppColors.illustrationCanvas,
-                          borderRadius: BorderRadius.circular(AppRadius.xl + 8),
-                        ),
-                        child: SvgPicture.asset(
-                          'assets/illustrations/onboarding_safe.svg',
-                          fit: BoxFit.contain,
-                        ),
-                      ).entrance(context, 1),
-                      const SizedBox(height: AppSpacing.xxxl),
+                      const AdehunMark(size: 34, onPrimary: false),
+                      const SizedBox(width: AppSpacing.md),
                       Text(
-                        'Welcome to Adehun',
-                        style: AppTextStyles.displayMedium.copyWith(
+                        'Adehun',
+                        style: AppTextStyles.h2.copyWith(
                           color: colors.textPrimary,
-                        ),
-                      ).entrance(context, 2),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        'Sign in with Google to create or join an agreement in under a minute.',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ).entrance(context, 3),
-                      const SizedBox(height: AppSpacing.xxl),
-                      const _TrustStrip().entrance(context, 4),
-                      const Spacer(),
-                      const SizedBox(height: AppSpacing.xxl),
-                      _GoogleSignInButton(
-                        loading: isLoading,
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          ref
-                              .read(authControllerProvider.notifier)
-                              .googleSignIn();
-                        },
-                      ).entrance(context, 5),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        'By continuing you agree to our Terms of Service and Privacy Policy.',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: colors.textTertiary,
                         ),
                       ),
                     ],
                   ),
-                ),
+                  const Spacer(),
+                  Center(child: OrbitingBlobs(size: field)),
+                  const Spacer(),
+                  Text(
+                    'Welcome to\nAdehun',
+                    style: AppTextStyles.displayLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ).entrance(context, 0),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'Hold the money safely, agree the terms, and pay out when the work lands.',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ).entrance(context, 1),
+                  const SizedBox(height: AppSpacing.xl),
+                  const _TrustRow().entrance(context, 2),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _GoogleSignInButton(
+                    loading: isLoading,
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      ref.read(authControllerProvider.notifier).googleSignIn();
+                    },
+                  ).entrance(context, 3),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'By continuing you agree to our Terms of Service and Privacy Policy.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -121,46 +97,49 @@ class AuthScreen extends ConsumerWidget {
   }
 }
 
-class _TrustStrip extends StatelessWidget {
-  const _TrustStrip();
+/// Three short reassurances on one line. The full-sentence version of this
+/// took a third of the screen and read like terms and conditions.
+class _TrustRow extends StatelessWidget {
+  const _TrustRow();
 
   static const _items = [
-    (Iconsax.shield_tick_copy, 'Bank-grade encryption on every transaction'),
-    (Iconsax.lock_copy, 'Money stays in escrow until both sides agree'),
-    (Iconsax.rotate_left_copy, 'Cancel any time before an agreement is funded'),
+    (Iconsax.shield_tick, 'Bank-grade'),
+    (Iconsax.lock_1, 'Held in escrow'),
+    (Iconsax.flash_1, 'Set up in a minute'),
   ];
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Column(
+    return Row(
       children: [
-        for (final (icon, text) in _items)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: Row(
+        for (var i = 0; i < _items.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     color: colors.primarySurface,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: Icon(icon, size: 18, color: AppColors.primary),
+                  child: Icon(_items[i].$1, size: 18, color: AppColors.primary),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    text,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: colors.textPrimary,
-                    ),
+                const SizedBox(height: 6),
+                Text(
+                  _items[i].$2,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
+        ],
       ],
     );
   }

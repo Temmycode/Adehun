@@ -7,10 +7,11 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_tokens.dart';
+import 'mesh_surface.dart';
 import 'money_text.dart';
 import 'skeletons.dart';
 
-/// The wallet hero: available balance on a solid green card with the fund,
+/// The wallet hero: available balance on a lit gradient card with the fund,
 /// withdraw and history actions. Actions render only when their callback is
 /// given, so Home can show two and Wallet three.
 class WalletCard extends ConsumerWidget {
@@ -38,16 +39,12 @@ class WalletCard extends ConsumerWidget {
     final wallet = ref.watch(walletDataControllerProvider);
     final padding = compact ? AppSpacing.xl : AppSpacing.xxl;
 
-    return Container(
-      width: double.infinity,
+    return MeshSurface(
       padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.floating(
-          context,
-          tint: AppColors.primary.withValues(alpha: 0.28),
-        ),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      boxShadow: AppShadows.floating(
+        context,
+        tint: AppColors.primaryDark.withValues(alpha: 0.32),
       ),
       child: ValueListenableBuilder<bool>(
         valueListenable: balanceVisible,
@@ -160,7 +157,8 @@ class WalletCard extends ConsumerWidget {
                         ),
                       ),
                     if (onWithdraw != null) ...[
-                      if (onFundWallet != null) const SizedBox(width: AppSpacing.sm),
+                      if (onFundWallet != null)
+                        const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: _Action(
                           icon: Iconsax.arrow_up_2,
