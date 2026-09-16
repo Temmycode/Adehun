@@ -65,7 +65,7 @@ class AuthScreen extends ConsumerWidget {
                         height: artHeight,
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         decoration: BoxDecoration(
-                          color: colors.surfaceVariant,
+                          color: AppColors.illustrationCanvas,
                           borderRadius: BorderRadius.circular(AppRadius.xl + 8),
                         ),
                         child: SvgPicture.asset(

@@ -76,10 +76,19 @@ class ListStatePlaceholder extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (illustrationAsset != null)
-              SvgPicture.asset(
-                illustrationAsset!,
-                height: compact ? 120 : 168,
-                fit: BoxFit.contain,
+              // The artwork's line art is near-black, so it keeps its own light
+              // canvas rather than vanishing into the dark-mode background.
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppColors.illustrationCanvas,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                ),
+                child: SvgPicture.asset(
+                  illustrationAsset!,
+                  height: compact ? 120 : 168,
+                  fit: BoxFit.contain,
+                ),
               )
             else
               Container(

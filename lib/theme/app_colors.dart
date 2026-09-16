@@ -25,6 +25,13 @@ class AppColors {
   static const Color gold = Color(0xFFE9A23B);
   static const Color goldDark = Color(0xFF9A6410);
 
+  /// The tile the SVG illustrations sit on, in both themes.
+  ///
+  /// Their line art is near-black, which disappears against the dark-mode
+  /// background, so the artwork keeps its own light canvas rather than being
+  /// recoloured per theme.
+  static const Color illustrationCanvas = Color(0xFFF3EEE6);
+
   // Light-mode neutrals, kept for the rare place that cannot read a context.
   static const Color background = Color(0xFFFBF8F3);
   static const Color surface = Colors.white;

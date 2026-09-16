@@ -154,7 +154,7 @@ class _SlideView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 decoration: BoxDecoration(
-                  color: colors.surfaceVariant,
+                  color: AppColors.illustrationCanvas,
                   borderRadius: BorderRadius.circular(AppRadius.xl + 8),
                 ),
                 child: SvgPicture.asset(page.illustration, fit: BoxFit.contain),
