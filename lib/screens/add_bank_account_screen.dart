@@ -1,15 +1,22 @@
 import 'package:adehun_mvp/controllers/bank_account_controller.dart';
 import 'package:adehun_mvp/domain/models/bank.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../theme/app_color_scheme.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_bottom_sheet.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_toast.dart';
+import '../widgets/app_top_bar.dart';
+import '../widgets/bottom_action_bar.dart';
+import '../widgets/info_banner.dart';
+import '../widgets/labeled_field.dart';
 
 class AddBankAccountScreen extends ConsumerStatefulWidget {
   const AddBankAccountScreen({super.key});
@@ -51,17 +58,14 @@ class _AddBankAccountScreenState extends ConsumerState<AddBankAccountScreen> {
     } else {
       notifier.clearResolved();
     }
+    setState(() {});
   }
 
   Future<void> _pickBank() async {
     final state = ref.read(bankAccountControllerProvider);
-    final chosen = await showModalBottomSheet<Bank>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.colors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+    final chosen = await showAppBottomSheet<Bank>(
+      context,
+      title: 'Choose your bank',
       builder: (_) => _BankPicker(banks: state.banks),
     );
     if (chosen == null) return;
@@ -72,18 +76,14 @@ class _AddBankAccountScreenState extends ConsumerState<AddBankAccountScreen> {
   Future<void> _save() async {
     final bank = _bank;
     if (bank == null) return;
-    final ok = await ref
-        .read(bankAccountControllerProvider.notifier)
-        .add(
+    final ok = await ref.read(bankAccountControllerProvider.notifier).add(
           accountNumber: _number,
           bankCode: bank.code,
           makeDefault: _makeDefault,
         );
     if (!mounted) return;
     if (ok) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Bank account added')));
+      showAppToast(context, 'Bank account added', kind: ToastKind.success);
       context.pop();
     }
   }
@@ -93,154 +93,127 @@ class _AddBankAccountScreenState extends ConsumerState<AddBankAccountScreen> {
     final colors = context.colors;
     final state = ref.watch(bankAccountControllerProvider);
     final resolved = state.resolved;
-    final canSave =
-        resolved != null && !state.isSaving && _number.length == 10;
+    final canSave = resolved != null && !state.isSaving && _number.length == 10;
 
     ref.listen(bankAccountControllerProvider, (prev, next) {
       final error = next.errorMessage;
       if (error != null && error != prev?.errorMessage) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(error)));
+        showAppToast(context, error, kind: ToastKind.error);
         ref.read(bankAccountControllerProvider.notifier).clearError();
       }
     });
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        title: Text('Add Bank Account', style: AppTextStyles.h3),
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.back),
-          onPressed: () => context.pop(),
+      appBar: const AppTopBar(title: 'Add bank account'),
+      bottomNavigationBar: BottomActionBar(
+        primary: PrimaryButton(
+          label: 'Save account',
+          loading: state.isSaving,
+          onPressed: canSave ? _save : null,
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
+          AppSpacing.sm,
+          AppSpacing.gutter,
+          AppSpacing.xxl,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Withdrawals are paid to the account you add here. The account '
-              'name is confirmed with the bank before it is saved.',
+              'Withdrawals are paid to this account. We confirm the account name with your bank before saving.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textSecondary,
               ),
             ),
-            const SizedBox(height: 24),
-            Text('Bank', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: state.isLoadingBanks ? null : _pickBank,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              'Bank',
+              style: AppTextStyles.labelLarge.copyWith(color: colors.textPrimary),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Semantics(
+              button: true,
+              label: _bank?.name ?? 'Choose your bank',
+              child: Material(
+                color: colors.surfaceVariant,
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppRadius.input,
+                  side: BorderSide(color: colors.cardBorder),
                 ),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors.cardBorder),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _bank?.name ??
-                            (state.isLoadingBanks
-                                ? 'Loading banks…'
-                                : 'Select your bank'),
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: _bank == null
-                              ? colors.textTertiary
-                              : colors.textPrimary,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: state.isLoadingBanks ? null : _pickBank,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Icon(Iconsax.bank_copy, color: colors.textSecondary),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            _bank?.name ??
+                                (state.isLoadingBanks
+                                    ? 'Loading banks…'
+                                    : 'Choose your bank'),
+                            style: AppTextStyles.bodyLarge.copyWith(
+                              color: _bank == null
+                                  ? colors.textTertiary
+                                  : colors.textPrimary,
+                            ),
+                          ),
                         ),
-                      ),
+                        Icon(Iconsax.arrow_down_1, color: colors.textTertiary),
+                      ],
                     ),
-                    Icon(Iconsax.arrow_down_1, color: colors.textTertiary),
-                  ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Text('Account number', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: AppSpacing.xl),
+            LabeledField(
+              label: 'Account number',
+              hint: '10-digit NUBAN',
               controller: _numberController,
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(10),
               ],
-              decoration: const InputDecoration(hintText: '10-digit number'),
-              onChanged: (_) => setState(() {}),
+              prefix: const Icon(Iconsax.card_copy),
             ),
-            const SizedBox(height: 16),
-            if (state.isResolving)
-              Row(
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Verifying account…',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                ],
-              )
-            else if (resolved != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: colors.successLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Iconsax.tick_circle, color: AppColors.success),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        resolved.accountName,
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
+            AnimatedSwitcher(
+              duration: AppMotion.normal,
+              child: state.isResolving
+                  ? const InfoBanner(
+                      key: ValueKey('resolving'),
+                      tone: BannerTone.neutral,
+                      icon: Iconsax.refresh,
+                      message: 'Checking the account name with your bank…',
+                    )
+                  : resolved != null
+                      ? InfoBanner(
+                          key: const ValueKey('resolved'),
+                          tone: BannerTone.success,
+                          title: resolved.accountName,
+                          message: 'Account verified.',
+                        )
+                      : const SizedBox.shrink(key: ValueKey('none')),
+            ),
+            const SizedBox(height: AppSpacing.lg),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               value: _makeDefault,
+              activeTrackColor: AppColors.primary,
               onChanged: (v) => setState(() => _makeDefault = v),
-              title: Text('Use as default for withdrawals',
-                  style: AppTextStyles.bodyMedium),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: canSave ? _save : null,
-                child: state.isSaving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Save account'),
+              title: Text(
+                'Use for withdrawals by default',
+                style: AppTextStyles.bodyLarge.copyWith(color: colors.textPrimary),
               ),
             ),
           ],
@@ -268,20 +241,18 @@ class _BankPickerState extends State<_BankPicker> {
         .where((b) => b.name.toLowerCase().contains(_query.toLowerCase()))
         .toList();
     return SizedBox(
-      height: MediaQuery.sizeOf(context).height * 0.75,
+      height: MediaQuery.sizeOf(context).height * 0.7,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-            child: TextField(
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Search banks',
-                prefixIcon: Icon(Iconsax.search_normal_1_copy),
-              ),
-              onChanged: (v) => setState(() => _query = v),
+          TextField(
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'Search banks',
+              prefixIcon: Icon(Iconsax.search_normal_1_copy),
             ),
+            onChanged: (v) => setState(() => _query = v),
           ),
+          const SizedBox(height: AppSpacing.sm),
           Expanded(
             child: filtered.isEmpty
                 ? Center(
@@ -292,10 +263,17 @@ class _BankPickerState extends State<_BankPicker> {
                       ),
                     ),
                   )
-                : ListView.builder(
+                : ListView.separated(
                     itemCount: filtered.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (_, i) => ListTile(
+                      contentPadding: EdgeInsets.zero,
                       title: Text(filtered[i].name),
+                      trailing: Icon(
+                        Iconsax.arrow_right_3_copy,
+                        size: 16,
+                        color: colors.textTertiary,
+                      ),
                       onTap: () => Navigator.pop(context, filtered[i]),
                     ),
                   ),

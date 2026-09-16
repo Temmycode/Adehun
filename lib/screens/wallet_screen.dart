@@ -6,15 +6,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+
+import '../core/utils/group_by_day.dart';
 import '../domain/models/transaction.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 import '../theme/app_color_scheme.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_toast.dart';
 import '../widgets/list_state_placeholder.dart';
 import '../widgets/paginated_list_view.dart';
+import '../widgets/section_header.dart';
 import '../widgets/skeletons.dart';
-import '../widgets/wallet_card.dart';
 import '../widgets/transaction_tile.dart';
+import '../widgets/wallet_card.dart';
 
 class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
@@ -24,24 +31,14 @@ class WalletScreen extends ConsumerStatefulWidget {
 }
 
 class _WalletScreenState extends ConsumerState<WalletScreen> {
-  /// The wallet only previews the latest few — the rest live on /transactions.
+  /// The wallet only previews the latest few; the rest live on /transactions.
   static const _recentCount = 7;
 
   @override
   void initState() {
     super.initState();
-    _initializeWalletData();
-  }
-
-  Future<void> _getTransactions() async {
-    return await ref
-        .read(transactionsListControllerProvider.notifier)
-        .loadTransactions();
-  }
-
-  void _initializeWalletData() async {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.wait([_getTransactions()]);
+      ref.read(transactionsListControllerProvider.notifier).loadTransactions();
     });
   }
 
@@ -57,15 +54,14 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           next.errorMessage != previous?.errorMessage &&
           next.transactions.isNotEmpty &&
           (ModalRoute.of(context)?.isCurrent ?? true)) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+        showAppToast(context, next.errorMessage!, kind: ToastKind.error);
       }
     });
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
+        bottom: false,
         child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () => Future.wait([
@@ -75,46 +71,54 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // Header
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    AppSpacing.md,
+                    AppSpacing.gutter,
+                    0,
+                  ),
                   child: Text(
                     'Wallet',
                     style: AppTextStyles.h1.copyWith(color: colors.textPrimary),
                   ),
                 ),
               ),
-
-              // Wallet card
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    AppSpacing.xl,
+                    AppSpacing.gutter,
+                    0,
+                  ),
                   child: WalletCard(
                     balanceVisible: balanceVisibleNotifier,
                     onFundWallet: () => context.push('/fund-wallet'),
                     onWithdraw: () => context.push('/withdraw'),
                     onHistory: () => context.push('/transactions'),
-                  ),
+                  ).entrance(context, 0),
                 ),
               ),
-
-              // Transaction history header
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 4),
-                  child: Text(
-                    'Transaction History',
-                    style: AppTextStyles.h3.copyWith(color: colors.textPrimary),
+                  padding: const EdgeInsets.only(
+                    top: AppSpacing.xxl,
+                    bottom: AppSpacing.xs,
+                  ),
+                  child: SectionHeader(
+                    title: 'Recent activity',
+                    actionLabel: state.total > _recentCount ? 'See all' : null,
+                    onAction: () => context.push('/transactions'),
                   ),
                 ),
               ),
-
-              // Transaction list — bounded to the latest few, so `hasMore` is
-              // false and this can never paginate.
+              // Bounded to the latest few, so `hasMore` is false and this can
+              // never paginate.
               PaginatedSliverList<Transaction>(
                 items: recent,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: AppInsets.screen,
                 isLoading: state.isLoading,
                 hasMore: false,
                 // SliverFillRemaining under the wallet card would overflow.
@@ -122,61 +126,49 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 errorMessage: state.errorMessage,
                 onRetry: notifier.loadTransactions,
                 loadingBuilder: (_) => const TransactionListSkeleton(count: 5),
-                emptyBuilder: (_) => const ListStatePlaceholder(
+                emptyBuilder: (_) => ListStatePlaceholder(
                   compact: true,
                   icon: Iconsax.receipt_2_copy,
-                  title: 'No transactions yet',
-                  message: 'Fund your wallet to get started.',
+                  title: 'No activity yet',
+                  message: 'Fund your wallet and it will show up here.',
+                  actionLabel: 'Fund wallet',
+                  onAction: () => context.push('/fund-wallet'),
                 ),
                 errorBuilder: (_, message) => ListStatePlaceholder.error(
                   compact: true,
-                  heading: "Couldn't load transactions",
+                  heading: "Couldn't load activity",
                   detail: message,
                   onRetry: notifier.loadTransactions,
                 ),
                 separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (_, transaction, _) =>
+                itemBuilder: (_, transaction, index) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (startsNewDay(recent, index, (t) => t.createdAt))
+                      TransactionDayHeader(
+                        day: transaction.createdAt,
+                        first: index == 0,
+                      ),
                     TransactionTile(transaction: transaction),
+                  ],
+                ),
               ),
-
-              // See more — only once the server reports more than we're showing.
               if (state.total > _recentCount)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: TextButton(
-                        onPressed: () => context.push('/transactions'),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: colors.surfaceVariant,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'See more',
-                              style: AppTextStyles.buttonMedium.copyWith(
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Iconsax.arrow_right_3,
-                              size: 15,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ),
-                      ),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      AppSpacing.md,
+                      AppSpacing.gutter,
+                      0,
+                    ),
+                    child: SecondaryButton(
+                      label: 'See all activity',
+                      icon: Iconsax.arrow_right_3_copy,
+                      onPressed: () => context.push('/transactions'),
                     ),
                   ),
                 ),
-
               SliverToBoxAdapter(
                 child: SizedBox(height: context.navBottomPadding),
               ),

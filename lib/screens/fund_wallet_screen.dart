@@ -1,14 +1,21 @@
 import 'package:adehun_mvp/controllers/fund_wallet_controller.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+
+import '../core/utils/format_currency.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_color_scheme.dart';
 import '../theme/app_text_styles.dart';
-import '../utils/currency_input_formatter.dart';
+import '../theme/app_tokens.dart';
+import '../widgets/amount_field.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_card.dart';
+import '../widgets/app_toast.dart';
+import '../widgets/app_top_bar.dart';
+import '../widgets/bottom_action_bar.dart';
+import '../widgets/info_banner.dart';
 
 class FundWalletScreen extends ConsumerStatefulWidget {
   const FundWalletScreen({super.key});
@@ -19,8 +26,30 @@ class FundWalletScreen extends ConsumerStatefulWidget {
 
 class _FundWalletScreenState extends ConsumerState<FundWalletScreen> {
   final _amountController = TextEditingController();
-  String _selectedMethod = 'card';
-  final List<int> _quickAmounts = [5000, 10000, 25000, 50000];
+  final _formKey = GlobalKey<FormState>();
+  String _method = 'card';
+  double? _amount;
+
+  static const _methods = [
+    (
+      'card',
+      Iconsax.card,
+      'Debit card',
+      'Instant. Paystack may add a small card fee.',
+    ),
+    (
+      'bank',
+      Iconsax.bank,
+      'Bank transfer',
+      'Transfer from your bank app. Usually a few minutes.',
+    ),
+    (
+      'ussd',
+      Iconsax.mobile,
+      'USSD',
+      'Dial a code from your phone. No internet needed.',
+    ),
+  ];
 
   @override
   void dispose() {
@@ -28,31 +57,16 @@ class _FundWalletScreenState extends ConsumerState<FundWalletScreen> {
     super.dispose();
   }
 
-  Future<void> _handleFundWallet() async {
-    final fundAmount = _amountController.text.trim();
-    if (fundAmount.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter an amount')));
-      return;
-    }
-
-    // CurrencyInputFormatter writes thousands separators into the field, so the
-    // raw text ("10,000") never parses — strip them first.
-    final amount = double.tryParse(fundAmount.replaceAll(',', ''));
-    if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
-      return;
-    }
+  Future<void> _fund() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final amount = AmountField.parse(_amountController.text);
+    if (amount == null || amount <= 0) return;
 
     final funded = await ref
         .read(fundWalletControllerProvider.notifier)
-        .fundWallet(amount, _selectedMethod);
-
+        .fundWallet(amount, _method);
     if (!mounted) return;
-    // On failure we stay put so the user can retry; the error snackbar is wired
+    // On failure we stay put so the user can retry; the error toast is wired
     // up in build() via ref.listen.
     if (funded) context.push('/success/funds-deposited');
   }
@@ -62,253 +76,162 @@ class _FundWalletScreenState extends ConsumerState<FundWalletScreen> {
     final colors = context.colors;
     final fundState = ref.watch(fundWalletControllerProvider);
 
-    // Surface errors as a snackbar exactly once per new error value.
     ref.listen(fundWalletControllerProvider, (previous, next) {
       if (next.error != null && next.error != previous?.error) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.error!)));
+        showAppToast(context, next.error!, kind: ToastKind.error);
       }
     });
 
+    final amount = _amount ?? 0;
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        title: Text('Fund Wallet', style: AppTextStyles.h3),
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.back),
-          onPressed: () => context.pop(),
+      appBar: const AppTopBar(title: 'Fund wallet'),
+      bottomNavigationBar: BottomActionBar(
+        primary: PrimaryButton(
+          label: amount > 0 ? 'Fund ${formatMoney(amount)}' : 'Fund wallet',
+          loading: fundState.isLoading,
+          onPressed: fundState.isLoading ? null : _fund,
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  Text('Enter Amount', style: AppTextStyles.labelLarge),
-                  const SizedBox(height: 12),
-                  // Amount input
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primary, width: 1.5),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '\u20A6',
-                          style: AppTextStyles.amountLarge.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            controller: _amountController,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9.,]'),
-                              ),
-                              CurrencyInputFormatter(),
-                            ],
-                            style: AppTextStyles.amountLarge,
-                            decoration: InputDecoration(
-                              hintText: '0.00',
-                              hintStyle: AppTextStyles.amountLarge.copyWith(
-                                color: colors.textTertiary,
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                              fillColor: Colors.transparent,
-                              filled: false,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Quick amounts
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _quickAmounts.map((amount) {
-                      return GestureDetector(
-                        onTap: () {
-                          _amountController.text = amount.toString();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.primarySurface,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '\u20A6${_formatAmount(amount)}',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 32),
-                  Text('Payment Method', style: AppTextStyles.labelLarge),
-                  const SizedBox(height: 12),
-                  // Payment methods
-                  _PaymentMethodTile(
-                    icon: Iconsax.card_copy,
-                    title: 'Debit Card',
-                    subtitle: 'Pay with your debit card',
-                    isSelected: _selectedMethod == 'card',
-                    onTap: () => setState(() => _selectedMethod = 'card'),
-                  ),
-                  const SizedBox(height: 10),
-                  _PaymentMethodTile(
-                    icon: Iconsax.bank_copy,
-                    title: 'Bank Transfer',
-                    subtitle: 'Transfer from your bank',
-                    isSelected: _selectedMethod == 'bank',
-                    onTap: () => setState(() => _selectedMethod = 'bank'),
-                  ),
-                  const SizedBox(height: 10),
-                  _PaymentMethodTile(
-                    icon: Iconsax.mobile_copy,
-                    title: 'USSD',
-                    subtitle: 'Pay via USSD code',
-                    isSelected: _selectedMethod == 'ussd',
-                    onTap: () => setState(() => _selectedMethod = 'ussd'),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+      body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
+          AppSpacing.sm,
+          AppSpacing.gutter,
+          AppSpacing.xxl,
+        ),
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AmountField(
+                controller: _amountController,
+                label: 'How much?',
+                autofocus: true,
+                quickAmounts: const [5000, 10000, 25000, 50000],
+                onChanged: (v) => setState(() => _amount = v),
+                validator: (value) {
+                  final parsed = AmountField.parse(value ?? '');
+                  if (parsed == null || parsed <= 0) return 'Enter an amount';
+                  return null;
+                },
               ),
-            ),
-          ),
-          // Fund button pinned at bottom
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-            child: SafeArea(
-              top: false,
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: fundState.isLoading ? null : _handleFundWallet,
-                  child: fundState.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Fund Wallet'),
+              const SizedBox(height: AppSpacing.xxxl),
+              Text(
+                'Pay with',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: colors.textPrimary,
                 ),
               ),
-            ),
+              const SizedBox(height: AppSpacing.sm),
+              for (final (id, icon, title, subtitle) in _methods)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: _MethodCard(
+                    icon: icon,
+                    title: title,
+                    subtitle: subtitle,
+                    selected: _method == id,
+                    onTap: () => setState(() => _method = id),
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.md),
+              const InfoBanner(
+                tone: BannerTone.neutral,
+                icon: Iconsax.shield_tick_copy,
+                message:
+                    'Payments are processed by Paystack. Your card details never touch Adehun.',
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
-
-  String _formatAmount(int amount) {
-    final str = amount.toString();
-    final buffer = StringBuffer();
-    for (var i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) {
-        buffer.write(',');
-      }
-      buffer.write(str[i]);
-    }
-    return buffer.toString();
-  }
 }
 
-class _PaymentMethodTile extends StatelessWidget {
+class _MethodCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final bool isSelected;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _PaymentMethodTile({
+  const _MethodCard({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.isSelected,
+    required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.primarySurface : colors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : colors.cardBorder,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '$title. $subtitle',
+      child: AppCard(
+        onTap: onTap,
+        color: selected ? colors.primarySurface : colors.surface,
+        borderColor: selected ? AppColors.primary : colors.cardBorder,
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : colors.surfaceVariant,
-                borderRadius: BorderRadius.circular(12),
+                color: selected ? AppColors.primary : colors.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? AppColors.primary : colors.textSecondary,
                 size: 22,
+                color: selected ? Colors.white : colors.textSecondary,
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTextStyles.labelLarge),
-                  Text(subtitle, style: AppTextStyles.bodySmall),
+                  Text(
+                    title,
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Container(
+            const SizedBox(width: AppSpacing.sm),
+            AnimatedContainer(
+              duration: AppMotion.fast,
               width: 22,
               height: 22,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
+                color: selected ? AppColors.primary : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : colors.textTertiary,
-                  width: isSelected ? 6 : 2,
+                  color: selected ? AppColors.primary : colors.cardBorder,
+                  width: 2,
                 ),
               ),
+              child: selected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
             ),
           ],
         ),
