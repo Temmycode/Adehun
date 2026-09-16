@@ -217,55 +217,70 @@ class _SkeletonCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Home — analytics
+// Home — attention feed
 // ---------------------------------------------------------------------------
 
-/// Mirrors `_AnalyticsCard` on the home screen.
-class AnalyticsCardSkeleton extends StatelessWidget {
+/// Mirrors `AttentionCard`: 264 wide, 14px padding, a 40px icon tile, two
+/// text lines and a trailing chevron.
+class AttentionCardSkeleton extends StatelessWidget {
   final bool shimmer;
 
-  const AnalyticsCardSkeleton({super.key, this.shimmer = true});
+  const AttentionCardSkeleton({super.key, this.shimmer = true});
 
   @override
   Widget build(BuildContext context) {
-    const card = _SkeletonCard(
-      padding: EdgeInsets.all(18),
-      radius: 16,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final colors = context.colors;
+    final bone = colors.cardBorder;
+    final card = Container(
+      width: 264,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceVariant,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
         children: [
-          SkeletonBox(width: 160, height: 12),
-          SizedBox(height: 18),
-          _BarRowSkeleton(widthFactor: 0.85),
-          SizedBox(height: 12),
-          _BarRowSkeleton(widthFactor: 0.55),
-          SizedBox(height: 12),
-          _BarRowSkeleton(widthFactor: 0.7),
+          SkeletonBox(width: 40, height: 40, radius: 12, color: bone),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SkeletonLine(widthFactor: 0.6, height: 12, color: bone),
+                const SizedBox(height: 6),
+                SkeletonLine(widthFactor: 0.85, height: 10, color: bone),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SkeletonBox(width: 16, height: 16, radius: 8, color: bone),
         ],
       ),
     );
 
-    return shimmer ? const Shimmer(child: card) : card;
+    return shimmer ? Shimmer(child: card) : card;
   }
 }
 
-class _BarRowSkeleton extends StatelessWidget {
-  final double widthFactor;
+/// A horizontal row of attention cards under one sweep, padded like the real
+/// list.
+class AttentionListSkeleton extends StatelessWidget {
+  final int count;
 
-  const _BarRowSkeleton({required this.widthFactor});
+  const AttentionListSkeleton({super.key, this.count = 2});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const SizedBox(width: 72, child: SkeletonBox(height: 10)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: SkeletonLine(widthFactor: widthFactor, height: 8, radius: 4),
-        ),
-        const SizedBox(width: 10),
-        const SizedBox(width: 20, child: SkeletonBox(height: 10)),
-      ],
+    return Shimmer(
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: count,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (_, _) => const AttentionCardSkeleton(shimmer: false),
+      ),
     );
   }
 }

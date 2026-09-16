@@ -1,13 +1,19 @@
-import 'dart:ui';
 import 'package:adehun_mvp/controllers/wallet_data_controller.dart';
-import 'package:adehun_mvp/core/extensions/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+
+import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_tokens.dart';
+import 'money_text.dart';
 import 'skeletons.dart';
 
-class WalletCard extends ConsumerStatefulWidget {
+/// The wallet hero: available balance on a solid green card with the fund,
+/// withdraw and history actions. Actions render only when their callback is
+/// given, so Home can show two and Wallet three.
+class WalletCard extends ConsumerWidget {
   final bool showActions;
   final VoidCallback? onFundWallet;
   final VoidCallback? onWithdraw;
@@ -25,297 +31,208 @@ class WalletCard extends ConsumerStatefulWidget {
     required this.balanceVisible,
   });
 
-  @override
-  ConsumerState<WalletCard> createState() => _WalletCardState();
-}
+  static const _cream = Color(0xFFFFFCF5);
 
-class _WalletCardState extends ConsumerState<WalletCard> {
   @override
-  Widget build(BuildContext context) {
-    final walletDataProvider = ref.watch(walletDataControllerProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wallet = ref.watch(walletDataControllerProvider);
+    final padding = compact ? AppSpacing.xl : AppSpacing.xxl;
 
     return Container(
       width: double.infinity,
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B4BF9).withValues(alpha: 0.25),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-            spreadRadius: -4,
-          ),
-        ],
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.floating(
+          context,
+          tint: AppColors.primary.withValues(alpha: 0.28),
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(
-          children: [
-            // Mesh gradient background image
-            Positioned.fill(
-              child: Image.asset(
-                'assets/images/mesh-gradient.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            // Dark overlay for text readability
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.35),
-                      Colors.black.withValues(alpha: 0.15),
-                      Colors.black.withValues(alpha: 0.30),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
-                ),
-              ),
-            ),
-
-            // Frosted decorative circle top-right
-            Positioned(
-              top: -30,
-              right: -30,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
-
-            // Smaller decorative circle
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    width: 1,
-                  ),
-                ),
-              ),
-            ),
-
-            // Bottom-left decorative element
-            Positioned(
-              bottom: -20,
-              left: -20,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
-                ),
-              ),
-            ),
-
-            // Card content
-            Padding(
-              padding: EdgeInsets.all(widget.compact ? 20 : 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: balanceVisible,
+        builder: (context, visible, _) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Wallet label with frosted chip
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Iconsax.wallet_3,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Wallet Balance',
-                                  style: AppTextStyles.labelSmall.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                  Expanded(
+                    child: Text(
+                      'Available balance',
+                      style: AppTextStyles.labelMedium.copyWith(
+                        color: _cream.withValues(alpha: 0.8),
                       ),
-                      // Visibility toggle
-                      GestureDetector(
-                        onTap: () => widget.balanceVisible.value =
-                            !widget.balanceVisible.value,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                ),
-                              ),
-                              child: widget.balanceVisible.sync(
-                                builder: (_, value, _) {
-                                  return Icon(
-                                    value
-                                        ? Iconsax.eye_copy
-                                        : Iconsax.eye_slash_copy,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    size: 18,
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: widget.compact ? 16 : 20),
-                  // Balance amount
-                  walletDataProvider.when(
-                    data: (walletData) {
-                      return FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: widget.balanceVisible.sync(
-                          builder: (_, value, _) {
-                            return Text(
-                              value
-                                  ? '${walletData.currencySymbol}${_formatAmount(walletData.availableBalance)}'
-                                  : '${walletData.currencySymbol}\u2022\u2022\u2022\u2022\u2022\u2022',
-                              style: AppTextStyles.amountLarge.copyWith(
-                                color: Colors.white,
-                                fontSize: widget.compact ? 30 : 34,
-                                letterSpacing: 0.5,
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                    error: (err, stk) => const Icon(Icons.error),
-                    loading: () =>
-                        WalletBalanceSkeleton(compact: widget.compact),
-                  ),
-                  if (widget.showActions == true) ...[
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        _ActionChip(
-                          icon: Iconsax.add,
-                          label: 'Fund',
-                          onTap: widget.onFundWallet,
-                        ),
-                        const SizedBox(width: 10),
-                        _ActionChip(
-                          icon: Iconsax.arrow_up_2,
-                          label: 'Withdraw',
-                          onTap: widget.onWithdraw,
-                        ),
-                        const SizedBox(width: 10),
-                        _ActionChip(
-                          icon: Iconsax.clock_copy,
-                          label: 'History',
-                          onTap: widget.onHistory,
-                        ),
-                      ],
                     ),
-                  ],
+                  ),
+                  Semantics(
+                    button: true,
+                    label: visible ? 'Hide balance' : 'Show balance',
+                    child: InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        balanceVisible.value = !visible;
+                      },
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _cream.withValues(alpha: 0.14),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          visible ? Iconsax.eye_copy : Iconsax.eye_slash_copy,
+                          color: _cream,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
+              SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
+              wallet.when(
+                data: (data) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: MoneyText(
+                        data.availableBalance,
+                        currency: data.currency,
+                        hidden: !visible,
+                        color: _cream,
+                        style: compact
+                            ? AppTextStyles.amountLarge
+                            : AppTextStyles.amountHero,
+                      ),
+                    ),
+                    if (data.escrowBalance > 0) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Iconsax.lock_copy,
+                            size: 13,
+                            color: _cream.withValues(alpha: 0.85),
+                          ),
+                          const SizedBox(width: 6),
+                          MoneyText(
+                            data.escrowBalance,
+                            currency: data.currency,
+                            hidden: !visible,
+                            style: AppTextStyles.labelMedium,
+                            color: _cream.withValues(alpha: 0.85),
+                          ),
+                          Text(
+                            ' held in escrow',
+                            style: AppTextStyles.labelMedium.copyWith(
+                              color: _cream.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+                loading: () => WalletBalanceSkeleton(compact: compact),
+                error: (_, _) => Text(
+                  'Balance unavailable',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: _cream.withValues(alpha: 0.85),
+                  ),
+                ),
+              ),
+              if (showActions) ...[
+                SizedBox(height: compact ? AppSpacing.lg : AppSpacing.xl),
+                Row(
+                  children: [
+                    if (onFundWallet != null)
+                      Expanded(
+                        child: _Action(
+                          icon: Iconsax.add,
+                          label: 'Fund',
+                          filled: true,
+                          onTap: onFundWallet!,
+                        ),
+                      ),
+                    if (onWithdraw != null) ...[
+                      if (onFundWallet != null) const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: _Action(
+                          icon: Iconsax.arrow_up_2,
+                          label: 'Withdraw',
+                          onTap: onWithdraw!,
+                        ),
+                      ),
+                    ],
+                    if (onHistory != null) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: _Action(
+                          icon: Iconsax.receipt_2_copy,
+                          label: 'History',
+                          onTap: onHistory!,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
-
-  String _formatAmount(double amount) {
-    final parts = amount.toStringAsFixed(2).split('.');
-    final whole = parts[0];
-    final decimal = parts[1];
-    final buffer = StringBuffer();
-    for (var i = 0; i < whole.length; i++) {
-      if (i > 0 && (whole.length - i) % 3 == 0) {
-        buffer.write(',');
-      }
-      buffer.write(whole[i]);
-    }
-    return '${buffer.toString()}.$decimal';
-  }
 }
 
-class _ActionChip extends StatelessWidget {
+class _Action extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback? onTap;
+  final bool filled;
+  final VoidCallback onTap;
 
-  const _ActionChip({required this.icon, required this.label, this.onTap});
+  const _Action({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.filled = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-            ),
+    const cream = WalletCard._cream;
+    final fg = filled ? AppColors.primaryDark : cream;
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: filled ? cream : cream.withValues(alpha: 0.14),
+        shape: StadiumBorder(
+          side: filled
+              ? BorderSide.none
+              : BorderSide(color: cream.withValues(alpha: 0.35)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+          child: SizedBox(
+            height: 44,
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: Colors.white, size: 16),
+                Icon(icon, size: 16, color: fg),
                 const SizedBox(width: 6),
                 Text(
                   label,
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: AppTextStyles.buttonMedium.copyWith(color: fg),
                 ),
               ],
             ),

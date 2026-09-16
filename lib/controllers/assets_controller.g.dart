@@ -41,7 +41,7 @@ final class AssetsControllerProvider
   }
 }
 
-String _$assetsControllerHash() => r'07f6d3d81725f5560adead1a6c07f35f5969e177';
+String _$assetsControllerHash() => r'f2110c041ee8feb054a9e846eaccc8cf26e77712';
 
 abstract class _$AssetsController extends $Notifier<AssetState> {
   AssetState build();
