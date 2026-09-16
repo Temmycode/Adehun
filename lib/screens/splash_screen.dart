@@ -1,4 +1,5 @@
 import 'package:adehun_mvp/core/resources/service_locator.dart';
+import 'package:adehun_mvp/router/auth_route_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -36,13 +37,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2500), () {
+    Future.delayed(const Duration(milliseconds: 1800), () {
       if (!mounted) return;
       final prefs = ref.read(preferencesServiceProvider);
-      if (prefs.isFirstLaunch) {
+      authRouteNotifier.setFirstLaunch(prefs.isFirstLaunch);
+      // A stored token, not the prefs flag, is what makes a session.
+      if (authRouteNotifier.hasSession) {
+        final pending = authRouteNotifier.consumeRedirectAfterLogin();
+        context.go(pending ?? '/home');
+      } else if (prefs.isFirstLaunch) {
         context.go('/onboarding');
-      } else if (prefs.isLoggedIn) {
-        context.go('/home');
       } else {
         context.go('/auth');
       }

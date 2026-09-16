@@ -8,8 +8,10 @@ import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/domain/models/agreement_invitation_response.dart';
+import 'package:adehun_mvp/domain/models/escrow_movement_response.dart';
 import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 class AgreementRepoImpl implements AgreementRepository {
   final AgreementApiService _agreementApiService;
@@ -40,7 +42,7 @@ class AgreementRepoImpl implements AgreementRepository {
     required String role,
     required String title,
     required String description,
-    required int amount,
+    required String amount,
     required List<Map<String, dynamic>> conditions,
   }) async {
     try {
@@ -80,6 +82,57 @@ class AgreementRepoImpl implements AgreementRepository {
       }
 
       return DataFailed(AcceptAgreementError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<EscrowMovementResponse>> fundAgreement(
+    String agreementId,
+  ) async {
+    try {
+      // Generated here rather than passed in — the caller has no business
+      // knowing about it, matching WalletRepoImpl.fundWallet.
+      final String idempotencyKey = Uuid().v4();
+      final apiResponse = await _agreementApiService.fundAgreement(
+        agreementId,
+        idempotencyKey,
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok ||
+          apiResponse.response.statusCode == HttpStatus.created) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(FundAgreementError());
+    } catch (err, stk) {
+      if (kDebugMode) {
+        log('$err, $stk');
+      }
+      // Load-bearing: this is how a 400/403/409 reaches the controller with the
+      // envelope's ApiError attached, so the server's own wording can surface.
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<AgreementResponse>> cancelAgreement(
+    String agreementId,
+  ) async {
+    try {
+      final apiResponse = await _agreementApiService.cancelAgreement(
+        agreementId,
+      );
+
+      if (apiResponse.response.statusCode == HttpStatus.ok) {
+        return DataSuccess(apiResponse.data);
+      }
+
+      return DataFailed(CancelAgreementError());
     } catch (err, stk) {
       if (kDebugMode) {
         log('$err, $stk');

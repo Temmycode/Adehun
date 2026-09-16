@@ -7,7 +7,14 @@ import 'package:go_router/go_router.dart';
 
 extension StringToSVG on String {
   Widget toSvg({double? height, double? width, Color? color}) {
-    return SvgPicture.asset(this, height: height, width: width, color: color);
+    return SvgPicture.asset(
+      this,
+      height: height,
+      width: width,
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(color, BlendMode.srcIn),
+    );
   }
 }
 

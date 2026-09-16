@@ -1,7 +1,5 @@
-import 'dart:convert';
 
 import 'package:adehun_mvp/controllers/notification_controller.dart';
-import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:adehun_mvp/domain/models/notification_model.dart';
 import 'package:adehun_mvp/domain/models/notification_type.dart';
 import 'package:adehun_mvp/domain/states/notification_state.dart';
@@ -75,19 +73,27 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     switch (n.notificationType) {
       case NotificationType.invitationReceived:
-        if (n.metadata == null) return null;
-
-        print(n.metadata);
-        // Ensure the invitation payload is JSON-serialized and URI-encoded
-        // so it can be safely included in the path segment.
-        final invitationObj = InvitationResponse.fromJson(n.metadata!);
-        final jsonString = jsonEncode(invitationObj.toJson());
-        final encoded = Uri.encodeComponent(jsonString);
-        return '/agreement-invitation/$encoded';
+        // Route by id only; the screen fetches the invitation itself.
+        final id =
+            n.agreementId ??
+            ((n.metadata?['agreement'] as Map<String, dynamic>?)?['id']
+                as String?);
+        return id == null ? null : '/agreement-invitation/$id';
       case NotificationType.agreementAccepted:
       case NotificationType.agreementDeclined:
         return null;
       case NotificationType.agreementCompleted:
+      case NotificationType.agreementCancelled:
+      // Escrow and dispute activity both belong to an agreement. Dispute
+      // notifications deliberately do NOT go to '/dispute/:id' — that's the
+      // raise-a-dispute form, not a place to read one.
+      case NotificationType.escrowFunded:
+      case NotificationType.escrowReleased:
+      case NotificationType.escrowRefunded:
+      case NotificationType.disputeRaised:
+      case NotificationType.disputeEvidenceAdded:
+      case NotificationType.disputeUnderReview:
+      case NotificationType.disputeResolved:
         final id = n.agreementId;
         return id == null ? null : '/agreement/$id';
       case NotificationType.conditionAdded:
@@ -96,6 +102,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         if (conditionId != null) return '/condition/$conditionId';
         final agreementId = n.agreementId;
         return agreementId == null ? null : '/agreement/$agreementId';
+      case NotificationType.walletCredited:
+      case NotificationType.withdrawalCompleted:
+      case NotificationType.withdrawalFailed:
+        return '/wallet';
       case NotificationType.general:
         return null;
     }

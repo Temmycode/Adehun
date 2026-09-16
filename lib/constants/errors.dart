@@ -40,6 +40,16 @@ class AcceptAgreementError extends AppException {
     : super("Couldn't accept the agreement. Please try again.");
 }
 
+class CancelAgreementError extends AppException {
+  const CancelAgreementError()
+    : super("Couldn't cancel the agreement. Please try again.");
+}
+
+class FundAgreementError extends AppException {
+  const FundAgreementError()
+    : super("Couldn't move the funds into escrow. Please try again.");
+}
+
 class GetAgreementError extends AppException {
   const GetAgreementError() : super("Couldn't load that agreement.");
 }
@@ -95,6 +105,20 @@ class GetConditionAssetUploadSignatureError extends AppException {
     : super("Couldn't start the upload. Please try again.");
 }
 
+class RaiseDisputeError extends AppException {
+  const RaiseDisputeError()
+    : super("Couldn't raise the dispute. Please try again.");
+}
+
+class GetDisputesError extends AppException {
+  const GetDisputesError() : super("Couldn't load disputes.");
+}
+
+class GetDisputeUploadSignatureError extends AppException {
+  const GetDisputeUploadSignatureError()
+    : super("Couldn't start the upload. Please try again.");
+}
+
 class GetAgreementStatsError extends AppException {
   const GetAgreementStatsError() : super("Couldn't load your stats.");
 }
@@ -123,6 +147,52 @@ class UploadSignatureError extends AppException {
 class FundWalletError extends AppException {
   const FundWalletError()
     : super("Couldn't start the payment. Please try again.");
+}
+
+class GetWalletError extends AppException {
+  const GetWalletError() : super("Couldn't load your wallet balance.");
+}
+
+class WithdrawError extends AppException {
+  const WithdrawError()
+    : super("Couldn't start the withdrawal. Please try again.");
+}
+
+class GetBanksError extends AppException {
+  const GetBanksError() : super("Couldn't load the list of banks.");
+}
+
+class ResolveBankAccountError extends AppException {
+  const ResolveBankAccountError()
+    : super("Couldn't verify that account. Check the number and bank.");
+}
+
+class GetBankAccountsError extends AppException {
+  const GetBankAccountsError() : super("Couldn't load your bank accounts.");
+}
+
+class AddBankAccountError extends AppException {
+  const AddBankAccountError()
+    : super("Couldn't save that bank account. Please try again.");
+}
+
+class UpdateBankAccountError extends AppException {
+  const UpdateBankAccountError()
+    : super("Couldn't update that bank account. Please try again.");
+}
+
+class GetProfileError extends AppException {
+  const GetProfileError() : super("Couldn't load your profile.");
+}
+
+class UpdateProfileError extends AppException {
+  const UpdateProfileError()
+    : super("Couldn't save your profile. Please try again.");
+}
+
+class InvitationLookupError extends AppException {
+  const InvitationLookupError()
+    : super('This invitation is invalid or has expired.');
 }
 
 class TransactionNotFoundError extends AppException {

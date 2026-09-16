@@ -15,7 +15,9 @@ TransactionListResponse _$TransactionListResponseFromJson(
   total: (json['total'] as num).toInt(),
   skip: (json['skip'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
-  summary: TransactionSummary.fromJson(json['summary'] as Map<String, dynamic>),
+  summary: json['summary'] == null
+      ? null
+      : TransactionSummary.fromJson(json['summary'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$TransactionListResponseToJson(

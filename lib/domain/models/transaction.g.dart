@@ -9,9 +9,21 @@ part of 'transaction.dart';
 Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
   id: json['id'] as String,
   reference: json['reference'] as String,
-  type: $enumDecode(_$TransactionTypeEnumMap, json['type']),
-  direction: $enumDecode(_$TransactionDirectionEnumMap, json['direction']),
-  status: $enumDecode(_$TransactionStatusEnumMap, json['status']),
+  type: $enumDecode(
+    _$TransactionTypeEnumMap,
+    json['type'],
+    unknownValue: TransactionType.unknown,
+  ),
+  direction: $enumDecode(
+    _$TransactionDirectionEnumMap,
+    json['direction'],
+    unknownValue: TransactionDirection.unknown,
+  ),
+  status: $enumDecode(
+    _$TransactionStatusEnumMap,
+    json['status'],
+    unknownValue: TransactionStatus.unknown,
+  ),
   amount: json['amount'] as String,
   currency: json['currency'] as String,
   balanceAfter: json['balance_after'] as String,
@@ -55,15 +67,18 @@ const _$TransactionTypeEnumMap = {
   TransactionType.withdrawalReversal: 'withdrawal_reversal',
   TransactionType.adjustmentCredit: 'adjustment_credit',
   TransactionType.adjustmentDebit: 'adjustment_debit',
+  TransactionType.unknown: 'unknown',
 };
 
 const _$TransactionDirectionEnumMap = {
   TransactionDirection.credit: 'credit',
   TransactionDirection.debit: 'debit',
+  TransactionDirection.unknown: 'unknown',
 };
 
 const _$TransactionStatusEnumMap = {
   TransactionStatus.pending: 'pending',
   TransactionStatus.completed: 'completed',
   TransactionStatus.reversed: 'reversed',
+  TransactionStatus.unknown: 'unknown',
 };

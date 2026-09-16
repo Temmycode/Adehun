@@ -2,11 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:adehun_mvp/constants/errors.dart';
+import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:adehun_mvp/data/services/auth_api_service.dart';
 import 'package:adehun_mvp/domain/auth_repository.dart';
 import 'package:adehun_mvp/domain/models/login_response.dart';
 import 'package:adehun_mvp/domain/models/user_data.dart';
-import 'package:adehun_mvp/core/resources/data_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,26 +15,24 @@ class AuthRepoImpl implements AuthRepository {
   final AuthApiService _authApiService;
   const AuthRepoImpl(AuthApiService apiService) : _authApiService = apiService;
 
+  /// Runs the Google -> Firebase handshake and returns a Firebase ID token.
+  Future<String?> _firebaseIdToken() async {
+    final googleUser = await GoogleSignIn.instance.authenticate();
+    final googleIdToken = googleUser.authentication.idToken;
+    if (googleIdToken == null) return null;
+
+    final credential = GoogleAuthProvider.credential(idToken: googleIdToken);
+    final userCredential = await FirebaseAuth.instance.signInWithCredential(
+      credential,
+    );
+    return userCredential.user?.getIdToken();
+  }
+
   @override
   Future<DataState<LoginResponse>> googleSignIn() async {
     try {
-      final googleUser = await GoogleSignIn.instance.authenticate();
-      final googleIdToken = googleUser.authentication.idToken;
-
-      if (googleIdToken == null) {
-        return DataFailed(LoginFailedError());
-      }
-
-      // Sign into Firebase Auth to get a Firebase ID token
-      final credential = GoogleAuthProvider.credential(idToken: googleIdToken);
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-      final firebaseIdToken = await userCredential.user?.getIdToken();
-
-      if (firebaseIdToken == null) {
-        return DataFailed(LoginFailedError());
-      }
+      final firebaseIdToken = await _firebaseIdToken();
+      if (firebaseIdToken == null) return DataFailed(LoginFailedError());
 
       final apiResponse = await _authApiService.googleSignIn({
         "id_token": firebaseIdToken,
@@ -43,14 +41,27 @@ class AuthRepoImpl implements AuthRepository {
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
       }
-
       return DataFailed(LoginFailedError());
     } on GoogleSignInException {
       return DataFailed(LoginFailedError());
-    } catch (err, stk) {
-      print("fail");
-      print('$err, $stk');
+    } catch (err) {
+      // Never log the exception body: a DioException stringifies the request,
+      // which for /auth/login includes the Firebase ID token.
+      if (kDebugMode) log('googleSignIn failed: ${err.runtimeType}');
       rethrow;
+    }
+  }
+
+  @override
+  Future<DataState<LoginResponse>> googleSignInWithInvite(
+    String invitationToken,
+  ) async {
+    try {
+      final firebaseIdToken = await _firebaseIdToken();
+      if (firebaseIdToken == null) return DataFailed(LoginFailedError());
+      return registerFromInvite(firebaseIdToken, invitationToken);
+    } on GoogleSignInException {
+      return DataFailed(LoginFailedError());
     }
   }
 
@@ -68,12 +79,9 @@ class AuthRepoImpl implements AuthRepository {
       if (apiResponse.response.statusCode == HttpStatus.ok) {
         return DataSuccess(apiResponse.data);
       }
-
       return DataFailed(InvitationRegistrationError());
-    } catch (err, stk) {
-      if (kDebugMode) {
-        log('$err, $stk');
-      }
+    } catch (err) {
+      if (kDebugMode) log('registerFromInvite failed: ${err.runtimeType}');
       rethrow;
     }
   }
@@ -91,16 +99,23 @@ class AuthRepoImpl implements AuthRepository {
         "name": fullName,
       });
 
-      if (apiResponse.response.statusCode == HttpStatus.ok) {
+      final status = apiResponse.response.statusCode;
+      if (status == HttpStatus.ok || status == HttpStatus.created) {
         return DataSuccess(apiResponse.data);
       }
-
       return DataFailed(RegistrationError());
-    } catch (err, stk) {
-      if (kDebugMode) {
-        log('$err, $stk');
-      }
+    } catch (err) {
+      if (kDebugMode) log('registerUser failed: ${err.runtimeType}');
       rethrow;
+    }
+  }
+
+  @override
+  Future<void> logout(String refreshToken) async {
+    try {
+      await _authApiService.logout({"refresh_token": refreshToken});
+    } catch (err) {
+      if (kDebugMode) log('logout failed: ${err.runtimeType}');
     }
   }
 }

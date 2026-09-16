@@ -2,6 +2,7 @@ import 'package:adehun_mvp/constants/urls.dart';
 import 'package:adehun_mvp/domain/models/agreement_create_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
 import 'package:adehun_mvp/domain/models/agreement_invitation_response.dart';
+import 'package:adehun_mvp/domain/models/escrow_movement_response.dart';
 import 'package:adehun_mvp/domain/models/invitation_response.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -23,6 +24,17 @@ abstract class AgreementApiService {
 
   @POST(acceptAgreementUrl)
   Future<HttpResponse<AgreementResponse>> acceptAgreement(
+    @Path("agreement_id") String agreementId,
+  );
+
+  @POST(fundAgreementUrl)
+  Future<HttpResponse<EscrowMovementResponse>> fundAgreement(
+    @Path("agreement_id") String agreementId,
+    @Header('Idempotency-Key') String idempotencyKey,
+  );
+
+  @POST(cancelAgreementUrl)
+  Future<HttpResponse<AgreementResponse>> cancelAgreement(
     @Path("agreement_id") String agreementId,
   );
 

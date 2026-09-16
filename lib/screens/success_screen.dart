@@ -9,7 +9,10 @@ import '../theme/app_text_styles.dart';
 class SuccessScreen extends StatefulWidget {
   final String type;
 
-  const SuccessScreen({super.key, required this.type});
+  /// The agreement the success relates to, if any.
+  final String? agreementId;
+
+  const SuccessScreen({super.key, required this.type, this.agreementId});
 
   @override
   State<SuccessScreen> createState() => _SuccessScreenState();
@@ -57,6 +60,10 @@ class _SuccessScreenState extends State<SuccessScreen>
     }
   }
 
+  String get _agreementRoute => widget.agreementId == null
+      ? '/agreements'
+      : '/agreement/${widget.agreementId}';
+
   _SuccessConfig get _config {
     switch (widget.type) {
       case 'agreement-created':
@@ -66,7 +73,7 @@ class _SuccessScreenState extends State<SuccessScreen>
           subtitle:
               'Your escrow agreement has been created successfully. The other party will receive an invitation to accept.',
           primaryAction: 'View Agreement',
-          primaryRoute: '/agreement/1',
+          primaryRoute: _agreementRoute,
           secondaryAction: 'Back to Home',
           secondaryRoute: '/home',
           accentColor: AppColors.primary,
@@ -90,7 +97,7 @@ class _SuccessScreenState extends State<SuccessScreen>
           subtitle:
               'All conditions have been approved. The funds are ready to be released to the beneficiary.',
           primaryAction: 'View Agreement',
-          primaryRoute: '/agreement/2',
+          primaryRoute: _agreementRoute,
           secondaryAction: 'Back to Home',
           secondaryRoute: '/home',
           accentColor: AppColors.success,

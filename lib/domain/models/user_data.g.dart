@@ -12,6 +12,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
   email: json['email'] as String?,
   phoneNumber: json['phone_number'] as String?,
   profilePictureUrl: json['profile_picture_url'] as String?,
+  isAdmin: json['is_admin'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
@@ -20,4 +21,5 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'email': instance.email,
   'phone_number': instance.phoneNumber,
   'profile_picture_url': instance.profilePictureUrl,
+  'is_admin': instance.isAdmin,
 };

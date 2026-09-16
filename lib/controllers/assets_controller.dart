@@ -4,8 +4,6 @@ import 'package:adehun_mvp/core/resources/service_locator.dart';
 import 'package:adehun_mvp/domain/models/assets_response.dart';
 import 'package:adehun_mvp/domain/models/upload_signature_response.dart';
 import 'package:adehun_mvp/domain/states/asset_state.dart';
-import 'package:adehun_mvp/router/app_router.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -70,71 +68,12 @@ class AssetsController extends _$AssetsController {
     return sigDataState.data!;
   }
 
-  Future<List<FileResponse>> _uploadFiles(
-    UploadSignatureResponse signature,
-    List<FileResponse> files,
-  ) async {
-    final cloudName = signature.cloudName;
-    if (cloudName.isEmpty) {
-      throw ArgumentError('cloudName is missing in SignedUpload');
-    }
-
-    final results = <FileResponse>[];
-    final cloudinaryDio = Dio(
-      BaseOptions(validateStatus: (status) => status != null && status < 500),
-    );
-
-    for (final file in files) {
-      if (file.path == null || file.path!.isEmpty) {
-        throw ArgumentError('File path is required for upload');
-      }
-
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(file.path!, filename: file.name),
-        'folder': signature.folder,
-        'timestamp': signature.timestamp,
-        'signature': signature.signature,
-        'api_key': signature.apiKey,
-      });
-
-      final uploadUrl =
-          'https://api.cloudinary.com/v1_1/$cloudName/auto/upload';
-      final response = await cloudinaryDio.post(uploadUrl, data: formData);
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          error:
-              'Cloudinary upload failed: ${response.statusCode} - ${response.data}',
-          type: DioExceptionType.badResponse,
-        );
-      }
-
-      final uploadedUrl =
-          response.data['secure_url'] ?? response.data['secureUrl'];
-      if (uploadedUrl == null ||
-          uploadedUrl is! String ||
-          uploadedUrl.isEmpty) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          error: 'Cloudinary upload returned no secure URL',
-          type: DioExceptionType.badResponse,
-        );
-      }
-
-      results.add(file.copyWith(url: uploadedUrl));
-    }
-
-    return results;
-  }
-
-  Future<void> uploadConditionAssets(
+  /// Returns true when the upload was persisted so the screen can pop.
+  Future<bool> uploadConditionAssets(
     String conditionId,
     List<FileResponse> files,
   ) async {
-    if (state.isAdding) return;
+    if (state.isAdding) return false;
     state = state.copyWith(isAdding: true, errorMessage: () => null);
 
     try {
@@ -143,7 +82,9 @@ class AssetsController extends _$AssetsController {
 
       // 1. Fetch signature & upload files
       final signature = await _getUploadSignature(conditionId);
-      final uploadFiles = await _uploadFiles(signature, files);
+      final uploadFiles = await ref
+          .read(cloudinaryUploadServiceProvider)
+          .uploadFiles(signature, files);
 
       // 2. Persist metadata to server
       final dataState = await repository.addConditionAssets(
@@ -163,7 +104,7 @@ class AssetsController extends _$AssetsController {
           assets: _withAssets(conditionId, merged),
           isAdding: false,
         );
-        appRouter.pop();
+        return true;
       } else {
         state = state.copyWith(
           isAdding: false,
@@ -175,13 +116,16 @@ class AssetsController extends _$AssetsController {
         isAdding: false,
         errorMessage: () => 'Could not start the upload. Please try again.',
       );
+      return false;
     } catch (err, stk) {
       debugPrint("Error adding files: $err\n$stk");
       state = state.copyWith(
         isAdding: false,
         errorMessage: () => 'Failed to upload assets',
       );
+      return false;
     }
+    return false;
   }
 
   void clearError() => state = state.copyWith(errorMessage: () => null);

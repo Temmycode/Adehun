@@ -1,4 +1,5 @@
 import 'package:adehun_mvp/domain/models/agreement_response.dart';
+import 'package:adehun_mvp/widgets/profile_image.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
@@ -67,6 +68,8 @@ class AgreementCard extends StatelessWidget {
                 const Spacer(),
                 // Parties - compact inline avatars
                 _InlineParties(
+                  depositor?.profilePictureUrl,
+                  beneficiary?.profilePictureUrl,
                   depositorInitials: depositor?.initials ?? "",
                   beneficiaryInitials: beneficiary != null
                       ? beneficiary.initials
@@ -104,10 +107,14 @@ class AgreementCard extends StatelessWidget {
 }
 
 class _InlineParties extends StatelessWidget {
+  final String? depositorImage;
+  final String? beneficiaryImage;
   final String depositorInitials;
   final String beneficiaryInitials;
 
-  const _InlineParties({
+  const _InlineParties(
+    this.depositorImage,
+    this.beneficiaryImage, {
     required this.depositorInitials,
     required this.beneficiaryInitials,
   });
@@ -118,7 +125,7 @@ class _InlineParties extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _MiniAvatar(initials: depositorInitials),
+        _MiniAvatar(depositorImage, initials: depositorInitials),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Icon(
@@ -127,16 +134,17 @@ class _InlineParties extends StatelessWidget {
             color: colors.textTertiary,
           ),
         ),
-        _MiniAvatar(initials: beneficiaryInitials),
+        _MiniAvatar(beneficiaryImage, initials: beneficiaryInitials),
       ],
     );
   }
 }
 
 class _MiniAvatar extends StatelessWidget {
+  final String? profileImage;
   final String initials;
 
-  const _MiniAvatar({required this.initials});
+  const _MiniAvatar(this.profileImage, {required this.initials});
 
   @override
   Widget build(BuildContext context) {
@@ -144,14 +152,16 @@ class _MiniAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 14,
       backgroundColor: colors.primarySurface,
-      child: Text(
-        initials,
-        style: AppTextStyles.labelSmall.copyWith(
-          color: AppColors.primary,
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+      child: profileImage != null
+          ? ProfileImage(image: profileImage)
+          : Text(
+              initials,
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.primary,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
     );
   }
 }

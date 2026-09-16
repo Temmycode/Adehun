@@ -6,7 +6,7 @@ import 'package:mime/mime.dart';
 
 part 'assets_response.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class AssetsResponse {
   final String id;
   final UploaderResponse uploader;
@@ -27,7 +27,7 @@ class AssetsResponse {
   Map<String, dynamic> toJson() => _$AssetsResponseToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UploaderResponse {
   final String id;
   @JsonKey(name: 'agreement_id')
@@ -50,7 +50,7 @@ class UploaderResponse {
   Map<String, dynamic> toJson() => _$UploaderResponseToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class FileResponse {
   final String id;
   final String url;

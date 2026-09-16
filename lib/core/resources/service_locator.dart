@@ -1,16 +1,27 @@
 import 'package:adehun_mvp/data/interceptors/api_response_interceptor.dart';
 import 'package:adehun_mvp/data/interceptors/auth_interceptor.dart';
+import 'package:adehun_mvp/data/interceptors/idempotency_interceptor.dart';
 import 'package:adehun_mvp/data/local/local_data_cache_manager.dart';
 import 'package:adehun_mvp/data/local/preferences_service.dart';
+import 'package:adehun_mvp/data/repositories/bank_account_repo_impl.dart';
+import 'package:adehun_mvp/data/repositories/dispute_repo_impl.dart';
+import 'package:adehun_mvp/data/repositories/user_repo_impl.dart';
+import 'package:adehun_mvp/data/services/bank_account_api_service.dart';
+import 'package:adehun_mvp/data/services/invitation_api_service.dart';
+import 'package:adehun_mvp/data/services/user_api_service.dart';
+import 'package:adehun_mvp/domain/bank_account_repository.dart';
+import 'package:adehun_mvp/domain/user_repository.dart';
 import 'package:adehun_mvp/data/repositories/transaction_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/wallet_repo_impl.dart';
+import 'package:adehun_mvp/data/services/cloudinary_upload_service.dart';
+import 'package:adehun_mvp/data/services/dispute_api_service.dart';
 import 'package:adehun_mvp/data/services/paystack_service.dart';
 import 'package:adehun_mvp/data/services/transaction_api_service.dart';
 import 'package:adehun_mvp/data/services/wallet_api_service.dart';
 import 'package:adehun_mvp/data/services/websocket_service.dart';
+import 'package:adehun_mvp/domain/dispute_repository.dart';
 import 'package:adehun_mvp/domain/transaction_repository.dart';
 import 'package:adehun_mvp/domain/wallet_repository.dart';
-import 'package:adehun_mvp/router/app_router.dart';
 import 'package:adehun_mvp/data/local/token_storage.dart';
 import 'package:adehun_mvp/data/repositories/agreement_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/auth_repo_impl.dart';
@@ -18,7 +29,6 @@ import 'package:adehun_mvp/data/repositories/condition_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/notification_repo_impl.dart';
 import 'package:adehun_mvp/data/repositories/stats_repo_impl.dart';
 import 'package:adehun_mvp/controllers/auth_controller.dart';
-import 'package:adehun_mvp/domain/states/auth_state.dart';
 import 'package:adehun_mvp/data/services/agreement_api_service.dart';
 import 'package:adehun_mvp/data/services/auth_api_service.dart';
 import 'package:adehun_mvp/data/services/condition_api_service.dart';
@@ -39,6 +49,7 @@ import 'package:adehun_mvp/usecases/mark_all_notifications_as_read.dart';
 import 'package:adehun_mvp/usecases/mark_notifications_as_read.dart';
 import 'package:adehun_mvp/usecases/reject_condition_asset.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -78,36 +89,51 @@ PreferencesService preferencesService(Ref ref) {
 @riverpod
 AuthInterceptor authInterceptor(Ref ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
-  final prefs = ref.watch(preferencesServiceProvider);
   final authController = ref.read(authControllerProvider.notifier);
 
   return AuthInterceptor(
     tokenStorage,
     onSessionExpired: () async {
-      await prefs.setLoggedIn(false);
-      await authController.setUser(null, status: AuthStatus.initial);
-      appRouter.go('/auth');
+      // The route guard sends the user to /auth once the session is gone.
+      await authController.handleSessionExpired();
     },
   );
 }
 
 @riverpod
 Dio dio(Ref ref) {
-  final dio = Dio();
+  final dio = Dio(
+    BaseOptions(
+      connectTimeout: AuthInterceptor.connectTimeout,
+      receiveTimeout: AuthInterceptor.receiveTimeout,
+      sendTimeout: AuthInterceptor.sendTimeout,
+    ),
+  );
   final authInterceptor = ref.watch(authInterceptorProvider);
   dio.interceptors.add(ApiResponseInterceptor());
   dio.interceptors.add(authInterceptor);
-  dio.interceptors.add(
-    LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      requestHeader: true,
-      responseHeader: false,
-      error: true,
-    ),
-  );
+  dio.interceptors.add(IdempotencyInterceptor());
+  if (kDebugMode) {
+    // Debug builds only. Release builds must never write bearer tokens or
+    // response bodies to the device log.
+    dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        requestHeader: false,
+        responseHeader: false,
+        error: true,
+        logPrint: (o) => debugPrint(_redact(o.toString())),
+      ),
+    );
+  }
   return dio;
 }
+
+String _redact(String line) => line.replaceAllMapped(
+  RegExp(r'(Bearer\s+|"(?:access|refresh|id)_token"\s*:\s*")[^"\s]+'),
+  (m) => '${m.group(1)}<redacted>',
+);
 
 // Services
 @riverpod
@@ -126,6 +152,19 @@ AgreementApiService agreementService(Ref ref) {
 ConditionApiService conditionService(Ref ref) {
   final dio = ref.watch(dioProvider);
   return ConditionApiService(dio);
+}
+
+@riverpod
+DisputeApiService disputeService(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return DisputeApiService(dio);
+}
+
+/// Deliberately NOT given [dioProvider] — that Dio carries our auth and
+/// logging interceptors, which have no business on a Cloudinary upload.
+@riverpod
+CloudinaryUploadService cloudinaryUploadService(Ref ref) {
+  return CloudinaryUploadService();
 }
 
 @riverpod
@@ -150,6 +189,21 @@ WalletApiService walletService(Ref ref) {
 TransactionApiService transactionService(Ref ref) {
   final dio = ref.watch(dioProvider);
   return TransactionApiService(dio);
+}
+
+@riverpod
+BankAccountApiService bankAccountApiService(Ref ref) {
+  return BankAccountApiService(ref.watch(dioProvider));
+}
+
+@riverpod
+UserApiService userApiService(Ref ref) {
+  return UserApiService(ref.watch(dioProvider));
+}
+
+@riverpod
+InvitationApiService invitationApiService(Ref ref) {
+  return InvitationApiService(ref.watch(dioProvider));
 }
 
 @riverpod
@@ -182,6 +236,12 @@ ConditionRepository conditionRepository(Ref ref) {
 }
 
 @riverpod
+DisputeRepository disputeRepository(Ref ref) {
+  final disputeService = ref.watch(disputeServiceProvider);
+  return DisputeRepoImpl(disputeService);
+}
+
+@riverpod
 StatsRepository statsRepository(Ref ref) {
   final statsService = ref.watch(statsServiceProvider);
   return StatsRepoImpl(statsService);
@@ -204,6 +264,16 @@ WalletRepository walletRepository(Ref ref) {
 TransactionRepository transactionRepository(Ref ref) {
   final apiService = ref.watch(transactionServiceProvider);
   return TransactionRepoImpl(apiService: apiService);
+}
+
+@riverpod
+BankAccountRepository bankAccountRepository(Ref ref) {
+  return BankAccountRepoImpl(ref.watch(bankAccountApiServiceProvider));
+}
+
+@riverpod
+UserRepository userRepository(Ref ref) {
+  return UserRepoImpl(ref.watch(userApiServiceProvider));
 }
 
 @riverpod

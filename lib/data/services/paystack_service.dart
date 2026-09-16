@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:paystack_flutter_sdk/paystack_flutter_sdk.dart';
 

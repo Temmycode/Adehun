@@ -10,6 +10,8 @@ import 'skeletons.dart';
 class WalletCard extends ConsumerStatefulWidget {
   final bool showActions;
   final VoidCallback? onFundWallet;
+  final VoidCallback? onWithdraw;
+  final VoidCallback? onHistory;
   final bool compact;
   final ValueNotifier<bool> balanceVisible;
 
@@ -17,6 +19,8 @@ class WalletCard extends ConsumerStatefulWidget {
     super.key,
     this.showActions = true,
     this.onFundWallet,
+    this.onWithdraw,
+    this.onHistory,
     this.compact = false,
     required this.balanceVisible,
   });
@@ -243,14 +247,14 @@ class _WalletCardState extends ConsumerState<WalletCard> {
                         const SizedBox(width: 10),
                         _ActionChip(
                           icon: Iconsax.arrow_up_2,
-                          label: 'Send',
-                          onTap: () {},
+                          label: 'Withdraw',
+                          onTap: widget.onWithdraw,
                         ),
                         const SizedBox(width: 10),
                         _ActionChip(
                           icon: Iconsax.clock_copy,
                           label: 'History',
-                          onTap: () {},
+                          onTap: widget.onHistory,
                         ),
                       ],
                     ),

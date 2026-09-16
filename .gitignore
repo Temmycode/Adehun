@@ -53,3 +53,8 @@ Claude.md
 config.json
 
 config.dev.json
+
+config.local.json
+android/key.properties
+*.jks
+*.keystore

@@ -3,7 +3,10 @@ class CreateAgreementParams {
   final String role;
   final String title;
   final String description;
-  final int amount;
+
+  /// Naira with at most two decimals, as a string (e.g. "1500.50"). Sent
+  /// verbatim so kobo precision survives; the API rejects more than 2dp.
+  final String amount;
   final List<CreateConditionParams> conditions;
 
   const CreateAgreementParams({
@@ -14,6 +17,9 @@ class CreateAgreementParams {
     required this.amount,
     required this.conditions,
   });
+
+  /// Normalises user input ("1,500.5") into the wire format ("1500.50").
+  static String formatAmount(double value) => value.toStringAsFixed(2);
 }
 
 class CreateConditionParams {
@@ -28,8 +34,8 @@ class CreateConditionParams {
   });
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'description': description,
-        'required_from_email': requiredFromEmail,
-      };
+    'title': title,
+    'description': description,
+    'required_from_email': requiredFromEmail,
+  };
 }

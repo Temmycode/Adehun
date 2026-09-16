@@ -24,20 +24,10 @@ class CustomNetworkImage extends StatelessWidget {
       width: width,
       filterQuality: FilterQuality.medium,
       placeholder: (context, url) {
-        return Image.asset(
-          placeholder,
-          height: height,
-          width: width,
-          fit: BoxFit.cover,
-        );
+        return Icon(Icons.image, size: height);
       },
       errorWidget: (c, o, s) {
-        return Image.asset(
-          placeholder,
-          height: height,
-          width: width,
-          fit: BoxFit.cover,
-        );
+        return Icon(Icons.image, size: height);
       },
     );
   }
