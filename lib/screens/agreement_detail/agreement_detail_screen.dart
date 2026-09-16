@@ -284,29 +284,16 @@ class _AgreementDetailScreenState extends ConsumerState<AgreementDetailScreen> {
     return _isDepositor ? a.beneficiary : a.depositor;
   }
 
-  bool _counterpartKnown() {
-    final p = _counterpart();
-    if (p?.name?.trim().isNotEmpty ?? false) return true;
-    if (p?.email?.trim().isNotEmpty ?? false) return true;
-    final invite = ref
-        .read(agreementControllerProvider)
-        .value
-        ?.invitations[_id];
-    return invite?.email?.trim().isNotEmpty ?? false;
-  }
+  /// Whether we have a human name for the other side. An invitation email is
+  /// not one: "Waiting for akisanyatemiloluwa" reads worse than "the other
+  /// party", and the address already shows in the Parties card.
+  bool _counterpartKnown() => _counterpart()?.name?.trim().isNotEmpty ?? false;
 
   String _counterpartName() {
-    final p = _counterpart();
-    final name = p?.name?.trim();
+    final name = _counterpart()?.name?.trim();
     if (name != null && name.isNotEmpty) {
       return name.split(RegExp(r'\s+')).first;
     }
-    final invite = ref
-        .read(agreementControllerProvider)
-        .value
-        ?.invitations[_id];
-    final email = p?.email ?? invite?.email;
-    if (email != null && email.isNotEmpty) return email.split('@').first;
     return 'the other party';
   }
 
